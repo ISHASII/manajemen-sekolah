@@ -11,6 +11,7 @@ use App\Models\StudentSkill;
 use App\Models\Document;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use App\Models\StudentApplication;
 
 class StudentController extends Controller
 {
@@ -136,28 +137,104 @@ class StudentController extends Controller
             'user_id' => $user->id
         ]));
 
+        // If the user had previously submitted an application with a profile photo, set the profile photo
+        $application = StudentApplication::where('email', $user->email)->latest()->first();
+        if ($application && isset($application->documents) && is_array($application->documents)) {
+            $photoDoc = collect($application->documents)->firstWhere('type', 'photo');
+            if ($photoDoc && isset($photoDoc['path']) && Storage::disk('public')->exists($photoDoc['path'])) {
+                $ext = pathinfo($photoDoc['path'], PATHINFO_EXTENSION);
+                $destFilename = 'profile_' . $user->id . '_' . time() . '.' . $ext;
+                $destPath = 'profile-photos/' . $destFilename;
+                Storage::disk('public')->copy($photoDoc['path'], $destPath);
+                $user->profile_photo = $destPath;
+                $user->save();
+            }
+        }
+
         return redirect()->route('student.profile')->with('success', 'Profil siswa berhasil dibuat.');
     }
 
     public function updateProfile(Request $request)
     {
-        $request->validate([
-            'interests_talents' => 'nullable|array',
-            'health_info' => 'nullable|array',
-            'disability_info' => 'nullable|array',
-        ]);
-
         $user = Auth::user();
         $student = Student::where('user_id', $user->id)->first();
         if (!$student) {
             return back()->with('error', 'Profil siswa tidak ditemukan.');
         }
 
-        $student->update([
-            'interests_talents' => $request->interests_talents,
-            'health_info' => $request->health_info,
-            'disability_info' => $request->disability_info,
+        // Accept a broader set of editable fields from students
+        $request->validate([
+            'interests_talents' => 'nullable|array',
+            'health_info' => 'nullable|array',
+            'disability_info' => 'nullable|array',
+            'place_of_birth' => 'nullable|string|max:255',
+            'birth_date' => 'nullable|date',
+            'religion' => 'nullable|in:islam,kristen,katolik,hindu,budha,khonghucu',
+            'address' => 'nullable|string',
+            'parent_name' => 'nullable|string|max:255',
+            'parent_phone' => 'nullable|string|max:50',
+            'parent_address' => 'nullable|string',
+            'parent_job' => 'nullable|string|max:255',
+            'email' => 'nullable|email|unique:users,email,' . $user->id,
+            'phone' => 'nullable|string|max:20',
+            'profile_photo' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'nisn' => 'nullable|string|max:50|unique:students,nisn,' . $student->id,
         ]);
+
+        // $user and $student are already loaded
+
+        // Update user-level fields if present (e.g., birth_date)
+        $userUpdated = [];
+        if ($request->filled('birth_date')) {
+            $userUpdated['birth_date'] = $request->birth_date;
+        }
+        if ($request->filled('gender')) {
+            $userUpdated['gender'] = $request->gender;
+        }
+        // update email and phone directly
+        if ($request->filled('email')) {
+            $userUpdated['email'] = $request->email;
+        }
+        if ($request->filled('phone')) {
+            $userUpdated['phone'] = $request->phone;
+        }
+        if ($request->filled('address')) {
+            // update user address as well
+            $userUpdated['address'] = $request->address;
+        }
+        // handle profile photo upload if present
+        if ($request->hasFile('profile_photo')) {
+            if ($user->profile_photo && Storage::disk('public')->exists($user->profile_photo)) {
+                Storage::disk('public')->delete($user->profile_photo);
+            }
+            $file = $request->file('profile_photo');
+            $filename = time() . '_' . $user->id . '.' . $file->getClientOriginalExtension();
+            $path = $file->storeAs('profile-photos', $filename, 'public');
+            $userUpdated['profile_photo'] = $path;
+        }
+        if (!empty($userUpdated)) {
+            $user->update($userUpdated);
+        }
+
+        // Update student-level fields
+        $studentFields = array_filter([
+            'interests_talents' => $request->interests_talents ?? $student->interests_talents,
+            'health_info' => $request->health_info ?? $student->health_info,
+            'disability_info' => $request->disability_info ?? $student->disability_info,
+            'place_of_birth' => $request->place_of_birth ?? $student->place_of_birth,
+            'birth_date' => $request->birth_date ?? $student->birth_date,
+            'religion' => $request->religion ?? $student->religion,
+            'address' => $request->address ?? $student->address,
+            'parent_name' => $request->parent_name ?? $student->parent_name,
+            'parent_phone' => $request->parent_phone ?? $student->parent_phone,
+            'parent_address' => $request->parent_address ?? $student->parent_address,
+            'parent_job' => $request->parent_job ?? $student->parent_job,
+            'nisn' => $request->nisn ?? $student->nisn,
+        ], function ($v) {
+            return $v !== null;
+        });
+
+        $student->update($studentFields);
 
         return back()->with('success', 'Profil berhasil diperbarui!');
     }

@@ -59,13 +59,25 @@
                     <div class="col-md-6">
                         <label class="form-label">Kelas</label>
                         <select name="class_id" class="form-select">
-                            <option value="">-- Pilih Kelas --</option>
-                            @foreach($classes as $c)
-                                <option value="{{ $c->id }}" {{ old('class_id') == $c->id ? 'selected' : '' }}>{{ $c->name }}
-                                </option>
-                            @endforeach
+                            @php $classesList = $classes ?? collect(); @endphp
+                            @if($classesList->count() > 0)
+                                <option value="">-- Pilih Kelas --</option>
+                                @foreach($classesList as $c)
+                                    <option value="{{ $c->id }}" {{ old('class_id') == $c->id ? 'selected' : '' }}>{{ $c->name }}
+                                    </option>
+                                @endforeach
+                            @else
+                                <option value="" disabled>Tidak ada kelas tersedia</option>
+                            @endif
                         </select>
                         @error('class_id') <div class="text-danger small">{{ $message }}</div> @enderror
+                        @if($classesList->count() == 0)
+                            <div class="form-text text-muted d-flex align-items-center justify-content-between">
+                                <div>Belum ada kelas, Anda dapat menambahkan siswa tanpa memilih kelas.</div>
+                                <div><a href="{{ route('admin.classes.create') }}" class="btn btn-sm btn-primary">Buat Kelas</a>
+                                </div>
+                            </div>
+                        @endif
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Tempat Lahir</label>

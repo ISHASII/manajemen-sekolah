@@ -8,7 +8,7 @@
             <div class="col-md-10">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h2>Detail Aplikasi</h2>
-                    <a href="{{ route('admin.applications') }}" class="btn btn-secondary">
+                    <a href="{{ route('admin.applications.index') }}" class="btn btn-secondary">
                         <i class="fas fa-arrow-left me-1"></i>Kembali
                     </a>
                 </div>
@@ -142,23 +142,40 @@
                                         class="d-inline">
                                         @csrf
                                         <div class="mb-3">
-                                            <label for="class_id" class="form-label">Pilih Kelas</label>
-                                            <select name="class_id" id="class_id" class="form-control" required>
-                                                <option value="">-- Pilih Kelas --</option>
-                                                @foreach(App\Models\ClassRoom::where('is_active', true)
+                                            @php
+                                                $availableClasses = App\Models\ClassRoom::where('is_active', true)
                                                     ->where('grade_level', $application->desired_class)
-                                                    ->get() as $class)
-                                                    <option value="{{ $class->id }}">{{ $class->name }}
-                                                        ({{ $class->current_students }}/{{ $class->capacity }})</option>
-                                                @endforeach
+                                                    ->get();
+                                            @endphp
+                                            <label for="class_id" class="form-label">Pilih Kelas</label>
+                                            <select name="class_id" id="class_id" class="form-control" required {{ $availableClasses->count() == 0 ? 'disabled' : '' }}>
+                                                @if($availableClasses->count() > 0)
+                                                    <option value="">-- Pilih Kelas --</option>
+                                                    @foreach($availableClasses as $class)
+                                                        <option value="{{ $class->id }}">{{ $class->name }}
+                                                            ({{ $class->current_students }}/{{ $class->capacity }})</option>
+                                                    @endforeach
+                                                @else
+                                                    <option value="" disabled>Tidak ada kelas tersedia untuk tingkat ini</option>
+                                                @endif
                                             </select>
+                                            @if($availableClasses->count() == 0)
+                                                <div
+                                                    class="form-text text-muted mt-2 d-flex align-items-center justify-content-between">
+                                                    <div>Tidak ada kelas aktif yang cocok dengan tingkat tujuan
+                                                        ({{ $application->desired_class }}). Silakan buat/aktifkan kelas lebih dulu.
+                                                    </div>
+                                                    <div><a href="{{ route('admin.classes.create') }}"
+                                                            class="btn btn-sm btn-primary">Buat Kelas</a></div>
+                                                </div>
+                                            @endif
                                         </div>
                                         <div class="mb-3">
                                             <label for="notes" class="form-label">Catatan (Opsional)</label>
                                             <textarea name="notes" id="notes" class="form-control" rows="3"></textarea>
                                         </div>
                                         <button type="submit" class="btn btn-success"
-                                            onclick="return confirm('Yakin ingin menyetujui aplikasi ini?')">
+                                            onclick="return confirm('Yakin ingin menyetujui aplikasi ini?')" {{ $availableClasses->count() == 0 ? 'disabled' : '' }}>
                                             <i class="fas fa-check me-1"></i>Setujui Aplikasi
                                         </button>
                                     </form>

@@ -21,17 +21,33 @@
                     </ul>
                 </div>
             @endif
+            @php $classesList = $classes ?? collect(); @endphp
             <form action="{{ route('admin.schedules.update', $schedule->id) }}" method="POST">
                 @csrf
                 @method('PUT')
                 <div class="row g-3">
+                    @if($classesList->count() == 0)
+                        <div class="col-12">
+                            <div class="alert alert-warning d-flex align-items-center justify-content-between">
+                                <div>Belum ada kelas tersedia. Silakan buat kelas terlebih dahulu agar jadwal dapat diedit.
+                                </div>
+                                <div><a href="{{ route('admin.classes.create') }}" class="btn btn-sm btn-primary">Buat Kelas</a>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
                     <div class="col-md-6">
                         <label class="form-label">Kelas</label>
                         <select name="class_id" class="form-select" required>
-                            <option value="">-- Pilih Kelas --</option>
-                            @foreach($classes as $c)
-                                <option value="{{ $c->id }}" {{ old('class_id', $schedule->class_id) == $c->id ? 'selected' : '' }}>{{ $c->name }}</option>
-                            @endforeach
+                            @php $classesList = $classes ?? collect(); @endphp
+                            @if($classesList->count() > 0)
+                                <option value="">-- Pilih Kelas --</option>
+                                @foreach($classesList as $c)
+                                    <option value="{{ $c->id }}" {{ old('class_id', $schedule->class_id) == $c->id ? 'selected' : '' }}>{{ $c->name }}</option>
+                                @endforeach
+                            @else
+                                <option value="" disabled>Tidak ada kelas tersedia</option>
+                            @endif
                         </select>
                         @error('class_id') <div class="text-danger small">{{ $message }}</div> @enderror
                     </div>
@@ -97,7 +113,7 @@
                 </div>
                 <div class="mt-4 text-end">
                     <a href="{{ route('admin.schedules.index') }}" class="btn btn-outline-secondary">Batal</a>
-                    <button class="btn btn-primary">Simpan</button>
+                    <button class="btn btn-primary" {{ $classesList->count() == 0 ? 'disabled' : '' }}>Simpan</button>
                 </div>
             </form>
         </div>

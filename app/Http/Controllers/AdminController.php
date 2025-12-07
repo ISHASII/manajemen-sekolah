@@ -15,6 +15,8 @@ use App\Models\Document;
 use App\Models\Grade;
 use App\Models\Alumni;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
@@ -217,61 +219,103 @@ class AdminController extends Controller
             return back()->with('error', 'Kelas yang dipilih tidak sesuai dengan tingkat yang diinginkan oleh pendaftar.');
         }
 
-        // Create user account
-        $user = User::create([
-            'name' => $application->student_name,
-            'email' => $application->email,
-            'password' => Hash::make('password123'),
-            'role' => 'student',
-            'phone' => $application->phone,
-            'address' => $application->address,
-            'birth_date' => $application->birth_date,
-            'gender' => $application->gender,
-            'is_active' => true,
-        ]);
+        // Wrap operations in a transaction to avoid partial updates
+        try {
+            DB::transaction(function () use ($application, $request, $class) {
+            // Create or find user account for this applicant
+            $user = User::where('email', $application->email)->first();
+            if ($user) {
+                // If this user already has a student profile, stop
+                if ($user->student) {
+                    throw new \Exception('User dengan email ini sudah memiliki profil siswa.');
+                }
 
-        // Create student record
-        $student = Student::create([
-            'user_id' => $user->id,
-            'student_id' => $this->generateStudentId(),
-            'class_id' => $request->class_id,
-            'nisn' => $application->nisn,
-            'place_of_birth' => $application->place_of_birth,
-            'birth_date' => $application->birth_date,
-            'religion' => $application->religion,
-            'address' => $application->address,
-            'parent_name' => $application->parent_name,
-            'parent_phone' => $application->parent_phone,
-            'parent_address' => $application->parent_address,
-            'parent_job' => $application->parent_job,
-            'health_info' => $application->health_info,
-            'disability_info' => $application->disability_info,
-            'education_history' => $application->education_history,
-            'enrollment_date' => now(),
-        ]);
+                // Update user's role and contact info to ensure they can act as a student
+                $user->update([
+                    'name' => $application->student_name,
+                    'role' => 'student',
+                    'phone' => $application->phone,
+                    'address' => $application->address,
+                    'birth_date' => $application->birth_date,
+                    'gender' => $application->gender,
+                    'is_active' => true,
+                ]);
+            } else {
+                $user = User::create([
+                    'name' => $application->student_name,
+                    'email' => $application->email,
+                    'password' => Hash::make('password123'),
+                    'role' => 'student',
+                    'phone' => $application->phone,
+                    'address' => $application->address,
+                    'birth_date' => $application->birth_date,
+                    'gender' => $application->gender,
+                    'is_active' => true,
+                ]);
+            }
 
-        // Transfer documents
-        foreach ($application->documents as $doc) {
-            Document::create([
-                'documentable_type' => Student::class,
-                'documentable_id' => $student->id,
-                'document_type' => $doc['type'],
-                'document_name' => $doc['name'],
-                'file_path' => $doc['path'],
-                'file_size' => $doc['size'] ?? 0,
-                'mime_type' => $doc['mime_type'] ?? 'application/octet-stream',
+            // Set user's profile photo from application photo document when present
+            $photoDoc = collect($application->documents)->firstWhere('type', 'photo');
+            if ($photoDoc && isset($photoDoc['path']) && Storage::disk('public')->exists($photoDoc['path'])) {
+                // copy to profile photos to keep separation
+                $ext = pathinfo($photoDoc['path'], PATHINFO_EXTENSION);
+                $destFilename = 'profile_' . $user->id . '_' . time() . '.' . $ext;
+                $destPath = 'profile-photos/' . $destFilename;
+                Storage::disk('public')->copy($photoDoc['path'], $destPath);
+                $user->profile_photo = $destPath;
+                $user->save();
+            }
+
+            // Create student record for this user
+            $student = Student::create([
+                'user_id' => $user->id,
+                'student_id' => $this->generateStudentId(),
+                'class_id' => $request->class_id,
+                'nisn' => $application->nisn,
+                'place_of_birth' => $application->place_of_birth,
+                'birth_date' => $application->birth_date,
+                'religion' => $application->religion,
+                'address' => $application->address,
+                'parent_name' => $application->parent_name,
+                'parent_phone' => $application->parent_phone,
+                'parent_address' => $application->parent_address,
+                'parent_job' => $application->parent_job,
+                'health_info' => $application->health_info,
+                'disability_info' => $application->disability_info,
+                'education_history' => $application->education_history,
+                'enrollment_date' => now(),
             ]);
+
+            // Transfer documents
+            foreach ($application->documents as $doc) {
+                Document::create([
+                    'documentable_type' => Student::class,
+                    'documentable_id' => $student->id,
+                    'document_type' => $doc['type'],
+                    'document_name' => $doc['name'],
+                    'file_path' => $doc['path'],
+                    'file_size' => $doc['size'] ?? null,
+                    'mime_type' => $doc['mime_type'] ?? null,
+                ]);
+            }
+
+            // increment class's current_students if class exists
+            if ($class) {
+                $class->increment('current_students');
+            }
+
+            // Mark application as approved
+            $application->update([
+                'status' => 'approved',
+                'notes' => $request->input('notes') ?? null,
+            ]);
+            });
+        } catch (\Exception $e) {
+            \Log::error('Approve application failed', ['error' => $e->getMessage(), 'application_id' => $application->id]);
+            return back()->with('error', $e->getMessage());
         }
 
-        // Update class student count
-        $class = ClassRoom::find($request->class_id);
-        $class->increment('current_students');
-
-        // Update application status
-        $application->update([
-            'status' => 'approved',
-            'notes' => $request->notes,
-        ]);
+        // approval flow completed inside the DB transaction
 
         return back()->with('success', 'Aplikasi berhasil disetujui dan siswa telah terdaftar!');
     }
