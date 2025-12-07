@@ -1,8 +1,8 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('title', 'Tambah Alumni')
 
-@section('content')
+@section('admin-content')
     <div class="container py-4">
         <h3>Tambah Alumni</h3>
         <div class="card mt-3 p-4">

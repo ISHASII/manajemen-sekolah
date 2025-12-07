@@ -1,8 +1,8 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('title', 'Kelola Pengumuman')
 
-@section('content')
+@section('admin-content')
     <div class="container py-4">
         <div class="d-flex justify-content-between mb-3">
             <h3>Pengumuman</h3>

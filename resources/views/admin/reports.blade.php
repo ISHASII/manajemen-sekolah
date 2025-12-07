@@ -1,8 +1,8 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('title', 'Laporan Sistem')
 
-@section('content')
+@section('admin-content')
     <div class="container py-4">
         <h3>Laporan & Statistik</h3>
         <div class="row mt-3">

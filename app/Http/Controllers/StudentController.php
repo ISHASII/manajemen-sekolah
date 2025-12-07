@@ -37,8 +37,10 @@ class StudentController extends Controller
             ->take(5)
             ->get();
 
-        $schedules = [];
-        $grades = [];
+        $schedules = collect();
+        $grades = collect();
+        $todaySchedules = collect();
+        $recentGrades = collect();
 
         if ($student && $student->classRoom) {
             $schedules = Schedule::where('class_id', $student->classRoom->id)
@@ -52,20 +54,89 @@ class StudentController extends Controller
                 ->latest()
                 ->take(10)
                 ->get();
+
+            // todays schedules (e.g., monday, tuesday) filter
+            $today = strtolower(\Carbon\Carbon::now()->format('l'));
+            $todaySchedules = $schedules->where('day_of_week', $today);
+
+            // latest grades limited for dashboard
+            $recentGrades = Grade::where('student_id', $student->id)
+                ->with(['subject', 'teacher'])
+                ->latest()
+                ->take(5)
+                ->get();
         }
 
-        return view('student.dashboard', compact('student', 'announcements', 'schedules', 'grades'));
+        return view('student.dashboard', compact('student', 'announcements', 'schedules', 'grades', 'todaySchedules', 'recentGrades'));
     }
 
     public function profile()
     {
         $user = Auth::user();
         $student = Student::where('user_id', $user->id)->with('classRoom')->first();
+        // If student doesn't exist, redirect to the internal profile creation page
+        if (!$student) {
+            return redirect()->route('student.profile.create')->with('info', 'Silakan lengkapi profil siswa Anda.');
+        }
+
         $documents = Document::where('documentable_type', Student::class)
             ->where('documentable_id', $student->id)
             ->get();
 
         return view('student.profile', compact('student', 'documents'));
+    }
+
+    /**
+     * Show the create form for logged-in student to create internal profile.
+     */
+    public function create()
+    {
+        $user = Auth::user();
+        $student = Student::where('user_id', $user->id)->first();
+        if ($student) {
+            return redirect()->route('student.profile')->with('info', 'Profil siswa sudah tersedia.');
+        }
+
+        // No classes passed here; class assignment is handled by admin.
+        return view('student.profile.create');
+    }
+
+    /**
+     * Store the newly created student profile for the logged-in user.
+     */
+    public function store(Request $request)
+    {
+        $user = Auth::user();
+        $existing = Student::where('user_id', $user->id)->first();
+        if ($existing) {
+            return redirect()->route('student.profile')->with('info', 'Profil siswa sudah tersedia.');
+        }
+
+        $validated = $request->validate([
+            'student_id' => 'required|string|max:255|unique:students,student_id',
+            'class_id' => 'nullable|exists:classes,id',
+            'nisn' => 'nullable|string|max:50|unique:students,nisn',
+            'place_of_birth' => 'required|string|max:255',
+            'birth_date' => 'required|date',
+            'religion' => 'required|in:islam,kristen,katolik,hindu,budha,khonghucu',
+            'address' => 'required|string',
+            'parent_name' => 'required|string|max:255',
+            'parent_phone' => 'required|string|max:50',
+            'parent_address' => 'required|string',
+            'parent_job' => 'nullable|string|max:255',
+            'health_info' => 'nullable|array',
+            'disability_info' => 'nullable|array',
+            'education_history' => 'nullable|array',
+            'interests_talents' => 'nullable|array',
+            'is_orphan' => 'nullable|boolean',
+            'enrollment_date' => 'required|date',
+        ]);
+
+        $student = Student::create(array_merge($validated, [
+            'user_id' => $user->id
+        ]));
+
+        return redirect()->route('student.profile')->with('success', 'Profil siswa berhasil dibuat.');
     }
 
     public function updateProfile(Request $request)
@@ -78,6 +149,9 @@ class StudentController extends Controller
 
         $user = Auth::user();
         $student = Student::where('user_id', $user->id)->first();
+        if (!$student) {
+            return back()->with('error', 'Profil siswa tidak ditemukan.');
+        }
 
         $student->update([
             'interests_talents' => $request->interests_talents,
@@ -92,6 +166,11 @@ class StudentController extends Controller
     {
         $user = Auth::user();
         $student = Student::where('user_id', $user->id)->first();
+        if (!$student) {
+            $grades = collect();
+            $skills = collect();
+            return view('student.grades', compact('grades', 'skills'));
+        }
 
         $grades = Grade::where('student_id', $student->id)
             ->with(['subject', 'teacher'])
@@ -111,8 +190,7 @@ class StudentController extends Controller
     {
         $user = Auth::user();
         $student = Student::where('user_id', $user->id)->with('classRoom')->first();
-
-        $schedules = [];
+        $schedules = collect();
         if ($student && $student->classRoom) {
             $schedules = Schedule::where('class_id', $student->classRoom->id)
                 ->with(['subject', 'teacher'])

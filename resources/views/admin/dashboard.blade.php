@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('title', 'Dashboard Admin')
 
@@ -102,7 +102,7 @@
     </style>
 @endpush
 
-@section('content')
+@section('admin-content')
     <div class="container-fluid py-4 admin-page-wrapper">
         <!-- Header Dashboard -->
         <div class="row mb-4">

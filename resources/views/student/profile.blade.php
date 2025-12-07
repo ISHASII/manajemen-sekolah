@@ -4,40 +4,46 @@
 
 @section('content')
     <div class="container py-4">
-        <div class="row">
-            <div class="col-md-4">
-                <div class="card border-0 shadow-sm">
-                    <div class="card-body text-center">
-                        <div class="mb-3">
-                            @if($student->user->profile_photo)
-                                <img src="{{ Storage::url($student->user->profile_photo) }}" class="rounded-circle" width="100"
-                                    height="100">
-                            @else
-                                <div class="bg-primary rounded-circle d-inline-flex align-items-center justify-content-center"
-                                    style="width: 100px; height: 100px;">
-                                    <i class="fas fa-user fa-2x text-white"></i>
-                                </div>
+        @if(!$student)
+            <div class="alert alert-info">Profil siswa belum dibuat. <a href="{{ route('student.profile.create') }}">Buat
+                    Profil</a></div>
+        @endif
+        @if($student)
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body text-center">
+                            <div class="mb-3">
+                                @if($student->user->profile_photo)
+                                    <img src="{{ Storage::url($student->user->profile_photo) }}" class="rounded-circle" width="100"
+                                        height="100">
+                                @else
+                                    <div class="bg-primary rounded-circle d-inline-flex align-items-center justify-content-center"
+                                        style="width: 100px; height: 100px;">
+                                        <i class="fas fa-user fa-2x text-white"></i>
+                                    </div>
+                                @endif
+                            </div>
+                            <h5>{{ $student->user->name }}</h5>
+                            <p class="text-muted">{{ $student->student_id }}</p>
+                            @if($student->classRoom)
+                                <span class="badge bg-primary">{{ $student->classRoom->name }}</span>
                             @endif
                         </div>
-                        <h5>{{ $student->user->name }}</h5>
-                        <p class="text-muted">{{ $student->student_id }}</p>
-                        @if($student->classRoom)
-                            <span class="badge bg-primary">{{ $student->classRoom->name }}</span>
-                        @endif
                     </div>
-                </div>
 
-                <div class="card border-0 shadow-sm mt-3">
-                    <div class="card-header">
-                        <h6 class="mb-0">Informasi Kontak</h6>
-                    </div>
-                    <div class="card-body">
-                        <p><i class="fas fa-envelope text-primary me-2"></i>{{ $student->user->email }}</p>
-                        <p><i class="fas fa-phone text-primary me-2"></i>{{ $student->user->phone }}</p>
-                        <p><i class="fas fa-map-marker-alt text-primary me-2"></i>{{ $student->user->address }}</p>
+                    <div class="card border-0 shadow-sm mt-3">
+                        <div class="card-header">
+                            <h6 class="mb-0">Informasi Kontak</h6>
+                        </div>
+                        <div class="card-body">
+                            <p><i class="fas fa-envelope text-primary me-2"></i>{{ $student->user->email }}</p>
+                            <p><i class="fas fa-phone text-primary me-2"></i>{{ $student->user->phone }}</p>
+                            <p><i class="fas fa-map-marker-alt text-primary me-2"></i>{{ $student->user->address }}</p>
+                        </div>
                     </div>
                 </div>
-            </div>
+        @endif
 
             <div class="col-md-8">
                 <div class="card border-0 shadow-sm">
@@ -167,71 +173,73 @@
         </div>
     </div>
 
-    <!-- Update Interests Modal -->
-    <div class="modal fade" id="updateInterestsModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <form method="POST" action="{{ route('student.profile.update') }}">
-                    @csrf
-                    @method('PUT')
-                    <div class="modal-header">
-                        <h5 class="modal-title">Update Minat & Bakat</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="mb-3">
-                            <label for="interests_talents" class="form-label">Minat & Bakat</label>
-                            <div id="interests-container">
-                                @if($student->interests_talents && count($student->interests_talents) > 0)
-                                    @foreach($student->interests_talents as $index => $interest)
+    @if($student)
+        <!-- Update Interests Modal -->
+        <div class="modal fade" id="updateInterestsModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <form method="POST" action="{{ route('student.profile.update') }}">
+                        @csrf
+                        @method('PUT')
+                        <div class="modal-header">
+                            <h5 class="modal-title">Update Minat & Bakat</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label for="interests_talents" class="form-label">Minat & Bakat</label>
+                                <div id="interests-container">
+                                    @if($student->interests_talents && count($student->interests_talents) > 0)
+                                        @foreach($student->interests_talents as $index => $interest)
+                                            <div class="input-group mb-2">
+                                                <input type="text" name="interests_talents[]" class="form-control"
+                                                    value="{{ $interest }}" placeholder="Minat/Bakat">
+                                                <button type="button" class="btn btn-outline-danger" onclick="removeInterest(this)">
+                                                    <i class="fas fa-minus"></i>
+                                                </button>
+                                            </div>
+                                        @endforeach
+                                    @else
                                         <div class="input-group mb-2">
                                             <input type="text" name="interests_talents[]" class="form-control"
-                                                value="{{ $interest }}" placeholder="Minat/Bakat">
+                                                placeholder="Minat/Bakat">
                                             <button type="button" class="btn btn-outline-danger" onclick="removeInterest(this)">
                                                 <i class="fas fa-minus"></i>
                                             </button>
                                         </div>
-                                    @endforeach
-                                @else
-                                    <div class="input-group mb-2">
-                                        <input type="text" name="interests_talents[]" class="form-control"
-                                            placeholder="Minat/Bakat">
-                                        <button type="button" class="btn btn-outline-danger" onclick="removeInterest(this)">
-                                            <i class="fas fa-minus"></i>
-                                        </button>
-                                    </div>
-                                @endif
+                                    @endif
+                                </div>
+                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="addInterest()">
+                                    <i class="fas fa-plus"></i> Tambah
+                                </button>
                             </div>
-                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="addInterest()">
-                                <i class="fas fa-plus"></i> Tambah
-                            </button>
                         </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-primary">Simpan</button>
-                    </div>
-                </form>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                            <button type="submit" class="btn btn-primary">Simpan</button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
-    </div>
 
-    <script>
-        function addInterest() {
-            const container = document.getElementById('interests-container');
-            const div = document.createElement('div');
-            div.className = 'input-group mb-2';
-            div.innerHTML = `
-            <input type="text" name="interests_talents[]" class="form-control" placeholder="Minat/Bakat">
-            <button type="button" class="btn btn-outline-danger" onclick="removeInterest(this)">
-                <i class="fas fa-minus"></i>
-            </button>
-        `;
-            container.appendChild(div);
-        }
+        <script>
+            function addInterest() {
+                const container = document.getElementById('interests-container');
+                const div = document.createElement('div');
+                div.className = 'input-group mb-2';
+                div.innerHTML = `
+                                <input type="text" name="interests_talents[]" class="form-control" placeholder="Minat/Bakat">
+                                <button type="button" class="btn btn-outline-danger" onclick="removeInterest(this)">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                            `;
+                container.appendChild(div);
+            }
 
-        function removeInterest(button) {
-            button.parentElement.remove();
-        }
-    </script>
+            function removeInterest(button) {
+                button.parentElement.remove();
+            }
+        </script>
+    @endif
 @endsection

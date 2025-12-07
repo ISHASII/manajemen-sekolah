@@ -4,6 +4,10 @@
 
 @section('content')
     <div class="container-fluid py-4">
+        @php
+            $todaySchedules = isset($todaySchedules) ? $todaySchedules : collect();
+            $todaySchedulesCount = isset($todaySchedulesCount) ? $todaySchedulesCount : 0;
+        @endphp
         <!-- Header Dashboard -->
         <div class="row mb-4">
             <div class="col-12">
@@ -147,12 +151,11 @@
                                                 <p class="small mb-0 text-muted">{{ $schedule->description }}</p>
                                             @endif
                                             <div class="mt-2">
-                                                <a href="{{ route('teacher.attendance', $schedule->id) }}"
+                                                <a href="{{ route('teacher.schedules') }}"
                                                     class="btn btn-sm btn-outline-primary me-2">
                                                     <i class="bi bi-check2-square me-1"></i>Absensi
                                                 </a>
-                                                <a href="{{ route('teacher.grades.create', $schedule->id) }}"
-                                                    class="btn btn-sm btn-outline-success">
+                                                <a href="{{ route('teacher.students') }}" class="btn btn-sm btn-outline-success">
                                                     <i class="bi bi-plus-circle me-1"></i>Input Nilai
                                                 </a>
                                             </div>
@@ -182,19 +185,19 @@
                     </div>
                     <div class="card-body">
                         <div class="d-grid gap-2">
-                            <a href="{{ route('teacher.schedule') }}" class="btn btn-outline-primary btn-sm">
+                            <a href="{{ route('teacher.schedules') }}" class="btn btn-outline-primary btn-sm">
                                 <i class="bi bi-calendar-week me-2"></i>Kelola Jadwal
                             </a>
                             <a href="{{ route('teacher.students') }}" class="btn btn-outline-info btn-sm">
                                 <i class="bi bi-people me-2"></i>Daftar Siswa
                             </a>
-                            <a href="{{ route('teacher.grades') }}" class="btn btn-outline-success btn-sm">
+                            <a href="{{ route('teacher.students') }}" class="btn btn-outline-success btn-sm">
                                 <i class="bi bi-bar-chart me-2"></i>Kelola Nilai
                             </a>
-                            <a href="{{ route('teacher.announcements') }}" class="btn btn-outline-warning btn-sm">
+                            <a href="{{ route('teacher.students') }}" class="btn btn-outline-warning btn-sm">
                                 <i class="bi bi-megaphone me-2"></i>Buat Pengumuman
                             </a>
-                            <a href="{{ route('teacher.profile') }}" class="btn btn-outline-secondary btn-sm">
+                            <a href="{{ route('teacher.students') }}" class="btn btn-outline-secondary btn-sm">
                                 <i class="bi bi-person-gear me-2"></i>Edit Profil
                             </a>
                         </div>
@@ -481,10 +484,10 @@
                     labels: ['A (90-100)', 'B (80-89)', 'C (70-79)', 'D (60-69)', 'E (<60)'],
                     datasets: [{
                         data: [
-                        {{ $gradeDistribution['A'] ?? 0 }},
-                        {{ $gradeDistribution['B'] ?? 0 }},
-                        {{ $gradeDistribution['C'] ?? 0 }},
-                        {{ $gradeDistribution['D'] ?? 0 }},
+                            {{ $gradeDistribution['A'] ?? 0 }},
+                            {{ $gradeDistribution['B'] ?? 0 }},
+                            {{ $gradeDistribution['C'] ?? 0 }},
+                            {{ $gradeDistribution['D'] ?? 0 }},
                             {{ $gradeDistribution['E'] ?? 0 }}
                         ],
                         backgroundColor: [

@@ -32,6 +32,11 @@ class TeacherController extends Controller
             ->orderBy('start_time')
             ->get();
 
+        // Calculate today's schedules based on day name
+        $today = strtolower(\Carbon\Carbon::now()->format('l'));
+        $todaySchedules = $schedules->where('day_of_week', $today);
+        $todaySchedulesCount = $todaySchedules->count();
+
         $classes = Schedule::where('teacher_id', $user->id)
             ->with('classRoom')
             ->get()
@@ -72,7 +77,7 @@ class TeacherController extends Controller
         }
         $recentActivities = $recentActivities->sortByDesc('created_at')->values();
 
-        return view('teacher.dashboard', compact('teacher', 'schedules', 'classes', 'totalStudents', 'recentGrades'))
+        return view('teacher.dashboard', compact('teacher', 'schedules', 'classes', 'totalStudents', 'recentGrades', 'todaySchedules', 'todaySchedulesCount'))
             ->with('recentActivities', $recentActivities)
             ->with('announcements', $announcements);
     }

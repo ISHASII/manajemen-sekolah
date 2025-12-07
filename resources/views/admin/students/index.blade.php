@@ -1,8 +1,8 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('title', 'Kelola Siswa')
 
-@section('content')
+@section('admin-content')
     <div class="container py-4">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h3>Daftar Siswa</h3>
@@ -28,19 +28,29 @@
                             <tbody>
                                 @foreach($students as $st)
                                     <tr>
-                                        <td>{{ $st->user->name ?? '-' }}</td>
-                                        <td>{{ $st->user->email ?? '-' }}</td>
-                                        <td>{{ optional($st->classRoom)->name ?? '-' }}</td>
-                                        <td>{{ ucfirst($st->status ?? 'inactive') }}</td>
+                                        <td>{{ $st->name ?? '-' }}</td>
+                                        <td>{{ $st->email ?? '-' }}</td>
+                                        <td>{{ $st->student?->classRoom?->name ?? '-' }}</td>
+                                        <td>{{ ucfirst($st->student?->status ?? 'no-profile') }}</td>
                                         <td>
-                                            <a href="{{ route('admin.students.edit', $st->id) }}"
-                                                class="btn btn-sm btn-outline-primary btn-detail">Detail</a>
-                                            <form method="POST" action="{{ route('admin.students.destroy', $st->id) }}"
-                                                class="d-inline-block" onsubmit="return confirm('Hapus siswa ini?');">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button class="btn btn-sm btn-outline-danger">Hapus</button>
-                                            </form>
+                                            @if(optional($st->student)->id)
+                                                <a href="{{ route('admin.students.edit', $st->student->id) }}"
+                                                    class="btn btn-sm btn-outline-primary btn-detail">Detail</a>
+                                            @else
+                                                <a href="{{ route('admin.students.create', ['user_id' => $st->id]) }}"
+                                                    class="btn btn-sm btn-outline-primary btn-detail">Buat Profil</a>
+                                            @endif
+                                            @if(optional($st->student)->id)
+                                                <form method="POST" action="{{ route('admin.students.destroy', $st->student->id) }}"
+                                                    class="d-inline-block" onsubmit="return confirm('Hapus siswa ini?');">
+                                            @else
+                                                    <form method="POST" action="{{ route('admin.users.destroy', $st->id) }}"
+                                                        class="d-inline-block" onsubmit="return confirm('Hapus user ini?');">
+                                                @endif
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button class="btn btn-sm btn-outline-danger">Hapus</button>
+                                                </form>
                                         </td>
                                     </tr>
                                 @endforeach

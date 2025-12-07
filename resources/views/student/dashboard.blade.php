@@ -3,7 +3,12 @@
 @section('title', 'Dashboard Siswa')
 
 @section('content')
-    <div class="container-fluid py-4">
+    <div class="container-fluid py-4 student-page-wrapper">
+        @php
+            // Ensure variables are always defined for the view, in case controller doesn't pass them
+            $todaySchedules = isset($todaySchedules) ? $todaySchedules : collect();
+            $recentGrades = isset($recentGrades) ? $recentGrades : collect();
+        @endphp
         <!-- Header Dashboard -->
         <div class="row mb-4">
             <div class="col-12">
@@ -23,10 +28,10 @@
                             <div class="col-md-4 text-end">
                                 <div class="d-flex flex-column align-items-end">
                                     <span class="badge bg-light text-primary fs-6 mb-1">
-                                        {{ $student->nis }}
+                                        {{ optional($student)->nis ?? '-' }}
                                     </span>
                                     <small class="opacity-75">
-                                        Kelas: {{ $student->classRoom->name ?? 'Belum ditentukan' }}
+                                        Kelas: {{ optional(optional($student)->classRoom)->name ?? 'Belum ditentukan' }}
                                     </small>
                                 </div>
                             </div>
@@ -98,7 +103,7 @@
                         <div class="row align-items-center">
                             <div class="col">
                                 <p class="text-muted small mb-1">Keterampilan</p>
-                                <h3 class="text-primary mb-0">{{ $student->skills->count() ?? 0 }}</h3>
+                                <h3 class="text-primary mb-0">{{ optional(optional($student)->skills)->count() ?? 0 }}</h3>
                             </div>
                             <div class="col-auto">
                                 <div class="icon icon-shape bg-primary text-white rounded-circle">
@@ -115,15 +120,16 @@
             <!-- Jadwal Hari Ini -->
             <div class="col-lg-8 mb-4">
                 <div class="card border-0 shadow-sm">
-                    <div class="card-header bg-white border-bottom">
+                    <div class="card-header border-bottom" style="background-color: orange;">
                         <div class="d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0">
-                                <i class="bi bi-calendar-day me-2 text-primary"></i>
+                            <h5 class="mb-0 text-white">
+                                <i class="bi bi-calendar-day me-2"></i>
                                 Jadwal Hari Ini
                             </h5>
                             <span class="badge bg-primary">{{ \Carbon\Carbon::now()->format('d/m/Y') }}</span>
                         </div>
                     </div>
+
                     <div class="card-body">
                         @if($todaySchedules && $todaySchedules->count() > 0)
                             <div class="timeline">
@@ -164,7 +170,7 @@
             <div class="col-lg-4">
                 <!-- Quick Actions -->
                 <div class="card border-0 shadow-sm mb-4">
-                    <div class="card-header bg-white border-bottom">
+                    <div class="card-header border-bottom " style="background-color: orange;">
                         <h5 class="mb-0">
                             <i class="bi bi-lightning-fill me-2 text-warning"></i>
                             Aksi Cepat
@@ -172,7 +178,7 @@
                     </div>
                     <div class="card-body">
                         <div class="d-grid gap-2">
-                            <a href="{{ route('student.schedule') }}" class="btn btn-outline-primary btn-sm">
+                            <a href="{{ route('student.schedules') }}" class="btn btn-outline-primary btn-sm">
                                 <i class="bi bi-calendar-week me-2"></i>Lihat Jadwal Lengkap
                             </a>
                             <a href="{{ route('student.grades') }}" class="btn btn-outline-success btn-sm">
@@ -181,7 +187,7 @@
                             <a href="{{ route('student.profile') }}" class="btn btn-outline-info btn-sm">
                                 <i class="bi bi-person-gear me-2"></i>Edit Profil
                             </a>
-                            <a href="{{ route('student.skills') }}" class="btn btn-outline-secondary btn-sm">
+                            <a href="{{ route('student.grades') }}" class="btn btn-outline-secondary btn-sm">
                                 <i class="bi bi-award me-2"></i>Keterampilan Saya
                             </a>
                         </div>
@@ -190,10 +196,10 @@
 
                 <!-- Pengumuman Terbaru -->
                 <div class="card border-0 shadow-sm">
-                    <div class="card-header bg-white border-bottom">
-                        <h5 class="mb-0">
-                            <i class="bi bi-megaphone me-2 text-info"></i>
-                            Pengumuman Terbaru
+                    <div class="card-header border-bottom" style="background-color: orange;
+                                                            <h5 class=" mb-0">
+                        <i class="bi bi-megaphone me-2 text-info"></i>
+                        Pengumuman Terbaru
                         </h5>
                     </div>
                     <div class="card-body">
@@ -202,7 +208,7 @@
                                 @foreach($announcements->take(3) as $announcement)
                                     <div class="list-group-item px-0 border-0 border-bottom">
                                         <div class="d-flex justify-content-between align-items-start">
-                                            <div class="flex-grow-1">
+                                            <div class="grow">
                                                 <h6 class="mb-1">{{ $announcement->title }}</h6>
                                                 <p class="mb-1 small text-muted">
                                                     {{ Str::limit($announcement->content, 80) }}
@@ -239,7 +245,7 @@
         <div class="row mt-4">
             <div class="col-12">
                 <div class="card border-0 shadow-sm">
-                    <div class="card-header bg-white border-bottom">
+                    <div class="card-header border-bottom" style="background-color: orange;">
                         <div class="d-flex justify-content-between align-items-center">
                             <h5 class="mb-0">
                                 <i class="bi bi-clipboard-data me-2 text-success"></i>
@@ -390,6 +396,24 @@
             .timeline::before {
                 left: -0.875rem;
             }
+        }
+
+        /* Page-specific: student dashboard - white background while keeping navbar/footer unchanged */
+        .student-page-wrapper {
+            background: #fff5f5 !important;
+            color: #111827 !important;
+            /* dark text */
+            min-height: 100vh;
+            padding-top: 1rem;
+            padding-bottom: 1rem;
+        }
+
+        /* Keep cards unchanged (no white override) — only main page background is changed */
+
+        /* Keep icons contrast similar to layout - use primary color for icon backgrounds */
+        .student-page-wrapper .icon.icon-shape.bg-primary {
+            background: var(--primary) !important;
+            color: #bababa !important;
         }
     </style>
 @endpush

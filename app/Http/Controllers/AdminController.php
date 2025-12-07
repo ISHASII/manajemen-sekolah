@@ -290,24 +290,30 @@ class AdminController extends Controller
 
     public function students()
     {
-        $students = Student::with(['user', 'classRoom'])
-            ->where('status', 'active')
-            ->paginate(20);
+        // Show all users with role=student (includes users who do not have a Student record yet)
+        $students = \App\Models\User::with(['student.classRoom'])
+            ->where('role', 'student')
+            ->orderBy('created_at', 'desc')
+            ->paginate(50);
 
         return view('admin.students.index', compact('students'));
     }
 
-    public function createStudentForm()
+    public function createStudentForm(Request $request)
     {
         $classes = ClassRoom::all();
-        return view('admin.students.create', compact('classes'));
+        $prefillUser = null;
+        if ($request->has('user_id')) {
+            $prefillUser = \App\Models\User::find($request->get('user_id'));
+        }
+        return view('admin.students.create', compact('classes', 'prefillUser'));
     }
 
     public function storeStudent(Request $request)
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
+            'email' => 'required|email',
             'student_id' => 'required|string|unique:students,student_id',
             'class_id' => 'nullable|exists:classes,id',
             'nisn' => 'nullable|string|unique:students,nisn',
@@ -323,13 +329,26 @@ class AdminController extends Controller
         ]);
 
         try {
-            $user = \App\Models\User::create([
-                'name' => $request->name,
-                'email' => $request->email,
-                'password' => \Illuminate\Support\Facades\Hash::make('password'),
-                'role' => 'student',
-                'is_active' => true
-            ]);
+            if ($request->filled('user_id')) {
+                $user = \App\Models\User::findOrFail($request->get('user_id'));
+                // If this user already has a student record, prevent duplicate
+                if ($user->student) {
+                    return redirect()->back()->withInput()->with('error', 'User sudah memiliki profil siswa.');
+                }
+            } else {
+                // ensure email is unique before creating user
+                if (\App\Models\User::where('email', $request->email)->exists()) {
+                    return redirect()->back()->withInput()->with('error', 'Email sudah terdaftar.');
+                }
+
+                $user = \App\Models\User::create([
+                    'name' => $request->name,
+                    'email' => $request->email,
+                    'password' => \Illuminate\Support\Facades\Hash::make('password'),
+                    'role' => 'student',
+                    'is_active' => true
+                ]);
+            }
 
             $student = Student::create([
                 'user_id' => $user->id,

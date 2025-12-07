@@ -1,8 +1,8 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('title', 'Edit Info Sekolah')
 
-@section('content')
+@section('admin-content')
     <div class="container py-4">
         <h3>Edit Info Sekolah</h3>
         <div class="card mt-3 p-4">
@@ -46,6 +46,33 @@
                             $socialMediaValue = (string) $school->social_media;
                         }
                     }
+                @endphp
+                @php
+                    // Helper to render a single facility/program item as a string (for input values)
+                    $itemToString = function ($it) {
+                        if (is_null($it))
+                            return '';
+                        if (is_scalar($it))
+                            return (string) $it;
+                        if (is_array($it)) {
+                            if (isset($it['name']))
+                                return (string) $it['name'];
+                            if (isset($it['title']))
+                                return (string) $it['title'];
+                            // Fallback to JSON for structured arrays
+                            return json_encode($it, JSON_UNESCAPED_UNICODE);
+                        }
+                        if (is_object($it)) {
+                            if (property_exists($it, 'name'))
+                                return (string) $it->name;
+                            if (property_exists($it, 'title'))
+                                return (string) $it->title;
+                            if (method_exists($it, '__toString'))
+                                return (string) $it;
+                            return json_encode($it, JSON_UNESCAPED_UNICODE);
+                        }
+                        return (string) $it;
+                    };
                 @endphp
 
                 <div class="row g-3">
@@ -118,7 +145,8 @@
                             @endphp
                             @foreach($facilitiesArray as $facItem)
                                 <div class="input-group mb-2 facilities-item">
-                                    <input type="text" name="facilities[]" class="form-control" value="{{ $facItem }}">
+                                    <input type="text" name="facilities[]" class="form-control"
+                                        value="{{ $itemToString($facItem) }}">
                                     <button class="btn btn-outline-danger remove-facilities" type="button">&times;</button>
                                 </div>
                             @endforeach
@@ -151,7 +179,8 @@
                             @endphp
                             @foreach($programsArray as $progItem)
                                 <div class="input-group mb-2 programs-item">
-                                    <input type="text" name="programs[]" class="form-control" value="{{ $progItem }}">
+                                    <input type="text" name="programs[]" class="form-control"
+                                        value="{{ $itemToString($progItem) }}">
                                     <button class="btn btn-outline-danger remove-programs" type="button">&times;</button>
                                 </div>
                             @endforeach
@@ -213,9 +242,9 @@
                     newGroup.className = wrapper.querySelector('.' + removeSelector + '-item')?.className || 'input-group mb-2';
                     newGroup.classList.add(removeSelector + '-item');
                     newGroup.innerHTML = `\
-                                        <input type="text" name="${removeSelector}[]" class="form-control">\
-                                        <button class="btn btn-outline-danger remove-${removeSelector}" type="button">&times;</button>\
-                                    `;
+                                                <input type="text" name="${removeSelector}[]" class="form-control">\
+                                                <button class="btn btn-outline-danger remove-${removeSelector}" type="button">&times;</button>\
+                                            `;
                     wrapper.appendChild(newGroup);
                     attachRemoveListeners(wrapper, removeSelector);
                 });

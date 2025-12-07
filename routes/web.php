@@ -114,6 +114,8 @@ Route::middleware('auth')->group(function () {
     // Student Routes
     Route::middleware('role:student')->prefix('student')->name('student.')->group(function () {
         Route::get('/dashboard', [StudentController::class, 'dashboard'])->name('dashboard');
+        Route::get('/profile/create', [StudentController::class, 'create'])->name('profile.create');
+        Route::post('/profile', [StudentController::class, 'store'])->name('profile.store');
         Route::get('/profile', [StudentController::class, 'profile'])->name('profile');
         Route::put('/profile', [StudentController::class, 'updateProfile'])->name('profile.update');
         Route::get('/schedules', [StudentController::class, 'schedules'])->name('schedules');

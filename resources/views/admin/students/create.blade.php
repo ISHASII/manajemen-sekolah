@@ -1,8 +1,8 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('title', 'Tambah Siswa')
 
-@section('content')
+@section('admin-content')
     <div class="container py-4">
         <h3>Tambah Siswa</h3>
         <div class="card mt-3 p-4">
@@ -24,16 +24,28 @@
             <form action="{{ route('admin.students.store') }}" method="POST">
                 @csrf
                 <div class="row g-3">
-                    <div class="col-md-6">
-                        <label class="form-label">Nama</label>
-                        <input type="text" name="name" class="form-control" value="{{ old('name') }}" required>
-                        @error('name') <div class="text-danger small">{{ $message }}</div> @enderror
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Email</label>
-                        <input type="email" name="email" class="form-control" value="{{ old('email') }}" required>
-                        @error('email') <div class="text-danger small">{{ $message }}</div> @enderror
-                    </div>
+                    @if(isset($prefillUser) && $prefillUser)
+                        <div class="col-md-6">
+                            <label class="form-label">Nama (User Exist)</label>
+                            <input type="text" class="form-control" value="{{ $prefillUser->name }}" readonly>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Email (User Exist)</label>
+                            <input type="email" class="form-control" value="{{ $prefillUser->email }}" readonly>
+                        </div>
+                        <input type="hidden" name="user_id" value="{{ $prefillUser->id }}">
+                    @else
+                        <div class="col-md-6">
+                            <label class="form-label">Nama</label>
+                            <input type="text" name="name" class="form-control" value="{{ old('name') }}" required>
+                            @error('name') <div class="text-danger small">{{ $message }}</div> @enderror
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Email</label>
+                            <input type="email" name="email" class="form-control" value="{{ old('email') }}" required>
+                            @error('email') <div class="text-danger small">{{ $message }}</div> @enderror
+                        </div>
+                    @endif
                     <div class="col-md-6">
                         <label class="form-label">Student ID</label>
                         <input type="text" name="student_id" class="form-control" value="{{ old('student_id') }}" required>

@@ -283,61 +283,11 @@
             /* for SVG icons */
         }
 
-        @if(request()->routeIs('admin.*'))
-            /* Make Detail action icons and text black across admin pages */
-            .btn-detail,
-            .btn-detail i,
-            .btn-detail .bi,
-            .btn-detail .fas {
-                color: #111827 !important;
-                fill: #111827 !important;
+            {
+                {
+                -- Admin rules moved to layouts.admin --
             }
-
-            /* Make admin action buttons within cards, tables and groups show black text/icons (exclude navbar/footer) */
-            .container .btn,
-            .container-fluid .btn,
-            .card .btn,
-            .card-header .btn,
-            .table .btn,
-            .btn-group .btn,
-            .btn-group-vertical .btn,
-            .btn-group-sm .btn,
-            .container .dropdown-menu .btn,
-            .container-fluid .dropdown-menu .btn,
-            .form-inline .btn {
-                color: #111827 !important;
-                fill: #111827 !important;
-            }
-
-            .container .btn i,
-            .container-fluid .btn i,
-            .card .btn i,
-            .table .btn i,
-            .btn-group .btn i,
-            .btn-group-vertical .btn i,
-            .btn-group-sm .btn i,
-            .dropdown-menu .btn i,
-            .form-inline .btn i {
-                color: #111827 !important;
-                fill: #111827 !important;
-            }
-
-            /* Exceptions: keep primary button text black or default contrast */
-            .btn-primary {
-                color: #000 !important;
-            }
-
-            /* Ensure footer icons are white on admin pages */
-            .site-footer .bi,
-            .site-footer i[class^="bi-"],
-            .site-footer i[class*=" bi-"],
-            .site-footer .fas,
-            .site-footer .fa {
-                color: #ffffff !important;
-                fill: #ffffff !important;
-            }
-
-        @endif
+        }
     </style>
 
     @stack('styles')
@@ -389,7 +339,7 @@
                                 aria-current="{{ request()->routeIs('home') || request()->routeIs('welcome') ? 'page' : '' }}"
                                 href="{{ route('home') }}">Beranda</a>
                         </li>
-                        @unless(request()->routeIs('admin.*'))
+                        @unless(request()->routeIs('admin.*') || (Auth::check() && Auth::user()->isStudent()))
                             <li class="nav-item">
                                 <a class="nav-link {{ request()->routeIs('about') ? 'active' : '' }}"
                                     aria-current="{{ request()->routeIs('about') ? 'page' : '' }}"
@@ -489,17 +439,19 @@
                             </div>
                         @endif
                     </div>
-                    <div class="col-lg-2 mb-4">
-                        <h6>Menu</h6>
-                        <ul class="list-unstyled">
-                            <li><a href="{{ route('about') }}" class="text-light text-decoration-none">Tentang</a></li>
-                            <li><a href="{{ route('programs') }}" class="text-light text-decoration-none">Program</a>
-                            </li>
-                            <li><a href="{{ route('teachers') }}" class="text-light text-decoration-none">Guru</a></li>
-                            <li><a href="{{ route('facilities') }}"
-                                    class="text-light text-decoration-none">Fasilitas</a></li>
-                        </ul>
-                    </div>
+                    @unless(Auth::check() && Auth::user()->isStudent())
+                        <div class="col-lg-2 mb-4">
+                            <h6>Menu</h6>
+                            <ul class="list-unstyled">
+                                <li><a href="{{ route('about') }}" class="text-light text-decoration-none">Tentang</a></li>
+                                <li><a href="{{ route('programs') }}" class="text-light text-decoration-none">Program</a>
+                                </li>
+                                <li><a href="{{ route('teachers') }}" class="text-light text-decoration-none">Guru</a></li>
+                                <li><a href="{{ route('facilities') }}"
+                                        class="text-light text-decoration-none">Fasilitas</a></li>
+                            </ul>
+                        </div>
+                    @endunless
                     <div class="col-lg-3 mb-4">
                         <h6>Kontak</h6>
                         @if(isset($school))
