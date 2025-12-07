@@ -1,0 +1,627 @@
+@extends('layouts.app')
+
+@section('title', 'Dashboard Admin')
+
+@section('content')
+    <div class="container-fluid py-4">
+        <!-- Header Dashboard -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card bg-dark text-white">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <h2 class="mb-1">
+                                    <i class="bi bi-shield-check me-2"></i>
+                                    Dashboard Administrator
+                                </h2>
+                                <p class="mb-0 opacity-75">
+                                    <i class="bi bi-calendar-check me-2"></i>
+                                    {{ \Carbon\Carbon::now()->format('l, d F Y') }}
+                                </p>
+                                <p class="mb-0 opacity-50 small">
+                                    Selamat datang, {{ Auth::user()->name }}
+                                </p>
+                            </div>
+                            <div class="col-md-4 text-end">
+                                <div class="d-flex flex-column align-items-end">
+                                    <span class="badge bg-light text-dark fs-6 mb-1">
+                                        Administrator
+                                    </span>
+                                    <small class="opacity-75">
+                                        Akses Penuh Sistem
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Overview Statistics -->
+        <div class="row mb-4">
+            <div class="col-xl-3 col-md-6 mb-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col">
+                                <p class="text-muted small mb-1">Total Siswa</p>
+                                <h3 class="text-primary mb-0">{{ $totalStudents ?? 0 }}</h3>
+                                <small class="text-success">
+                                    <i class="bi bi-arrow-up"></i> {{ $newStudentsThisMonth ?? 0 }} baru bulan ini
+                                </small>
+                            </div>
+                            <div class="col-auto">
+                                <div class="icon icon-shape bg-primary text-white rounded-circle">
+                                    <i class="bi bi-people-fill"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-3 col-md-6 mb-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col">
+                                <p class="text-muted small mb-1">Total Guru</p>
+                                <h3 class="text-success mb-0">{{ $totalTeachers ?? 0 }}</h3>
+                                <small class="text-info">
+                                    <i class="bi bi-person-check"></i> {{ $activeTeachers ?? 0 }} aktif
+                                </small>
+                            </div>
+                            <div class="col-auto">
+                                <div class="icon icon-shape bg-success text-white rounded-circle">
+                                    <i class="bi bi-person-badge-fill"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-3 col-md-6 mb-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col">
+                                <p class="text-muted small mb-1">Total Kelas</p>
+                                <h3 class="text-info mb-0">{{ $totalClasses ?? 0 }}</h3>
+                                <small class="text-primary">
+                                    <i class="bi bi-collection"></i> {{ $totalSubjects ?? 0 }} mata pelajaran
+                                </small>
+                            </div>
+                            <div class="col-auto">
+                                <div class="icon icon-shape bg-info text-white rounded-circle">
+                                    <i class="bi bi-building"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-3 col-md-6 mb-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col">
+                                <p class="text-muted small mb-1">Pendaftar Baru</p>
+                                <h3 class="text-warning mb-0">{{ $pendingApplications ?? 0 }}</h3>
+                                <small class="text-danger">
+                                    <i class="bi bi-clock"></i> Menunggu Verifikasi
+                                </small>
+                            </div>
+                            <div class="col-auto">
+                                <div class="icon icon-shape bg-warning text-white rounded-circle">
+                                    <i class="bi bi-person-plus-fill"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Quick Actions -->
+            <div class="col-lg-8 mb-4">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white border-bottom">
+                        <h5 class="mb-0">
+                            <i class="bi bi-lightning-fill me-2 text-warning"></i>
+                            Menu Utama
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <!-- Manajemen User -->
+                            <div class="col-md-6 col-lg-4">
+                                <div class="card border text-center h-100">
+                                    <div class="card-body">
+                                        <div class="icon icon-shape bg-primary text-white rounded-circle mx-auto mb-3">
+                                            <i class="bi bi-people-fill"></i>
+                                        </div>
+                                        <h6 class="card-title">Manajemen User</h6>
+                                        <p class="card-text small text-muted">Kelola siswa, guru, dan admin</p>
+                                        <div class="btn-group-vertical w-100" role="group">
+                                            <a href="{{ route('admin.students.index') }}"
+                                                class="btn btn-outline-primary btn-sm">Kelola Siswa</a>
+                                            <a href="{{ route('admin.teachers.index') }}"
+                                                class="btn btn-outline-success btn-sm">Kelola Guru</a>
+                                            <a href="{{ route('admin.users.index') }}"
+                                                class="btn btn-outline-info btn-sm">Semua User</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Akademik -->
+                            <div class="col-md-6 col-lg-4">
+                                <div class="card border text-center h-100">
+                                    <div class="card-body">
+                                        <div class="icon icon-shape bg-success text-white rounded-circle mx-auto mb-3">
+                                            <i class="bi bi-book-fill"></i>
+                                        </div>
+                                        <h6 class="card-title">Akademik</h6>
+                                        <p class="card-text small text-muted">Kelola kelas dan mata pelajaran</p>
+                                        <div class="btn-group-vertical w-100" role="group">
+                                            <a href="{{ route('admin.classes.index') }}"
+                                                class="btn btn-outline-primary btn-sm">Kelola Kelas</a>
+                                            <a href="{{ route('admin.subjects.index') }}"
+                                                class="btn btn-outline-success btn-sm">Mata Pelajaran</a>
+                                            <a href="{{ route('admin.schedules.index') }}"
+                                                class="btn btn-outline-info btn-sm">Jadwal</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Pendaftaran -->
+                            <div class="col-md-6 col-lg-4">
+                                <div class="card border text-center h-100">
+                                    <div class="card-body">
+                                        <div class="icon icon-shape bg-warning text-white rounded-circle mx-auto mb-3">
+                                            <i class="bi bi-person-plus-fill"></i>
+                                        </div>
+                                        <h6 class="card-title">Pendaftaran</h6>
+                                        <p class="card-text small text-muted">Verifikasi pendaftaran baru</p>
+                                        <div class="btn-group-vertical w-100" role="group">
+                                            <a href="{{ route('admin.applications.pending') }}"
+                                                class="btn btn-outline-warning btn-sm">
+                                                Pending ({{ $pendingApplications ?? 0 }})
+                                            </a>
+                                            <a href="{{ route('admin.applications.index') }}"
+                                                class="btn btn-outline-info btn-sm">Semua Pendaftar</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Komunikasi -->
+                            <div class="col-md-6 col-lg-4">
+                                <div class="card border text-center h-100">
+                                    <div class="card-body">
+                                        <div class="icon icon-shape bg-info text-white rounded-circle mx-auto mb-3">
+                                            <i class="bi bi-megaphone-fill"></i>
+                                        </div>
+                                        <h6 class="card-title">Komunikasi</h6>
+                                        <p class="card-text small text-muted">Pengumuman dan informasi</p>
+                                        <div class="btn-group-vertical w-100" role="group">
+                                            <a href="{{ route('admin.announcements.create') }}"
+                                                class="btn btn-outline-primary btn-sm">Buat Pengumuman</a>
+                                            <a href="{{ route('admin.announcements.index') }}"
+                                                class="btn btn-outline-info btn-sm">Kelola Pengumuman</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Alumni -->
+                            <div class="col-md-6 col-lg-4">
+                                <div class="card border text-center h-100">
+                                    <div class="card-body">
+                                        <div class="icon icon-shape bg-secondary text-white rounded-circle mx-auto mb-3">
+                                            <i class="bi bi-mortarboard-fill"></i>
+                                        </div>
+                                        <h6 class="card-title">Alumni</h6>
+                                        <p class="card-text small text-muted">Data lulusan sekolah</p>
+                                        <div class="btn-group-vertical w-100" role="group">
+                                            <a href="{{ route('admin.alumni.index') }}"
+                                                class="btn btn-outline-secondary btn-sm">Data Alumni</a>
+                                            <a href="{{ route('admin.alumni.create') }}"
+                                                class="btn btn-outline-primary btn-sm">Tambah Alumni</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Sistem -->
+                            <div class="col-md-6 col-lg-4">
+                                <div class="card border text-center h-100">
+                                    <div class="card-body">
+                                        <div class="icon icon-shape bg-dark text-white rounded-circle mx-auto mb-3">
+                                            <i class="bi bi-gear-fill"></i>
+                                        </div>
+                                        <h6 class="card-title">Sistem</h6>
+                                        <p class="card-text small text-muted">Pengaturan sekolah</p>
+                                        <div class="btn-group-vertical w-100" role="group">
+                                            <a href="{{ route('admin.school.edit') }}"
+                                                class="btn btn-outline-primary btn-sm">Info Sekolah</a>
+                                            <a href="{{ route('admin.system.settings') }}"
+                                                class="btn btn-outline-dark btn-sm">Pengaturan</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activities & System Info -->
+            <div class="col-lg-4">
+                <!-- Sistem Status -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white border-bottom">
+                        <h5 class="mb-0">
+                            <i class="bi bi-cpu me-2 text-primary"></i>
+                            Status Sistem
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="small">Database</span>
+                            <span class="badge bg-success">Online</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="small">Server</span>
+                            <span class="badge bg-success">Aktif</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="small">Storage</span>
+                            <span class="badge bg-warning text-dark">75% Terpakai</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="small">Last Backup</span>
+                            <span class="text-muted small">{{ \Carbon\Carbon::now()->subHours(6)->diffForHumans() }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Aktivitas Terbaru -->
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white border-bottom">
+                        <h5 class="mb-0">
+                            <i class="bi bi-clock-history me-2 text-secondary"></i>
+                            Aktivitas Terbaru
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        @if($recentActivities && $recentActivities->count() > 0)
+                            <div class="timeline-activities">
+                                @foreach($recentActivities->take(5) as $activity)
+                                    <div class="activity-item d-flex mb-3">
+                                        <div
+                                            class="activity-icon bg-{{ $activity->type === 'registration' ? 'warning' : ($activity->type === 'login' ? 'success' : 'primary') }} text-white rounded-circle me-3">
+                                            <i
+                                                class="bi bi-{{ $activity->type === 'registration' ? 'person-plus' : ($activity->type === 'login' ? 'box-arrow-in-right' : 'activity') }}"></i>
+                                        </div>
+                                        <div class="activity-content">
+                                            <p class="mb-1 small">{{ $activity->description }}</p>
+                                            <small class="text-muted">
+                                                <i class="bi bi-clock me-1"></i>
+                                                {{ $activity->created_at->diffForHumans() }}
+                                            </small>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                            <div class="text-center mt-3">
+                                <a href="{{ route('admin.activities.index') }}" class="btn btn-outline-secondary btn-sm">
+                                    Lihat Semua Aktivitas
+                                </a>
+                            </div>
+                        @else
+                            <div class="text-center py-3">
+                                <i class="bi bi-clock-history text-muted" style="font-size: 2rem;"></i>
+                                <p class="text-muted mt-2 small">Belum ada aktivitas terbaru</p>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts & Analytics -->
+        <div class="row mt-4">
+            <!-- Grafik Pendaftaran -->
+            <div class="col-lg-6 mb-4">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white border-bottom">
+                        <h5 class="mb-0">
+                            <i class="bi bi-graph-up me-2 text-success"></i>
+                            Statistik Pendaftaran (6 Bulan Terakhir)
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="registrationChart" height="300"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Distribusi Kelas -->
+            <div class="col-lg-6 mb-4">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white border-bottom">
+                        <h5 class="mb-0">
+                            <i class="bi bi-pie-chart me-2 text-info"></i>
+                            Distribusi Siswa per Kelas
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="classDistributionChart" height="300"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabel Pendaftar Terbaru -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white border-bottom">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="bi bi-person-lines-fill me-2 text-primary"></i>
+                                Pendaftar Terbaru
+                            </h5>
+                            <a href="{{ route('admin.applications.index') }}" class="btn btn-outline-primary btn-sm">
+                                Lihat Semua
+                            </a>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        @if($recentApplications && $recentApplications->count() > 0)
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Nama</th>
+                                            <th>Email</th>
+                                            <th>Kelas Tujuan</th>
+                                            <th>Status</th>
+                                            <th>Tanggal Daftar</th>
+                                            <th>Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($recentApplications->take(10) as $application)
+                                            <tr>
+                                                <td>
+                                                    <div class="d-flex align-items-center">
+                                                        <div
+                                                            class="avatar-sm bg-primary rounded-circle me-2 d-flex align-items-center justify-content-center">
+                                                            <i class="bi bi-person text-white"></i>
+                                                        </div>
+                                                        <strong>{{ $application->full_name }}</strong>
+                                                    </div>
+                                                </td>
+                                                <td>{{ $application->email }}</td>
+                                                <td>{{ $application->desired_class ?? '-' }}</td>
+                                                <td>
+                                                    <span
+                                                        class="badge bg-{{ $application->status === 'pending' ? 'warning' : ($application->status === 'approved' ? 'success' : 'danger') }}">
+                                                        {{ ucfirst($application->status) }}
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <small
+                                                        class="text-muted">{{ $application->created_at->format('d/m/Y H:i') }}</small>
+                                                </td>
+                                                <td>
+                                                    <div class="btn-group btn-group-sm" role="group">
+                                                        <a href="{{ route('admin.applications.show', $application->id) }}"
+                                                            class="btn btn-outline-primary btn-sm">
+                                                            <i class="bi bi-eye"></i>
+                                                        </a>
+                                                        @if($application->status === 'pending')
+                                                            <a href="{{ route('admin.applications.approve', $application->id) }}"
+                                                                class="btn btn-outline-success btn-sm">
+                                                                <i class="bi bi-check"></i>
+                                                            </a>
+                                                        @endif
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        @else
+                            <div class="text-center py-4">
+                                <i class="bi bi-person-plus text-muted" style="font-size: 3rem;"></i>
+                                <p class="text-muted mt-2">Belum ada pendaftar baru</p>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+@endsection
+
+@push('styles')
+    <style>
+        .icon {
+            width: 3rem;
+            height: 3rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .activity-icon {
+            width: 2rem;
+            height: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            flex-shrink: 0;
+        }
+
+        .avatar-sm {
+            width: 2rem;
+            height: 2rem;
+            font-size: 0.75rem;
+        }
+
+        .card {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+        }
+
+        .btn-group-vertical .btn {
+            margin-bottom: 0.25rem;
+        }
+
+        .btn-group-vertical .btn:last-child {
+            margin-bottom: 0;
+        }
+
+        @media (max-width: 768px) {
+            .container-fluid {
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+        }
+    </style>
+@endpush
+
+@push('scripts')
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Grafik Pendaftaran
+            const regCtx = document.getElementById('registrationChart').getContext('2d');
+            const registrationChart = new Chart(regCtx, {
+                type: 'line',
+                data: {
+                    labels: [
+                        @foreach($registrationChartData['labels'] ?? ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'] as $label)
+                            '{{ $label }}',
+                        @endforeach
+                ],
+                    datasets: [{
+                        label: 'Pendaftaran',
+                        data: [
+                            @foreach($registrationChartData['data'] ?? [10, 15, 8, 22, 18, 12] as $data)
+                                {{ $data }},
+                            @endforeach
+                    ],
+                        borderColor: '#198754',
+                        backgroundColor: 'rgba(25, 135, 84, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            // Grafik Distribusi Kelas
+            const classCtx = document.getElementById('classDistributionChart').getContext('2d');
+            const classDistributionChart = new Chart(classCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: [
+                        @foreach($classDistributionData['labels'] ?? ['Kelas X', 'Kelas XI', 'Kelas XII'] as $label)
+                            '{{ $label }}',
+                        @endforeach
+                ],
+                    datasets: [{
+                        data: [
+                            @foreach($classDistributionData['data'] ?? [45, 38, 42] as $data)
+                                {{ $data }},
+                            @endforeach
+                    ],
+                        backgroundColor: [
+                            '#0d6efd',
+                            '#198754',
+                            '#ffc107',
+                            '#dc3545',
+                            '#6f42c1',
+                            '#20c997'
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                usePointStyle: true,
+                                padding: 20
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Animasi counter
+            const counters = document.querySelectorAll('.card-body h3');
+            counters.forEach(counter => {
+                const target = parseInt(counter.textContent) || 0;
+                let current = 0;
+                const increment = target / 30;
+                const timer = setInterval(() => {
+                    current += increment;
+                    if (current >= target) {
+                        counter.textContent = target;
+                        clearInterval(timer);
+                    } else {
+                        counter.textContent = Math.floor(current);
+                    }
+                }, 30);
+            });
+
+            // Auto refresh untuk data real-time
+            setInterval(function () {
+                // Update hanya statistik kecil tanpa reload page
+                fetch('{{ route("admin.dashboard.stats") }}')
+                    .then(response => response.json())
+                    .then(data => {
+                        // Update counters jika diperlukan
+                        console.log('Stats updated:', data);
+                    });
+            }, 30000); // Update setiap 30 detik
+        });
+    </script>
+@endpush
