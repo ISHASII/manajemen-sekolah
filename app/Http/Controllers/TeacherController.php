@@ -12,6 +12,7 @@ use App\Models\StudentSkill;
 use App\Models\ClassRoom;
 use App\Models\Subject;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class TeacherController extends Controller
 {
@@ -77,7 +78,35 @@ class TeacherController extends Controller
         }
         $recentActivities = $recentActivities->sortByDesc('created_at')->values();
 
-        return view('teacher.dashboard', compact('teacher', 'schedules', 'classes', 'totalStudents', 'recentGrades', 'todaySchedules', 'todaySchedulesCount'))
+        // Identify students in teacher's classes with low average grades (< 70)
+        $classIds = $classes->pluck('id')->filter()->values()->all();
+        $lowGradesStudents = collect();
+        if (!empty($classIds)) {
+            $studentIds = Student::whereIn('class_id', $classIds)->pluck('id');
+            if ($studentIds->count() > 0) {
+                $avgByStudent = Grade::whereIn('student_id', $studentIds)
+                    ->groupBy('student_id')
+                    ->selectRaw('student_id, AVG(score) as avg_score')
+                    ->pluck('avg_score', 'student_id');
+
+                $threshold = 70;
+                $lowIds = $avgByStudent->filter(function ($avg) use ($threshold) {
+                    return (float) $avg < $threshold;
+                })->keys()->toArray();
+
+                if (!empty($lowIds)) {
+                    $lowGradesStudents = Student::with(['user', 'classRoom'])
+                        ->whereIn('id', $lowIds)
+                        ->get()
+                        ->map(function ($student) use ($avgByStudent) {
+                            $student->average_grade = round($avgByStudent[$student->id] ?? 0, 1);
+                            return $student;
+                        });
+                }
+            }
+        }
+
+        return view('teacher.dashboard', compact('teacher', 'schedules', 'classes', 'totalStudents', 'recentGrades', 'todaySchedules', 'todaySchedulesCount', 'lowGradesStudents'))
             ->with('recentActivities', $recentActivities)
             ->with('announcements', $announcements);
     }

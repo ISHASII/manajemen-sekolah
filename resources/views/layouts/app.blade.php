@@ -339,7 +339,7 @@
                                 aria-current="{{ request()->routeIs('home') || request()->routeIs('welcome') ? 'page' : '' }}"
                                 href="{{ route('home') }}">Beranda</a>
                         </li>
-                        @unless(request()->routeIs('admin.*') || (Auth::check() && Auth::user()->isStudent()))
+                        @unless(Auth::check() && Auth::user()->isTeacher())
                             <li class="nav-item">
                                 <a class="nav-link {{ request()->routeIs('about') ? 'active' : '' }}"
                                     aria-current="{{ request()->routeIs('about') ? 'page' : '' }}"
@@ -439,7 +439,7 @@
                             </div>
                         @endif
                     </div>
-                    @unless(Auth::check() && Auth::user()->isStudent())
+                    @unless(Auth::check() && (Auth::user()->isStudent() || Auth::user()->isTeacher()))
                         <div class="col-lg-2 mb-4">
                             <h6>Menu</h6>
                             <ul class="list-unstyled">
