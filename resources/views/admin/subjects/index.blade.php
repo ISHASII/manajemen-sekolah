@@ -67,15 +67,3 @@
         </div>
     </div>
 @endsection
-@extends('layouts.app')
-
-@section('title', 'Mata Pelajaran')
-
-@section('content')
-    <div class="container py-4">
-        <h3>Mata Pelajaran (Belum Diimplementasikan)</h3>
-        <div class="card mt-3 p-4">
-            <p>Halaman mata pelajaran belum diimplementasikan. Silakan tambahkan modul Subjects jika diperlukan.</p>
-        </div>
-    </div>
-@endsection

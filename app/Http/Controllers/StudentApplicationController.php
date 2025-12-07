@@ -35,21 +35,25 @@ class StudentApplicationController extends Controller
             'parent_phone' => 'required|string|max:20',
             'parent_address' => 'required|string',
             'parent_job' => 'nullable|string|max:255',
-            'desired_class' => 'required|string',
+            'desired_class' => 'required|in:SD,SMP,SMA',
             'health_conditions' => 'nullable|array',
             'disabilities' => 'nullable|array',
             'previous_school' => 'nullable|string|max:255',
             'graduation_year' => 'nullable|integer',
-            'documents.*' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'birth_certificate' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'last_certificate' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'photo' => 'required|file|mimes:jpg,jpeg,png|max:2048',
+            'agreement' => 'accepted',
         ]);
 
         // Generate application number
         $applicationNumber = 'APP' . date('Y') . str_pad(StudentApplication::count() + 1, 4, '0', STR_PAD_LEFT);
 
-        // Handle file uploads
+        // Handle file uploads - required documents
         $documents = [];
-        if ($request->hasFile('documents')) {
-            foreach ($request->file('documents') as $key => $file) {
+        foreach (['birth_certificate', 'last_certificate', 'photo'] as $key) {
+            if ($request->hasFile($key)) {
+                $file = $request->file($key);
                 $filename = time() . '_' . $key . '.' . $file->getClientOriginalExtension();
                 $path = $file->storeAs('application-documents', $filename, 'public');
 

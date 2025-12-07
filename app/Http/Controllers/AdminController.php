@@ -36,7 +36,7 @@ class AdminController extends Controller
         // Avoid query exceptions if the alumni table hasn't been migrated/created yet
         $totalAlumni = Schema::hasTable('alumni') ? Alumni::count() : 0;
 
-        $recentApplications = StudentApplication::with('documents')
+        $recentApplications = StudentApplication::query()
             ->latest()
             ->take(5)
             ->get();
@@ -97,7 +97,7 @@ class AdminController extends Controller
 
     public function applications()
     {
-        $applications = StudentApplication::with('documents')
+        $applications = StudentApplication::query()
             ->latest()
             ->paginate(20);
 
@@ -106,7 +106,7 @@ class AdminController extends Controller
 
     public function pendingApplications()
     {
-        $applications = StudentApplication::with('documents')
+        $applications = StudentApplication::query()
             ->where('status', 'pending')
             ->latest()
             ->paginate(20);
@@ -199,7 +199,7 @@ class AdminController extends Controller
 
     public function applicationDetail($id)
     {
-        $application = StudentApplication::with('documents')->findOrFail($id);
+        $application = StudentApplication::findOrFail($id);
         return view('admin.applications.detail', compact('application'));
     }
 
@@ -210,6 +210,12 @@ class AdminController extends Controller
         $request->validate([
             'class_id' => 'required|exists:classes,id',
         ]);
+
+        // Ensure selected class matches the desired grade level
+        $class = ClassRoom::findOrFail($request->class_id);
+        if ($application->desired_class && $class->grade_level !== $application->desired_class) {
+            return back()->with('error', 'Kelas yang dipilih tidak sesuai dengan tingkat yang diinginkan oleh pendaftar.');
+        }
 
         // Create user account
         $user = User::create([

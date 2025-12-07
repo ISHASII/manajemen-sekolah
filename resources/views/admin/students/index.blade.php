@@ -34,7 +34,7 @@
                                         <td>{{ ucfirst($st->status ?? 'inactive') }}</td>
                                         <td>
                                             <a href="{{ route('admin.students.edit', $st->id) }}"
-                                                class="btn btn-sm btn-outline-primary">Detail</a>
+                                                class="btn btn-sm btn-outline-primary btn-detail">Detail</a>
                                             <form method="POST" action="{{ route('admin.students.destroy', $st->id) }}"
                                                 class="d-inline-block" onsubmit="return confirm('Hapus siswa ini?');">
                                                 @csrf

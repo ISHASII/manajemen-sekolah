@@ -74,7 +74,7 @@
                     @if($school->vision)
                         <div class="col-md-6">
                             <div class="card border-0 shadow-lg rounded-4 h-100 p-4 p-lg-5 text-center transition-card">
-                                <div class="mx-auto mb-4 d-flex align-items-center justify-content-center rounded-4" style="width: 80px; height: 80px; background: rgba(30, 58, 95, 0.1);">
+                                <div class="mx-auto mb-4 d-flex align-items-center justify-content-center rounded-4" style="width: 80px; height: 80px; background: rgba(255, 255, 255, 0.1);">
                                     <i class="bi bi-eye fs-1"></i>
                                 </div>
                                 <h2 class="h3 fw-bold mb-3" style="color: var(--orange);">Visi</h2>
@@ -86,7 +86,7 @@
                     @if($school->mission)
                         <div class="col-md-6">
                             <div class="card border-0 shadow-lg rounded-4 h-100 p-4 p-lg-5 text-center transition-card">
-                                <div class="mx-auto mb-4 d-flex align-items-center justify-content-center rounded-4" style="width: 80px; height: 80px; background: rgba(245, 158, 11, 0.2);">
+                                <div class="mx-auto mb-4 d-flex align-items-center justify-content-center rounded-4" style="width: 80px; height: 80px; background: rgba(255, 255, 255, 0.2);">
                                     <i class="bi bi-bullseye fs-1"></i>
                                 </div>
                                 <h2 class="h3 fw-bold mb-3" style="color: var(--orange);">Misi</h2>

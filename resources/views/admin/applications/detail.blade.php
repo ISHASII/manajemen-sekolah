@@ -145,7 +145,9 @@
                                             <label for="class_id" class="form-label">Pilih Kelas</label>
                                             <select name="class_id" id="class_id" class="form-control" required>
                                                 <option value="">-- Pilih Kelas --</option>
-                                                @foreach(App\Models\ClassRoom::where('is_active', true)->get() as $class)
+                                                @foreach(App\Models\ClassRoom::where('is_active', true)
+                                                    ->where('grade_level', $application->desired_class)
+                                                    ->get() as $class)
                                                     <option value="{{ $class->id }}">{{ $class->name }}
                                                         ({{ $class->current_students }}/{{ $class->capacity }})</option>
                                                 @endforeach

@@ -42,7 +42,7 @@
                                         <td>{{ ucfirst($t->status ?? 'inactive') }}</td>
                                         <td>
                                             <a href="{{ route('admin.teachers.edit', $t->id) }}"
-                                                class="btn btn-sm btn-outline-primary">Detail</a>
+                                                class="btn btn-sm btn-outline-primary btn-detail">Detail</a>
                                             <form method="POST" action="{{ route('admin.teachers.destroy', $t->id) }}"
                                                 class="d-inline-block" onsubmit="return confirm('Hapus guru ini?');">
                                                 @csrf

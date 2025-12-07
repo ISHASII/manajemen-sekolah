@@ -282,6 +282,62 @@
             fill: #ffffff !important;
             /* for SVG icons */
         }
+
+        @if(request()->routeIs('admin.*'))
+            /* Make Detail action icons and text black across admin pages */
+            .btn-detail,
+            .btn-detail i,
+            .btn-detail .bi,
+            .btn-detail .fas {
+                color: #111827 !important;
+                fill: #111827 !important;
+            }
+
+            /* Make admin action buttons within cards, tables and groups show black text/icons (exclude navbar/footer) */
+            .container .btn,
+            .container-fluid .btn,
+            .card .btn,
+            .card-header .btn,
+            .table .btn,
+            .btn-group .btn,
+            .btn-group-vertical .btn,
+            .btn-group-sm .btn,
+            .container .dropdown-menu .btn,
+            .container-fluid .dropdown-menu .btn,
+            .form-inline .btn {
+                color: #111827 !important;
+                fill: #111827 !important;
+            }
+
+            .container .btn i,
+            .container-fluid .btn i,
+            .card .btn i,
+            .table .btn i,
+            .btn-group .btn i,
+            .btn-group-vertical .btn i,
+            .btn-group-sm .btn i,
+            .dropdown-menu .btn i,
+            .form-inline .btn i {
+                color: #111827 !important;
+                fill: #111827 !important;
+            }
+
+            /* Exceptions: keep primary button text black or default contrast */
+            .btn-primary {
+                color: #000 !important;
+            }
+
+            /* Ensure footer icons are white on admin pages */
+            .site-footer .bi,
+            .site-footer i[class^="bi-"],
+            .site-footer i[class*=" bi-"],
+            .site-footer .fas,
+            .site-footer .fa {
+                color: #ffffff !important;
+                fill: #ffffff !important;
+            }
+
+        @endif
     </style>
 
     @stack('styles')
@@ -333,35 +389,43 @@
                                 aria-current="{{ request()->routeIs('home') || request()->routeIs('welcome') ? 'page' : '' }}"
                                 href="{{ route('home') }}">Beranda</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('about') ? 'active' : '' }}"
-                                aria-current="{{ request()->routeIs('about') ? 'page' : '' }}"
-                                href="{{ route('about') }}">Tentang</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('programs') ? 'active' : '' }}"
-                                aria-current="{{ request()->routeIs('programs') ? 'page' : '' }}"
-                                href="{{ route('programs') }}">Program</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('teachers') ? 'active' : '' }}"
-                                aria-current="{{ request()->routeIs('teachers') ? 'page' : '' }}"
-                                href="{{ route('teachers') }}">Tenaga Pendidik</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('facilities') ? 'active' : '' }}"
-                                aria-current="{{ request()->routeIs('facilities') ? 'page' : '' }}"
-                                href="{{ route('facilities') }}">Fasilitas</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('contact') ? 'active' : '' }}"
-                                aria-current="{{ request()->routeIs('contact') ? 'page' : '' }}"
-                                href="{{ route('contact') }}">Kontak</a>
-                        </li>
+                        @unless(request()->routeIs('admin.*'))
+                            <li class="nav-item">
+                                <a class="nav-link {{ request()->routeIs('about') ? 'active' : '' }}"
+                                    aria-current="{{ request()->routeIs('about') ? 'page' : '' }}"
+                                    href="{{ route('about') }}">Tentang</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ request()->routeIs('programs') ? 'active' : '' }}"
+                                    aria-current="{{ request()->routeIs('programs') ? 'page' : '' }}"
+                                    href="{{ route('programs') }}">Program</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ request()->routeIs('teachers') ? 'active' : '' }}"
+                                    aria-current="{{ request()->routeIs('teachers') ? 'page' : '' }}"
+                                    href="{{ route('teachers') }}">Tenaga Pendidik</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ request()->routeIs('facilities') ? 'active' : '' }}"
+                                    aria-current="{{ request()->routeIs('facilities') ? 'page' : '' }}"
+                                    href="{{ route('facilities') }}">Fasilitas</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ request()->routeIs('contact') ? 'active' : '' }}"
+                                    aria-current="{{ request()->routeIs('contact') ? 'page' : '' }}"
+                                    href="{{ route('contact') }}">Kontak</a>
+                            </li>
+                        @endunless
                     </ul>
 
                     <ul class="navbar-nav">
                         @guest
+                            <li class="nav-item me-2">
+                                <a class="btn btn-outline-light {{ request()->routeIs('application.status') ? 'active' : '' }}"
+                                    href="{{ route('application.status') }}">
+                                    <i class="bi bi-search me-1"></i>Cek Status
+                                </a>
+                            </li>
                             <li class="nav-item me-2">
                                 <a class="btn btn-outline-light" href="{{ route('login') }}">
                                     <i class="bi bi-box-arrow-in-right me-1"></i>Masuk

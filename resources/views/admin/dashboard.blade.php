@@ -2,17 +2,117 @@
 
 @section('title', 'Dashboard Admin')
 
+@push('styles')
+    <style>
+        /* Scoped admin dashboard styles - only affects this view */
+        .admin-page-wrapper {
+            min-height: 100vh;
+            background: #ffffff;
+            color: #111827;
+        }
+
+        /* Ensure cards have white background and dark text for admin pages */
+        .admin-page-wrapper .card {
+            background: #ffffff !important;
+            color: #111827 !important;
+            border: 1px solid rgba(0, 0, 0, 0.06) !important;
+        }
+
+        /* Make the icon circles yellow and the icons themselves dark (black) */
+        .admin-page-wrapper .icon.icon-shape,
+        .admin-page-wrapper .icon.icon-shape.rounded-circle,
+        .admin-page-wrapper .icon.icon-shape.bg-warning {
+            background: #ffd700 !important;
+            /* yellow */
+            color: #000 !important;
+        }
+
+        .admin-page-wrapper .icon.icon-shape i,
+        .admin-page-wrapper .icon.icon-shape .bi,
+        .admin-page-wrapper .icon.icon-shape svg {
+            color: #000 !important;
+            fill: #000 !important;
+        }
+
+        /* Header / card header style change for admin wrapper */
+        .admin-page-wrapper .card-header {
+            background: #ffffff !important;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.04) !important;
+        }
+
+        /* Make sure links on admin view are readable */
+        .admin-page-wrapper .nav-link,
+        .admin-page-wrapper a {
+            color: #111827 !important;
+        }
+
+        /* Force all common text elements inside admin wrapper to dark (black) while keeping layout navbar/footer untouched */
+        .admin-page-wrapper,
+        .admin-page-wrapper p,
+        .admin-page-wrapper small,
+        .admin-page-wrapper span,
+        .admin-page-wrapper label,
+        .admin-page-wrapper li,
+        .admin-page-wrapper td,
+        .admin-page-wrapper th,
+        .admin-page-wrapper h1,
+        .admin-page-wrapper h2,
+        .admin-page-wrapper h3,
+        .admin-page-wrapper h4,
+        .admin-page-wrapper h5,
+        .admin-page-wrapper h6,
+        .admin-page-wrapper a,
+        .admin-page-wrapper strong,
+        .admin-page-wrapper b,
+        .admin-page-wrapper em,
+        .admin-page-wrapper .card-title,
+        .admin-page-wrapper .card-text,
+        .admin-page-wrapper .text-muted,
+        .admin-page-wrapper .text-primary,
+        .admin-page-wrapper .text-success,
+        .admin-page-wrapper .text-info,
+        .admin-page-wrapper .text-warning,
+        .admin-page-wrapper .text-danger {
+            color: #111827 !important;
+        }
+
+        /* Icons in circle shapes must remain white for contrast */
+        .admin-page-wrapper .icon.icon-shape,
+        .admin-page-wrapper .icon.icon-shape i,
+        .admin-page-wrapper .icon.icon-shape .bi,
+        .admin-page-wrapper .icon.icon-shape svg {
+            color: #fff !important;
+            fill: #fff !important;
+        }
+
+        /* Action buttons inside the recent applications table: icons should be black */
+        .admin-page-wrapper .recent-applications-table .btn i,
+        .admin-page-wrapper .recent-applications-table .btn .bi {
+            color: #111827 !important;
+            fill: #111827 !important;
+        }
+
+        /* Note: navbar/footer styles are kept as layout defaults. No body-level overrides here. */
+        /* Dashboard header icon (shield) should be orange */
+        .admin-page-wrapper .dashboard-header .dashboard-header-icon,
+        .admin-page-wrapper .dashboard-header-icon {
+            color: var(--orange) !important;
+            fill: var(--orange) !important;
+        }
+    </style>
+@endpush
+
 @section('content')
-    <div class="container-fluid py-4">
+    <div class="container-fluid py-4 admin-page-wrapper">
         <!-- Header Dashboard -->
         <div class="row mb-4">
             <div class="col-12">
-                <div class="card bg-dark text-white">
+                <div class="card bg text-dark">
                     <div class="card-body">
                         <div class="row align-items-center">
                             <div class="col-md-8">
-                                <h2 class="mb-1">
-                                    <i class="bi bi-shield-check me-2"></i>
+                                <h2 class="mb-1 dashboard-header">
+                                    <i class="bi bi-shield-check me-2 dashboard-header-icon"></i>
                                     Dashboard Administrator
                                 </h2>
                                 <p class="mb-0 opacity-75">
@@ -243,7 +343,7 @@
                             <div class="col-md-6 col-lg-4">
                                 <div class="card border text-center h-100">
                                     <div class="card-body">
-                                        <div class="icon icon-shape bg-dark text-white rounded-circle mx-auto mb-3">
+                                        <div class="icon icon-shape bg-primary text-white rounded-circle mx-auto mb-3">
                                             <i class="bi bi-gear-fill"></i>
                                         </div>
                                         <h6 class="card-title">Sistem</h6>
@@ -387,7 +487,7 @@
                     <div class="card-body">
                         @if($recentApplications && $recentApplications->count() > 0)
                             <div class="table-responsive">
-                                <table class="table table-hover">
+                                <table class="table table-hover recent-applications-table">
                                     <thead class="table-light">
                                         <tr>
                                             <th>Nama</th>
@@ -424,8 +524,8 @@
                                                 </td>
                                                 <td>
                                                     <div class="btn-group btn-group-sm" role="group">
-                                                        <a href="{{ route('admin.applications.show', $application->id) }}"
-                                                            class="btn btn-outline-primary btn-sm">
+                                                        <a href="{{ route('admin.applications.detail', $application->id) }}"
+                                                            class="btn btn-outline-primary btn-sm btn-detail">
                                                             <i class="bi bi-eye"></i>
                                                         </a>
                                                         @if($application->status === 'pending')
@@ -452,6 +552,7 @@
             </div>
         </div>
     </div>
+    {{-- No direct body class changes; layout navbar/footer remain unchanged --}}
 @endsection
 
 @push('styles')
@@ -521,14 +622,14 @@
                         @foreach($registrationChartData['labels'] ?? ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'] as $label)
                             '{{ $label }}',
                         @endforeach
-                ],
+                                                                            ],
                     datasets: [{
                         label: 'Pendaftaran',
                         data: [
                             @foreach($registrationChartData['data'] ?? [10, 15, 8, 22, 18, 12] as $data)
                                 {{ $data }},
                             @endforeach
-                    ],
+                                                                                ],
                         borderColor: '#198754',
                         backgroundColor: 'rgba(25, 135, 84, 0.1)',
                         borderWidth: 2,
@@ -561,13 +662,13 @@
                         @foreach($classDistributionData['labels'] ?? ['Kelas X', 'Kelas XI', 'Kelas XII'] as $label)
                             '{{ $label }}',
                         @endforeach
-                ],
+                                                                            ],
                     datasets: [{
                         data: [
                             @foreach($classDistributionData['data'] ?? [45, 38, 42] as $data)
                                 {{ $data }},
                             @endforeach
-                    ],
+                                                                                ],
                         backgroundColor: [
                             '#0d6efd',
                             '#198754',

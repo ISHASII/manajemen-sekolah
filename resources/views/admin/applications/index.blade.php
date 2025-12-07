@@ -52,7 +52,7 @@
                                                 </td>
                                                 <td>
                                                     <a href="{{ route('admin.applications.detail', $application->id) }}"
-                                                        class="btn btn-sm btn-outline-primary">
+                                                        class="btn btn-sm btn-outline-primary btn-detail">
                                                         <i class="fas fa-eye"></i> Detail
                                                     </a>
                                                 </td>
