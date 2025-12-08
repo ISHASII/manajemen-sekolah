@@ -20,6 +20,12 @@ class HomeController extends Controller
         return view('welcome', compact('school', 'announcements'));
     }
 
+    public function showAnnouncement($id)
+    {
+        $announcement = Announcement::findOrFail($id);
+        return view('announcements.show', compact('announcement'));
+    }
+
     /**
      * Show the application dashboard based on user role.
      */

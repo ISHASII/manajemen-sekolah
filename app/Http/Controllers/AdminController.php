@@ -1295,18 +1295,28 @@ class AdminController extends Controller
             'target_audience' => 'required|in:all,students,teachers,parents',
             'publish_date' => 'required|date',
             'expire_date' => 'nullable|date|after:publish_date',
+            'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
         try {
-            Announcement::create([
-            'title' => $request->input('title'),
-            'content' => $request->input('content'),
-            'type' => $request->input('type'),
-            'target_audience' => $request->input('target_audience'),
-            'created_by' => auth()->id(),
-            'publish_date' => $request->input('publish_date'),
-            'expire_date' => $request->input('expire_date'),
-        ]);
+            $announcementData = [
+                'title' => $request->input('title'),
+                'content' => $request->input('content'),
+                'type' => $request->input('type'),
+                'target_audience' => $request->input('target_audience'),
+                'created_by' => auth()->id(),
+                'publish_date' => $request->input('publish_date'),
+                'expire_date' => $request->input('expire_date'),
+            ];
+
+            if ($request->hasFile('image')) {
+                $file = $request->file('image');
+                $filename = 'announcement_' . time() . '.' . $file->getClientOriginalExtension();
+                $path = $file->storeAs('announcement-images', $filename, 'public');
+                $announcementData['image'] = $path;
+            }
+
+            Announcement::create($announcementData);
         } catch (\Exception $e) {
             \Log::error('Failed to create announcement', ['error' => $e->getMessage(), 'input' => $request->all()]);
             return back()->withInput()->with('error', 'Gagal membuat pengumuman: ' . $e->getMessage());
@@ -1331,16 +1341,31 @@ class AdminController extends Controller
             'target_audience' => 'required|in:all,students,teachers,parents',
             'publish_date' => 'required|date',
             'expire_date' => 'nullable|date|after:publish_date',
+            'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
-        $announcement->update([
+        $updateData = [
             'title' => $request->input('title'),
             'content' => $request->input('content'),
             'type' => $request->type,
             'target_audience' => $request->target_audience,
             'publish_date' => $request->publish_date,
             'expire_date' => $request->expire_date,
-        ]);
+        ];
+
+        // handle image update if provided
+        if ($request->hasFile('image')) {
+            // delete old image file if exists
+            if ($announcement->image && Storage::disk('public')->exists($announcement->image)) {
+                Storage::disk('public')->delete($announcement->image);
+            }
+            $file = $request->file('image');
+            $filename = 'announcement_' . time() . '.' . $file->getClientOriginalExtension();
+            $path = $file->storeAs('announcement-images', $filename, 'public');
+            $updateData['image'] = $path;
+        }
+
+        $announcement->update($updateData);
 
         return redirect()->route('admin.announcements.index')->with('success', 'Pengumuman berhasil diperbarui.');
     }

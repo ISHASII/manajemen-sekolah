@@ -70,7 +70,7 @@ class TeacherController extends Controller
             ->where(function($q) use ($user) {
                 $q->where('target_audience', 'all')
                     ->orWhere('target_audience', 'teachers');
-            })->latest()->take(5)->get();
+            })->latest()->take(10)->get();
         foreach ($announcements as $ann) {
             $recentActivities->push((object)[
                 'type' => 'announcement',
@@ -494,10 +494,11 @@ class TeacherController extends Controller
             'target_audience' => 'required|in:all,students,teachers,parents',
             'publish_date' => 'required|date',
             'expire_date' => 'nullable|date|after:publish_date',
+            'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
         try {
-                Announcement::create([
+                $announcementData = [
                 'title' => $request->input('title'),
                 'content' => $request->input('content'),
                 'type' => $request->input('type'),
@@ -505,7 +506,16 @@ class TeacherController extends Controller
                 'created_by' => Auth::id(),
                 'publish_date' => $request->input('publish_date'),
                 'expire_date' => $request->input('expire_date'),
-            ]);
+                ];
+
+                if ($request->hasFile('image')) {
+                    $file = $request->file('image');
+                    $filename = 'announcement_' . time() . '.' . $file->getClientOriginalExtension();
+                    $path = $file->storeAs('announcement-images', $filename, 'public');
+                    $announcementData['image'] = $path;
+                }
+
+                Announcement::create($announcementData);
         } catch (\Exception $e) {
                 \Log::error('Failed to create teacher announcement', ['error' => $e->getMessage()]);
             return back()->withInput()->with('error', 'Gagal membuat pengumuman: ' . $e->getMessage());

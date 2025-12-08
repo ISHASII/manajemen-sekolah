@@ -14,6 +14,7 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::redirect('/home', '/');
 // Backward-compatible route for named welcome links
 Route::get('/welcome', [HomeController::class, 'welcome'])->name('welcome');
+Route::get('/announcements/{id}', [HomeController::class, 'showAnnouncement'])->name('announcements.show');
 Route::get('/about', [HomeController::class, 'about'])->name('about');
 Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
 Route::get('/programs', [HomeController::class, 'programs'])->name('programs');
@@ -120,6 +121,8 @@ Route::middleware('auth')->group(function () {
         Route::put('/profile', [StudentController::class, 'updateProfile'])->name('profile.update');
         Route::get('/schedules', [StudentController::class, 'schedules'])->name('schedules');
         Route::get('/grades', [StudentController::class, 'grades'])->name('grades');
+        // Announcements accessible by students
+        Route::get('/announcements', [StudentController::class, 'announcements'])->name('announcements');
     });
 
     // Teacher Routes

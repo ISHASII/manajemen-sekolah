@@ -177,9 +177,10 @@
                 <div class="row g-4">
                     @foreach($announcements ?? collect() as $announcement)
                         <div class="col-lg-4 col-md-6">
+                            <a href="{{ route('announcements.show', $announcement->id) }}" class="text-decoration-none text-reset">
                             <div class="card border-0 shadow-lg rounded-4 h-100 overflow-hidden transition-card">
                                 @if($announcement->image)
-                                    <img src="{{ asset($announcement->image) }}" class="card-img-top" alt="{{ $announcement->title }}" style="height: 200px; object-fit: cover;">
+                                    <img src="{{ Storage::url($announcement->image) }}" class="card-img-top" alt="{{ $announcement->title }}" style="height: 200px; object-fit: cover;">
                                 @else
                                     <div class="d-flex align-items-center justify-content-center" style="height: 200px; background: linear-gradient(135deg, #1e3a5f 0%, #2d4a6f 100%);">
                                         <i class="bi bi-calendar-event text-white" style="font-size: 4rem; opacity: 0.5;"></i>
@@ -199,6 +200,8 @@
                                     <h5 class="fw-bold mb-2" style="color: #1e3a5f;">{{ $announcement->title }}</h5>
                                     <p class="text-muted mb-0">{{ Str::limit($announcement->content, 150) }}</p>
                                 </div>
+                            </div>
+                            </a>
                             </div>
                         </div>
                     @endforeach

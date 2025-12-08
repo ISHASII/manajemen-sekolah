@@ -28,7 +28,7 @@
                             <div class="col-md-4 text-end">
                                 <div class="d-flex flex-column align-items-end">
                                     <span class="badge bg-light text-primary fs-6 mb-1">
-                                        {{ optional($student)->nis ?? '-' }}
+                                        {{ optional($student)->nisn ?? optional($application)->nisn ?? optional($student)->nis ?? '-' }}
                                     </span>
                                     <small class="opacity-75">
                                         Kelas: {{ optional(optional($student)->classRoom)->name ?? 'Belum ditentukan' }}
@@ -194,41 +194,61 @@
                     </div>
                 </div>
 
-                <!-- Pengumuman Terbaru -->
+                <!-- Pengumuman Terbaru (Carousel) -->
                 <div class="card border-0 shadow-sm">
-                    <div class="card-header border-bottom" style="background-color: orange;
-                                                            <h5 class=" mb-0">
-                        <i class="bi bi-megaphone me-2 text-info"></i>
-                        Pengumuman Terbaru
+                    <div class="card-header border-bottom" style="background-color: orange;">
+                        <h5 class="mb-0">
+                            <i class="bi bi-megaphone me-2 text-info"></i>
+                            Pengumuman Terbaru
                         </h5>
                     </div>
                     <div class="card-body">
                         @if(!empty($announcements) && $announcements->count() > 0)
-                            <div class="list-group list-group-flush">
-                                @foreach($announcements->take(3) as $announcement)
-                                    <div class="list-group-item px-0 border-0 border-bottom">
-                                        <div class="d-flex justify-content-between align-items-start">
-                                            <div class="grow">
-                                                <h6 class="mb-1">{{ $announcement->title }}</h6>
-                                                <p class="mb-1 small text-muted">
-                                                    {{ Str::limit($announcement->content, 80) }}
-                                                </p>
-                                                <small class="text-muted">
-                                                    <i class="bi bi-calendar me-1"></i>
-                                                    {{ $announcement->created_at->diffForHumans() }}
-                                                </small>
-                                            </div>
-                                            @if($announcement->is_important)
-                                                <span class="badge bg-danger ms-2">Penting</span>
-                                            @endif
+                            @php $carouselId = 'studentAnnouncementsCarousel'; @endphp
+                            <div id="{{ $carouselId }}" class="carousel slide" data-bs-ride="carousel">
+                                <div class="carousel-indicators">
+                                    @foreach($announcements->take(10) as $idx => $announcement)
+                                        <button type="button" data-bs-target="#{{ $carouselId }}" data-bs-slide-to="{{ $idx }}"
+                                            class="{{ $idx === 0 ? 'active' : '' }}" aria-current="true"
+                                            aria-label="Slide {{ $idx + 1 }}"></button>
+                                    @endforeach
+                                </div>
+                                <div class="carousel-inner">
+                                    @foreach($announcements->take(10) as $idx => $announcement)
+                                        <div class="carousel-item {{ $idx === 0 ? 'active' : '' }}">
+                                            <a href="{{ route('announcements.show', $announcement->id) }}"
+                                                class="d-block text-decoration-none text-reset">
+                                                @if($announcement->image && Storage::disk('public')->exists($announcement->image))
+                                                    <img src="{{ Storage::url($announcement->image) }}" class="d-block w-100"
+                                                        alt="{{ $announcement->title }}" style="height: 140px; object-fit: cover;">
+                                                @else
+                                                    <div class="d-block w-100 bg-light d-flex align-items-center justify-content-center"
+                                                        style="height: 140px;">
+                                                        <i class="bi bi-megaphone text-muted fs-2"></i>
+                                                    </div>
+                                                @endif
+                                                <div class="carousel-caption d-none d-md-block text-start"
+                                                    style="background: rgba(0,0,0,0.35); left:0; right:0; padding: .5rem;">
+                                                    <h6 class="mb-0">{{ $announcement->title }}</h6>
+                                                </div>
+                                            </a>
                                         </div>
-                                    </div>
-                                @endforeach
+                                    @endforeach
+                                </div>
+                                <button class="carousel-control-prev" type="button" data-bs-target="#{{ $carouselId }}"
+                                    data-bs-slide="prev">
+                                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                    <span class="visually-hidden">Previous</span>
+                                </button>
+                                <button class="carousel-control-next" type="button" data-bs-target="#{{ $carouselId }}"
+                                    data-bs-slide="next">
+                                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                    <span class="visually-hidden">Next</span>
+                                </button>
                             </div>
                             <div class="text-center mt-3">
-                                <a href="{{ route('student.announcements') }}" class="btn btn-outline-primary btn-sm">
-                                    Lihat Semua Pengumuman
-                                </a>
+                                <a href="{{ route('student.announcements') }}" class="btn btn-outline-primary btn-sm">Lihat
+                                    Semua Pengumuman</a>
                             </div>
                         @else
                             <div class="text-center py-3">
@@ -414,6 +434,29 @@
         .student-page-wrapper .icon.icon-shape.bg-primary {
             background: var(--primary) !important;
             color: #bababa !important;
+        }
+
+        /* Announcement card styling */
+        .announcement-card .card-img-top {
+            height: 90px;
+            object-fit: cover;
+        }
+
+        .announcement-card .card-body {
+            padding: 0.5rem;
+        }
+
+        /* Carousel specific styling for announcements */
+        #studentAnnouncementsCarousel .carousel-item img {
+            height: 140px;
+            object-fit: cover;
+        }
+
+        #studentAnnouncementsCarousel .carousel-caption {
+            background: rgba(0, 0, 0, 0.35);
+            left: 0;
+            right: 0;
+            padding: .5rem;
         }
     </style>
 @endpush

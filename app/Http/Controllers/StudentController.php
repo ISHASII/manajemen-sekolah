@@ -35,8 +35,31 @@ class StudentController extends Controller
                       ->orWhere('expire_date', '>=', now());
             })
             ->latest()
-            ->take(5)
+            ->take(10)
             ->get();
+
+        // If no Student record yet (i.e., newly registered user pending approval)
+        // attempt to find a StudentApplication for the current user's email so we can
+        // show NISN or other basic info in dashboard while pending.
+        // Load any related application in case the Student record hasn't been populated or nisn wasn't set
+        $application = StudentApplication::where('email', $user->email)->latest()->first();
+        // If not found by email, try some fallbacks: phone, name, birth_date
+        if (!$application) {
+            $applicationQuery = StudentApplication::query();
+            $applicationQuery->where(function($q) use ($user, $student) {
+                $q->where('email', $user->email);
+                if ($user->phone) {
+                    $q->orWhere('phone', $user->phone);
+                }
+                if ($student && $student->birth_date) {
+                    $q->orWhere('birth_date', $student->birth_date);
+                }
+                if ($user->name) {
+                    $q->orWhere('student_name', $user->name);
+                }
+            });
+            $application = $applicationQuery->latest()->first();
+        }
 
         $schedules = collect();
         $grades = collect();
@@ -68,7 +91,7 @@ class StudentController extends Controller
                 ->get();
         }
 
-        return view('student.dashboard', compact('student', 'announcements', 'schedules', 'grades', 'todaySchedules', 'recentGrades'));
+        return view('student.dashboard', compact('student', 'application', 'announcements', 'schedules', 'grades', 'todaySchedules', 'recentGrades'));
     }
 
     public function profile()
@@ -237,6 +260,27 @@ class StudentController extends Controller
         $student->update($studentFields);
 
         return back()->with('success', 'Profil berhasil diperbarui!');
+    }
+
+    /**
+     * Display a list of announcements for the student.
+     */
+    public function announcements(Request $request)
+    {
+        $announcements = Announcement::where(function($q) {
+                $q->where('target_audience', 'all')
+                  ->orWhere('target_audience', 'students');
+            })
+            ->where('is_active', true)
+            ->where('publish_date', '<=', now())
+            ->where(function($query) {
+                $query->whereNull('expire_date')
+                      ->orWhere('expire_date', '>=', now());
+            })
+            ->latest()
+            ->paginate(10);
+
+        return view('student.announcements.index', compact('announcements'));
     }
 
     public function grades()

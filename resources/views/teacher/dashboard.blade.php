@@ -38,6 +38,8 @@
                 </div>
             </div>
 
+
+
             <!-- Quick Stats -->
             <div class="row mb-4">
                 <div class="col-xl-3 col-md-6 mb-3">
@@ -238,6 +240,71 @@
                                 <div class="text-center py-3">
                                     <i class="bi bi-collection text-muted" style="font-size: 2rem;"></i>
                                     <p class="text-muted mt-2 small">Belum ada kelas yang diampu</p>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+
+                    <!-- Pengumuman Terbaru -->
+                    <div class="card border-0 shadow-sm mt-4">
+                        <div class="card-header bg-white border-bottom">
+                            <h5 class="mb-0">
+                                <i class="bi bi-megaphone me-2 text-info"></i>
+                                Pengumuman Terbaru
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            @if(!empty($announcements) && $announcements->count() > 0)
+                                @php $teacherCarouselId = 'teacherAnnouncementsCarousel'; @endphp
+                                <div id="{{ $teacherCarouselId }}" class="carousel slide" data-bs-ride="carousel">
+                                    <div class="carousel-indicators">
+                                        @foreach($announcements->take(10) as $idx => $announcement)
+                                            <button type="button" data-bs-target="#{{ $teacherCarouselId }}"
+                                                data-bs-slide-to="{{ $idx }}" class="{{ $idx === 0 ? 'active' : '' }}"
+                                                aria-current="true" aria-label="Slide {{ $idx + 1 }}"></button>
+                                        @endforeach
+                                    </div>
+                                    <div class="carousel-inner">
+                                        @foreach($announcements->take(10) as $idx => $announcement)
+                                            <div class="carousel-item {{ $idx === 0 ? 'active' : '' }}">
+                                                <a href="{{ route('announcements.show', $announcement->id) }}"
+                                                    class="d-block text-decoration-none text-reset">
+                                                    @if($announcement->image && Storage::disk('public')->exists($announcement->image))
+                                                        <img src="{{ Storage::url($announcement->image) }}" class="d-block w-100"
+                                                            alt="{{ $announcement->title }}" style="height: 140px; object-fit: cover;">
+                                                    @else
+                                                        <div class="d-block w-100 bg-light d-flex align-items-center justify-content-center"
+                                                            style="height: 140px;">
+                                                            <i class="bi bi-megaphone text-muted fs-2"></i>
+                                                        </div>
+                                                    @endif
+                                                    <div class="carousel-caption d-none d-md-block text-start"
+                                                        style="background: rgba(0,0,0,0.35); left:0; right:0; padding: .5rem;">
+                                                        <h6 class="mb-0">{{ $announcement->title }}</h6>
+                                                    </div>
+                                                </a>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                    <button class="carousel-control-prev" type="button"
+                                        data-bs-target="#{{ $teacherCarouselId }}" data-bs-slide="prev">
+                                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                        <span class="visually-hidden">Previous</span>
+                                    </button>
+                                    <button class="carousel-control-next" type="button"
+                                        data-bs-target="#{{ $teacherCarouselId }}" data-bs-slide="next">
+                                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                        <span class="visually-hidden">Next</span>
+                                    </button>
+                                </div>
+                                <div class="text-center mt-3">
+                                    <a href="{{ route('admin.announcements.index') }}"
+                                        class="btn btn-outline-primary btn-sm">Lihat Semua Pengumuman</a>
+                                </div>
+                            @else
+                                <div class="text-center py-3">
+                                    <i class="bi bi-megaphone text-muted" style="font-size: 2rem;"></i>
+                                    <p class="text-muted mt-2 small">Belum ada pengumuman</p>
                                 </div>
                             @endif
                         </div>
@@ -461,8 +528,8 @@
         }
 
         /* Make the header of each card orange inside teacher pages without changing card body colors
-                                                           -- also override any Bootstrap `bg-white` utility class using `!important` to ensure this
-                                                           styling applies when markup uses `bg-white` on the header. */
+                                                                       -- also override any Bootstrap `bg-white` utility class using `!important` to ensure this
+                                                                       styling applies when markup uses `bg-white` on the header. */
         .teacher-page-wrapper .card-header,
         .teacher-page-wrapper .card-header.bg-white {
             background-color: #fd7e14 !important;
@@ -503,6 +570,29 @@
                 left: -0.875rem;
             }
         }
+
+        /* Announcement card styling */
+        .announcement-card .card-img-top {
+            height: 90px;
+            object-fit: cover;
+        }
+
+        .announcement-card .card-body {
+            padding: 0.5rem;
+        }
+
+        /* Carousel specific styling for announcements */
+        #teacherAnnouncementsCarousel .carousel-item img {
+            height: 140px;
+            object-fit: cover;
+        }
+
+        #teacherAnnouncementsCarousel .carousel-caption {
+            background: rgba(0, 0, 0, 0.35);
+            left: 0;
+            right: 0;
+            padding: .5rem;
+        }
     </style>
 @endpush
 
@@ -519,10 +609,10 @@
                     labels: ['A (90-100)', 'B (80-89)', 'C (70-79)', 'D (60-69)', 'E (<60)'],
                     datasets: [{
                         data: [
-                                                                                            {{ $gradeDistribution['A'] ?? 0 }},
-                                                                                            {{ $gradeDistribution['B'] ?? 0 }},
-                                                                                            {{ $gradeDistribution['C'] ?? 0 }},
-                                                                                            {{ $gradeDistribution['D'] ?? 0 }},
+                                                                                                        {{ $gradeDistribution['A'] ?? 0 }},
+                                                                                                        {{ $gradeDistribution['B'] ?? 0 }},
+                                                                                                        {{ $gradeDistribution['C'] ?? 0 }},
+                                                                                                        {{ $gradeDistribution['D'] ?? 0 }},
                             {{ $gradeDistribution['E'] ?? 0 }}
                         ],
                         backgroundColor: [

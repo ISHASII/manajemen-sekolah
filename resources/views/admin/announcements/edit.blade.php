@@ -22,7 +22,8 @@
                         </ul>
                     </div>
                 @endif
-                <form action="{{ route('admin.announcements.update', $announcement->id) }}" method="POST">
+                <form action="{{ route('admin.announcements.update', $announcement->id) }}" method="POST"
+                    enctype="multipart/form-data">
                     @csrf
                     @method('PUT')
                     <div class="mb-3">
@@ -66,6 +67,17 @@
                         <label class="form-label">Tanggal Kadaluarsa (optional)</label>
                         <input type="date" name="expire_date" class="form-control"
                             value="{{ old('expire_date', $announcement->expire_date?->toDateString()) }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Gambar Pengumuman (JPG/PNG) - opsional</label>
+                        @if($announcement->image)
+                            <div class="mb-2">
+                                <img src="{{ Storage::url($announcement->image) }}" alt="Announcement Image"
+                                    style="max-width: 200px; display:block; margin-bottom:8px;" />
+                            </div>
+                        @endif
+                        <input type="file" name="image" class="form-control">
+                        @error('image') <div class="text-danger small">{{ $message }}</div> @enderror
                     </div>
                     <div class="d-grid gap-2">
                         <button class="btn btn-primary">Simpan Perubahan</button>

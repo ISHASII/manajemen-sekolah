@@ -7,7 +7,7 @@
         <h3>Buat Pengumuman Baru</h3>
         <div class="card mt-3">
             <div class="card-body">
-                <form action="{{ route('admin.announcements.store') }}" method="POST">
+                <form action="{{ route('admin.announcements.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     @if($errors && $errors->any())
                         <div class="alert alert-warning">
@@ -55,6 +55,11 @@
                     <div class="mb-3">
                         <label class="form-label">Tanggal Kadaluarsa (optional)</label>
                         <input type="date" name="expire_date" class="form-control" value="{{ old('expire_date') }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Gambar Pengumuman (JPG/PNG) - opsional</label>
+                        <input type="file" name="image" class="form-control">
+                        @error('image') <div class="text-danger small">{{ $message }}</div> @enderror
                     </div>
                     <div class="d-grid gap-2">
                         <button class="btn btn-primary">Simpan</button>
