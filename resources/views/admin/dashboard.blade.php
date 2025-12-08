@@ -228,7 +228,7 @@
 
         <div class="row">
             <!-- Quick Actions -->
-            <div class="col-lg-8 mb-4">
+            <div class="col-lg-12 mb-4">
                 <div class="card border-0 shadow-sm">
                     <div class="card-header bg-white border-bottom">
                         <h5 class="mb-0">
@@ -351,8 +351,6 @@
                                         <div class="btn-group-vertical w-100" role="group">
                                             <a href="{{ route('admin.school.edit') }}"
                                                 class="btn btn-outline-primary btn-sm">Info Sekolah</a>
-                                            <a href="{{ route('admin.system.settings') }}"
-                                                class="btn btn-outline-dark btn-sm">Pengaturan</a>
                                         </div>
                                     </div>
                                 </div>
@@ -361,196 +359,124 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
 
-            <!-- Recent Activities & System Info -->
-            <div class="col-lg-4">
-                <!-- Sistem Status -->
-                <div class="card border-0 shadow-sm mb-4">
-                    <div class="card-header bg-white border-bottom">
-                        <h5 class="mb-0">
-                            <i class="bi bi-cpu me-2 text-primary"></i>
-                            Status Sistem
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span class="small">Database</span>
-                            <span class="badge bg-success">Online</span>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span class="small">Server</span>
-                            <span class="badge bg-success">Aktif</span>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span class="small">Storage</span>
-                            <span class="badge bg-warning text-dark">75% Terpakai</span>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="small">Last Backup</span>
-                            <span class="text-muted small">{{ \Carbon\Carbon::now()->subHours(6)->diffForHumans() }}</span>
-                        </div>
-                    </div>
+    <!-- Charts & Analytics -->
+    <div class="row mt-4">
+        <!-- Grafik Pendaftaran -->
+        <div class="col-lg-6 mb-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="mb-0">
+                        <i class="bi bi-graph-up me-2 text-success"></i>
+                        Statistik Pendaftaran (6 Bulan Terakhir)
+                    </h5>
                 </div>
-
-                <!-- Aktivitas Terbaru -->
-                <div class="card border-0 shadow-sm">
-                    <div class="card-header bg-white border-bottom">
-                        <h5 class="mb-0">
-                            <i class="bi bi-clock-history me-2 text-secondary"></i>
-                            Aktivitas Terbaru
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        @if($recentActivities && $recentActivities->count() > 0)
-                            <div class="timeline-activities">
-                                @foreach($recentActivities->take(5) as $activity)
-                                    <div class="activity-item d-flex mb-3">
-                                        <div
-                                            class="activity-icon bg-{{ $activity->type === 'registration' ? 'warning' : ($activity->type === 'login' ? 'success' : 'primary') }} text-white rounded-circle me-3">
-                                            <i
-                                                class="bi bi-{{ $activity->type === 'registration' ? 'person-plus' : ($activity->type === 'login' ? 'box-arrow-in-right' : 'activity') }}"></i>
-                                        </div>
-                                        <div class="activity-content">
-                                            <p class="mb-1 small">{{ $activity->description }}</p>
-                                            <small class="text-muted">
-                                                <i class="bi bi-clock me-1"></i>
-                                                {{ $activity->created_at->diffForHumans() }}
-                                            </small>
-                                        </div>
-                                    </div>
-                                @endforeach
-                            </div>
-                            <div class="text-center mt-3">
-                                <a href="{{ route('admin.activities.index') }}" class="btn btn-outline-secondary btn-sm">
-                                    Lihat Semua Aktivitas
-                                </a>
-                            </div>
-                        @else
-                            <div class="text-center py-3">
-                                <i class="bi bi-clock-history text-muted" style="font-size: 2rem;"></i>
-                                <p class="text-muted mt-2 small">Belum ada aktivitas terbaru</p>
-                            </div>
-                        @endif
-                    </div>
+                <div class="card-body">
+                    <canvas id="registrationChart" height="300"></canvas>
                 </div>
             </div>
         </div>
 
-        <!-- Charts & Analytics -->
-        <div class="row mt-4">
-            <!-- Grafik Pendaftaran -->
-            <div class="col-lg-6 mb-4">
-                <div class="card border-0 shadow-sm">
-                    <div class="card-header bg-white border-bottom">
-                        <h5 class="mb-0">
-                            <i class="bi bi-graph-up me-2 text-success"></i>
-                            Statistik Pendaftaran (6 Bulan Terakhir)
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <canvas id="registrationChart" height="300"></canvas>
-                    </div>
+        <!-- Distribusi Kelas -->
+        <div class="col-lg-6 mb-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="mb-0">
+                        <i class="bi bi-pie-chart me-2 text-info"></i>
+                        Distribusi Siswa per Kelas
+                    </h5>
                 </div>
-            </div>
-
-            <!-- Distribusi Kelas -->
-            <div class="col-lg-6 mb-4">
-                <div class="card border-0 shadow-sm">
-                    <div class="card-header bg-white border-bottom">
-                        <h5 class="mb-0">
-                            <i class="bi bi-pie-chart me-2 text-info"></i>
-                            Distribusi Siswa per Kelas
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <canvas id="classDistributionChart" height="300"></canvas>
-                    </div>
+                <div class="card-body">
+                    <canvas id="classDistributionChart" height="300"></canvas>
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- Tabel Pendaftar Terbaru -->
-        <div class="row mt-4">
-            <div class="col-12">
-                <div class="card border-0 shadow-sm">
-                    <div class="card-header bg-white border-bottom">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0">
-                                <i class="bi bi-person-lines-fill me-2 text-primary"></i>
-                                Pendaftar Terbaru
-                            </h5>
-                            <a href="{{ route('admin.applications.index') }}" class="btn btn-outline-primary btn-sm">
-                                Lihat Semua
-                            </a>
-                        </div>
+    <!-- Tabel Pendaftar Terbaru -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="bi bi-person-lines-fill me-2 text-primary"></i>
+                            Pendaftar Terbaru
+                        </h5>
+                        <a href="{{ route('admin.applications.index') }}" class="btn btn-outline-primary btn-sm">
+                            Lihat Semua
+                        </a>
                     </div>
-                    <div class="card-body">
-                        @if($recentApplications && $recentApplications->count() > 0)
-                            <div class="table-responsive">
-                                <table class="table table-hover recent-applications-table">
-                                    <thead class="table-light">
+                </div>
+                <div class="card-body">
+                    @if($recentApplications && $recentApplications->count() > 0)
+                        <div class="table-responsive">
+                            <table class="table table-hover recent-applications-table">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Nama</th>
+                                        <th>Email</th>
+                                        <th>Kelas Tujuan</th>
+                                        <th>Status</th>
+                                        <th>Tanggal Daftar</th>
+                                        <th>Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($recentApplications->take(10) as $application)
                                         <tr>
-                                            <th>Nama</th>
-                                            <th>Email</th>
-                                            <th>Kelas Tujuan</th>
-                                            <th>Status</th>
-                                            <th>Tanggal Daftar</th>
-                                            <th>Aksi</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach($recentApplications->take(10) as $application)
-                                            <tr>
-                                                <td>
-                                                    <div class="d-flex align-items-center">
-                                                        <div
-                                                            class="avatar-sm bg-primary rounded-circle me-2 d-flex align-items-center justify-content-center">
-                                                            <i class="bi bi-person text-white"></i>
-                                                        </div>
-                                                        <strong>{{ $application->full_name }}</strong>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div
+                                                        class="avatar-sm bg-primary rounded-circle me-2 d-flex align-items-center justify-content-center">
+                                                        <i class="bi bi-person text-white"></i>
                                                     </div>
-                                                </td>
-                                                <td>{{ $application->email }}</td>
-                                                <td>{{ $application->desired_class ?? '-' }}</td>
-                                                <td>
-                                                    <span
-                                                        class="badge bg-{{ $application->status === 'pending' ? 'warning' : ($application->status === 'approved' ? 'success' : 'danger') }}">
-                                                        {{ ucfirst($application->status) }}
-                                                    </span>
-                                                </td>
-                                                <td>
-                                                    <small
-                                                        class="text-muted">{{ $application->created_at->format('d/m/Y H:i') }}</small>
-                                                </td>
-                                                <td>
-                                                    <div class="btn-group btn-group-sm" role="group">
-                                                        <a href="{{ route('admin.applications.detail', $application->id) }}"
-                                                            class="btn btn-outline-primary btn-sm btn-detail">
-                                                            <i class="bi bi-eye"></i>
+                                                    <strong>{{ $application->full_name }}</strong>
+                                                </div>
+                                            </td>
+                                            <td>{{ $application->email }}</td>
+                                            <td>{{ $application->desired_class ?? '-' }}</td>
+                                            <td>
+                                                <span
+                                                    class="badge bg-{{ $application->status === 'pending' ? 'warning' : ($application->status === 'approved' ? 'success' : 'danger') }}">
+                                                    {{ ucfirst($application->status) }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <small
+                                                    class="text-muted">{{ $application->created_at->format('d/m/Y H:i') }}</small>
+                                            </td>
+                                            <td>
+                                                <div class="btn-group btn-group-sm" role="group">
+                                                    <a href="{{ route('admin.applications.detail', $application->id) }}"
+                                                        class="btn btn-outline-primary btn-sm btn-detail">
+                                                        <i class="bi bi-eye"></i>
+                                                    </a>
+                                                    @if($application->status === 'pending')
+                                                        <a href="{{ route('admin.applications.approve', $application->id) }}"
+                                                            class="btn btn-outline-success btn-sm">
+                                                            <i class="bi bi-check"></i>
                                                         </a>
-                                                        @if($application->status === 'pending')
-                                                            <a href="{{ route('admin.applications.approve', $application->id) }}"
-                                                                class="btn btn-outline-success btn-sm">
-                                                                <i class="bi bi-check"></i>
-                                                            </a>
-                                                        @endif
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
-                        @else
-                            <div class="text-center py-4">
-                                <i class="bi bi-person-plus text-muted" style="font-size: 3rem;"></i>
-                                <p class="text-muted mt-2">Belum ada pendaftar baru</p>
-                            </div>
-                        @endif
-                    </div>
+                                                    @endif
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @else
+                        <div class="text-center py-4">
+                            <i class="bi bi-person-plus text-muted" style="font-size: 3rem;"></i>
+                            <p class="text-muted mt-2">Belum ada pendaftar baru</p>
+                        </div>
+                    @endif
                 </div>
             </div>
         </div>
+    </div>
     </div>
     {{-- No direct body class changes; layout navbar/footer remain unchanged --}}
 @endsection
@@ -622,14 +548,14 @@
                         @foreach($registrationChartData['labels'] ?? ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'] as $label)
                             '{{ $label }}',
                         @endforeach
-                                                                            ],
+                                                                                                    ],
                     datasets: [{
                         label: 'Pendaftaran',
                         data: [
                             @foreach($registrationChartData['data'] ?? [10, 15, 8, 22, 18, 12] as $data)
                                 {{ $data }},
                             @endforeach
-                                                                                ],
+                                                                                                        ],
                         borderColor: '#198754',
                         backgroundColor: 'rgba(25, 135, 84, 0.1)',
                         borderWidth: 2,
@@ -662,13 +588,13 @@
                         @foreach($classDistributionData['labels'] ?? ['Kelas X', 'Kelas XI', 'Kelas XII'] as $label)
                             '{{ $label }}',
                         @endforeach
-                                                                            ],
+                                                                                                    ],
                     datasets: [{
                         data: [
                             @foreach($classDistributionData['data'] ?? [45, 38, 42] as $data)
                                 {{ $data }},
                             @endforeach
-                                                                                ],
+                                                                                                        ],
                         backgroundColor: [
                             '#0d6efd',
                             '#198754',

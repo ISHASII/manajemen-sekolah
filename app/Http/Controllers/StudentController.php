@@ -98,6 +98,7 @@ class StudentController extends Controller
     {
         $user = Auth::user();
         $student = Student::where('user_id', $user->id)->with('classRoom')->first();
+        $application = StudentApplication::where('email', $user->email)->latest()->first();
         // If student doesn't exist, redirect to the internal profile creation page
         if (!$student) {
             return redirect()->route('student.profile.create')->with('info', 'Silakan lengkapi profil siswa Anda.');
@@ -107,7 +108,7 @@ class StudentController extends Controller
             ->where('documentable_id', $student->id)
             ->get();
 
-        return view('student.profile', compact('student', 'documents'));
+        return view('student.profile', compact('student', 'documents', 'application'));
     }
 
     /**

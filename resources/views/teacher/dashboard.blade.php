@@ -397,47 +397,6 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Aktivitas Terbaru -->
-            <div class="row mt-4">
-                <div class="col-12">
-                    <div class="card border-0 shadow-sm">
-                        <div class="card-header bg-white border-bottom">
-                            <h5 class="mb-0">
-                                <i class="bi bi-clock-history me-2 text-secondary"></i>
-                                Aktivitas Terbaru
-                            </h5>
-                        </div>
-                        <div class="card-body">
-                            @if($recentActivities && $recentActivities->count() > 0)
-                                <div class="timeline-activities">
-                                    @foreach($recentActivities->take(5) as $activity)
-                                        <div class="activity-item d-flex mb-3">
-                                            <div
-                                                class="activity-icon bg-{{ $activity->type === 'grade' ? 'success' : ($activity->type === 'announcement' ? 'info' : 'primary') }} text-white rounded-circle me-3">
-                                                <i
-                                                    class="bi bi-{{ $activity->type === 'grade' ? 'clipboard-check' : ($activity->type === 'announcement' ? 'megaphone' : 'calendar-check') }}"></i>
-                                            </div>
-                                            <div class="activity-content">
-                                                <p class="mb-1">{{ $activity->description }}</p>
-                                                <small class="text-muted">
-                                                    <i class="bi bi-clock me-1"></i>
-                                                    {{ $activity->created_at->diffForHumans() }}
-                                                </small>
-                                            </div>
-                                        </div>
-                                    @endforeach
-                                </div>
-                            @else
-                                <div class="text-center py-4">
-                                    <i class="bi bi-clock-history text-muted" style="font-size: 3rem;"></i>
-                                    <p class="text-muted mt-2">Belum ada aktivitas terbaru</p>
-                                </div>
-                            @endif
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 @endsection
@@ -528,8 +487,8 @@
         }
 
         /* Make the header of each card orange inside teacher pages without changing card body colors
-                                                                       -- also override any Bootstrap `bg-white` utility class using `!important` to ensure this
-                                                                       styling applies when markup uses `bg-white` on the header. */
+                                                                           -- also override any Bootstrap `bg-white` utility class using `!important` to ensure this
+                                                                           styling applies when markup uses `bg-white` on the header. */
         .teacher-page-wrapper .card-header,
         .teacher-page-wrapper .card-header.bg-white {
             background-color: #fd7e14 !important;
@@ -609,10 +568,10 @@
                     labels: ['A (90-100)', 'B (80-89)', 'C (70-79)', 'D (60-69)', 'E (<60)'],
                     datasets: [{
                         data: [
-                                                                                                        {{ $gradeDistribution['A'] ?? 0 }},
-                                                                                                        {{ $gradeDistribution['B'] ?? 0 }},
-                                                                                                        {{ $gradeDistribution['C'] ?? 0 }},
-                                                                                                        {{ $gradeDistribution['D'] ?? 0 }},
+                                                                                                            {{ $gradeDistribution['A'] ?? 0 }},
+                                                                                                            {{ $gradeDistribution['B'] ?? 0 }},
+                                                                                                            {{ $gradeDistribution['C'] ?? 0 }},
+                                                                                                            {{ $gradeDistribution['D'] ?? 0 }},
                             {{ $gradeDistribution['E'] ?? 0 }}
                         ],
                         backgroundColor: [

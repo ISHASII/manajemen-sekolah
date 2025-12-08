@@ -55,12 +55,6 @@
                                         </div>
                                     </div>
                                 </div>
-
-                                <div class="d-flex gap-3 flex-wrap">
-                                    <a href="tel:+622112345678" class="btn btn-primary">
-                                        <i class="bi bi-telephone-fill me-2"></i>Hubungi Sekarang
-                                    </a>
-                                </div>
                             </div>
 
                             <div class="col-lg-6">

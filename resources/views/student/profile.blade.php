@@ -199,6 +199,100 @@
                         </div>
                     </div>
 
+                    @if(isset($application) && $application)
+                        <div class="card border-0 shadow-sm mt-3">
+                            <div class="card-header bg-warning text-white">
+                                <div class="row align-items-center">
+                                    <div class="col">
+                                        <h5 class="mb-0">Aplikasi Pendaftaran</h5>
+                                        <small>{{ $application->application_number ?? '' }}</small>
+                                    </div>
+                                    <div class="col-auto">
+                                        @if($application->status === 'pending')
+                                            <span class="badge bg-primary fs-6">Pending</span>
+                                        @elseif($application->status === 'approved')
+                                            <span class="badge bg-success fs-6">Disetujui</span>
+                                        @elseif($application->status === 'rejected')
+                                            <span class="badge bg-danger fs-6">Ditolak</span>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <strong>Informasi Aplikasi</strong>
+                                        <hr>
+                                        <p><strong>Nama:</strong> {{ $application->student_name }}</p>
+                                        <p><strong>Email:</strong> {{ $application->email }}</p>
+                                        <p><strong>Telepon:</strong> {{ $application->phone }}</p>
+                                        <p><strong>NISN:</strong> {{ $application->nisn ?: '-' }}</p>
+                                        <p><strong>Tempat Lahir:</strong> {{ $application->place_of_birth }}</p>
+                                        <p><strong>Tanggal Lahir:</strong> {{ \Carbon\Carbon::parse($application->birth_date)->format('d M Y') }}</p>
+                                        <p><strong>Jenis Kelamin:</strong> {{ $application->gender === 'male' ? 'Laki-laki' : 'Perempuan' }}</p>
+                                        <p><strong>Agama:</strong> {{ ucfirst($application->religion) }}</p>
+                                        <p><strong>Alamat:</strong> {{ $application->address }}</p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <strong>Informasi Orang Tua</strong>
+                                        <hr>
+                                        <p><strong>Nama:</strong> {{ $application->parent_name }}</p>
+                                        <p><strong>Telepon:</strong> {{ $application->parent_phone }}</p>
+                                        <p><strong>Pekerjaan:</strong> {{ $application->parent_job ?: '-' }}</p>
+                                        <p><strong>Alamat:</strong> {{ $application->parent_address }}</p>
+                                        <p><strong>Kelas yang Diinginkan:</strong> {{ $application->desired_class }}</p>
+                                        <p><strong>Tanggal Aplikasi:</strong> {{ $application->application_date ? $application->application_date->format('d M Y') : '-' }}</p>
+                                    </div>
+                                </div>
+
+                                @if($application->health_info && count($application->health_info) > 0)
+                                    <div class="mb-3">
+                                        <strong>Informasi Kesehatan</strong>
+                                        <hr>
+                                        <ul>
+                                            @foreach($application->health_info as $health)
+                                                <li>{{ $health }}</li>
+                                            @endforeach
+                                        </ul>
+                                    </div>
+                                @endif
+
+                                @if($application->disability_info && count($application->disability_info) > 0)
+                                    <div class="mb-3">
+                                        <strong>Informasi Disabilitas</strong>
+                                        <hr>
+                                        <ul>
+                                            @foreach($application->disability_info as $disability)
+                                                <li>{{ $disability }}</li>
+                                            @endforeach
+                                        </ul>
+                                    </div>
+                                @endif
+
+                                @if($application->education_history && count($application->education_history) > 0)
+                                    <div class="mb-3">
+                                        <strong>Riwayat Pendidikan</strong>
+                                        <hr>
+                                        @if(isset($application->education_history['previous_school']))
+                                            <p><strong>Sekolah Sebelumnya:</strong> {{ $application->education_history['previous_school'] }}</p>
+                                        @endif
+                                        @if(isset($application->education_history['graduation_year']))
+                                            <p><strong>Tahun Lulus:</strong> {{ $application->education_history['graduation_year'] }}</p>
+                                        @endif
+                                    </div>
+                                @endif
+
+                                @if($application->medical_info)
+                                    <div class="mb-3">
+                                        <strong>Informasi Medis</strong>
+                                        <hr>
+                                        <p>{{ $application->medical_info }}</p>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    @endif
+
                     <div class="card border-0 shadow-sm mt-3">
                         <div class="card-header">
                             <h5 class="mb-0">Data Orang Tua/Wali</h5>
