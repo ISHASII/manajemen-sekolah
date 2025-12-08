@@ -84,6 +84,28 @@
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="password" class="form-label required">Password</label>
+                                        <input type="password" class="form-control @error('password') is-invalid @enderror"
+                                            id="password" name="password" required>
+                                        @error('password')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="password_confirmation" class="form-label required">Konfirmasi
+                                            Password</label>
+                                        <input type="password"
+                                            class="form-control @error('password_confirmation') is-invalid @enderror"
+                                            id="password_confirmation" name="password_confirmation" required>
+                                        @error('password_confirmation')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+
                                 <div class="col-md-6 mb-3">
                                     <label for="phone" class="form-label">Nomor Telepon</label>
                                     <input type="tel" class="form-control @error('phone') is-invalid @enderror" id="phone"
@@ -181,6 +203,15 @@
                                                 id="parent_phone" name="parent_phone" value="{{ old('parent_phone') }}"
                                                 required>
                                             @error('parent_phone')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="parent_email" class="form-label">Email Orang Tua/Wali</label>
+                                            <input type="email"
+                                                class="form-control @error('parent_email') is-invalid @enderror"
+                                                id="parent_email" name="parent_email" value="{{ old('parent_email') }}">
+                                            @error('parent_email')
                                                 <div class="invalid-feedback">{{ $message }}</div>
                                             @enderror
                                         </div>

@@ -224,7 +224,7 @@ class AdminController extends Controller
             DB::transaction(function () use ($application, $request, $class) {
             // Create or find user account for this applicant
             $user = User::where('email', $application->email)->first();
-            if ($user) {
+                if ($user) {
                 // If this user already has a student profile, stop
                 if ($user->student) {
                     throw new \Exception('User dengan email ini sudah memiliki profil siswa.');
@@ -240,11 +240,13 @@ class AdminController extends Controller
                     'gender' => $application->gender,
                     'is_active' => true,
                 ]);
-            } else {
+                } else {
+                // Use password saved in application (already hashed) if present; otherwise create default password
+                $userPassword = $application->password ?? \Illuminate\Support\Facades\Hash::make('password123');
                 $user = User::create([
                     'name' => $application->student_name,
                     'email' => $application->email,
-                    'password' => Hash::make('password123'),
+                    'password' => $userPassword,
                     'role' => 'student',
                     'phone' => $application->phone,
                     'address' => $application->address,
@@ -267,7 +269,13 @@ class AdminController extends Controller
             }
 
             // Create student record for this user
-            $student = Student::create([
+            // Try to create student with a unique student_id; if duplicate key occurs (race), regenerate and retry
+            $student = null;
+            $attempts = 0;
+            while (!$student && $attempts < 5) {
+                $attempts++;
+                try {
+                    $student = Student::create([
                 'user_id' => $user->id,
                 'student_id' => $this->generateStudentId(),
                 'class_id' => $request->class_id,
@@ -285,6 +293,16 @@ class AdminController extends Controller
                 'education_history' => $application->education_history,
                 'enrollment_date' => now(),
             ]);
+                } catch (\Illuminate\Database\QueryException $qe) {
+                    // If duplicate student_id (Unique constraint), try again (generate new)
+                    if (str_contains(strtolower($qe->getMessage()), 'duplicate')) {
+                        // loop to try again
+                        $student = null;
+                        continue;
+                    }
+                    throw $qe; // rethrow other DB exceptions
+                }
+            }
 
             // Transfer documents
             foreach ($application->documents as $doc) {
@@ -304,6 +322,9 @@ class AdminController extends Controller
                 $class->increment('current_students');
             }
 
+            if (!$student) {
+                throw new \Exception('Failed to create student record after multiple attempts.');
+            }
             // Mark application as approved
             $application->update([
                 'status' => 'approved',
@@ -317,7 +338,7 @@ class AdminController extends Controller
 
         // approval flow completed inside the DB transaction
 
-        return back()->with('success', 'Aplikasi berhasil disetujui dan siswa telah terdaftar!');
+        return redirect()->route('admin.applications.index')->with('success', 'Aplikasi berhasil disetujui dan siswa telah terdaftar!');
     }
 
     public function rejectApplication(Request $request, $id)
@@ -329,7 +350,7 @@ class AdminController extends Controller
             'notes' => $request->notes,
         ]);
 
-        return back()->with('success', 'Aplikasi berhasil ditolak.');
+        return redirect()->route('admin.applications.index')->with('success', 'Aplikasi berhasil ditolak.');
     }
 
     public function students()
@@ -1227,10 +1248,10 @@ class AdminController extends Controller
     private function generateStudentId()
     {
         $year = date('Y');
+        // Ensure we generate a unique student id even if concurrent operations occur.
         $lastStudent = Student::whereYear('created_at', $year)
             ->orderBy('student_id', 'desc')
             ->first();
-
         if ($lastStudent) {
             $lastNumber = (int) substr($lastStudent->student_id, -4);
             $newNumber = $lastNumber + 1;
@@ -1238,6 +1259,15 @@ class AdminController extends Controller
             $newNumber = 1;
         }
 
-        return $year . str_pad($newNumber, 4, '0', STR_PAD_LEFT);
+        // Ensure uniqueness: loop until a free student_id is found
+        do {
+            $candidate = $year . str_pad($newNumber, 4, '0', STR_PAD_LEFT);
+            $exists = Student::where('student_id', $candidate)->exists();
+            if ($exists) {
+                $newNumber++;
+            }
+        } while ($exists);
+
+        return $candidate;
     }
 }

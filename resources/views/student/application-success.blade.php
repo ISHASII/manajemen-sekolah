@@ -26,6 +26,10 @@
                             <p class="lead">Terima kasih telah mendaftar di sekolah kami. Aplikasi Anda sedang dalam proses
                                 review.</p>
                             <p>Tim admin akan menghubungi Anda dalam 3-5 hari kerja untuk informasi lebih lanjut.</p>
+                            <p class="mb-0"><strong>Perhatian:</strong> Akun untuk login (email & password yang Anda
+                                masukkan) akan
+                                aktif hanya setelah admin menyetujui aplikasi Anda. Sampai disetujui, Anda tidak dapat masuk
+                                menggunakan akun tersebut.</p>
                         </div>
 
                         <div class="row">

@@ -27,9 +27,11 @@ class StudentApplication extends Model
         'desired_class',
         'additional_info',
         'documents',
+        'parent_email',
         'status',
         'notes',
-        'application_date'
+        'application_date',
+        'password'
     ];
 
     protected $casts = [

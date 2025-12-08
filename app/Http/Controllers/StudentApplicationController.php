@@ -7,6 +7,7 @@ use App\Models\StudentApplication;
 use App\Models\ClassRoom;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Hash;
 
 class StudentApplicationController extends Controller
 {
@@ -34,6 +35,7 @@ class StudentApplicationController extends Controller
             'parent_name' => 'required|string|max:255',
             'parent_phone' => 'required|string|max:20',
             'parent_address' => 'required|string',
+            'parent_email' => 'nullable|email',
             'parent_job' => 'nullable|string|max:255',
             'desired_class' => 'required|in:SD,SMP,SMA',
             'health_conditions' => 'nullable|array',
@@ -44,6 +46,7 @@ class StudentApplicationController extends Controller
             'last_certificate' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
             'photo' => 'required|file|mimes:jpg,jpeg,png|max:2048',
             'agreement' => 'accepted',
+            'password' => 'required|string|min:8|confirmed',
         ]);
 
         // Generate application number
@@ -81,6 +84,7 @@ class StudentApplicationController extends Controller
             'address' => $request->address,
             'parent_name' => $request->parent_name,
             'parent_phone' => $request->parent_phone,
+            'parent_email' => $request->parent_email ?? null,
             'parent_address' => $request->parent_address,
             'parent_job' => $request->parent_job,
             'desired_class' => $request->desired_class,
@@ -92,6 +96,7 @@ class StudentApplicationController extends Controller
             ],
             'documents' => $documents,
             'application_date' => now(),
+            'password' => Hash::make($request->input('password')),
         ]);
 
         return redirect()->route('application.success')

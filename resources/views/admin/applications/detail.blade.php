@@ -14,7 +14,7 @@
                 </div>
 
                 <div class="card border-0 shadow-sm mb-4">
-                    <div class="card-header bg-primary text-white">
+                    <div class="card-header bg-warning text-white">
                         <div class="row align-items-center">
                             <div class="col">
                                 <h5 class="mb-0">{{ $application->student_name }}</h5>
@@ -22,7 +22,7 @@
                             </div>
                             <div class="col-auto">
                                 @if($application->status === 'pending')
-                                    <span class="badge bg-warning fs-6">Pending</span>
+                                    <span class="badge bg-primary fs-6">Pending</span>
                                 @elseif($application->status === 'approved')
                                     <span class="badge bg-success fs-6">Disetujui</span>
                                 @elseif($application->status === 'rejected')
@@ -32,6 +32,21 @@
                         </div>
                     </div>
                     <div class="card-body">
+                        @if(session('success'))
+                            <div class="alert alert-success">{{ session('success') }}</div>
+                        @endif
+                        @if(session('error'))
+                            <div class="alert alert-danger">{{ session('error') }}</div>
+                        @endif
+                        @if($errors->any())
+                            <div class="alert alert-danger">
+                                <ul class="mb-0">
+                                    @foreach($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <strong>Data Pribadi</strong>
@@ -112,7 +127,7 @@
                                         <div class="col-md-4 mb-2">
                                             <div class="card">
                                                 <div class="card-body text-center">
-                                                    <i class="fas fa-file fa-2x text-primary mb-2"></i>
+                                                    <i class="fas fa-file fa-2x text-danger mb-2"></i>
                                                     <h6>{{ ucfirst(str_replace('_', ' ', $document['type'])) }}</h6>
                                                     <small class="text-muted">{{ $document['name'] }}</small>
                                                     <br>
@@ -131,7 +146,7 @@
                 </div>
 
                 @if($application->status === 'pending')
-                    <div class="card border-0 shadow-sm">
+                    <div class="card border-0 shadow-sm bg-warning">
                         <div class="card-header">
                             <h5 class="mb-0">Aksi</h5>
                         </div>
