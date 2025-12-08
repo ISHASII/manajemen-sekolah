@@ -128,7 +128,17 @@ Route::middleware('auth')->group(function () {
         Route::get('/students', [TeacherController::class, 'students'])->name('students');
         Route::get('/students/{id}', [TeacherController::class, 'studentDetail'])->name('students.detail');
         Route::post('/grades', [TeacherController::class, 'addGrade'])->name('grades.store');
+        // Grade management UI (per-class/subject bulk inputs)
+        Route::get('/grades/manage', [TeacherController::class, 'manageGrades'])->name('grades.manage');
+        Route::post('/grades/manage', [TeacherController::class, 'storeBulkGrades'])->name('grades.manage.store');
         Route::post('/skills', [TeacherController::class, 'addSkill'])->name('skills.store');
+        // Teacher profile management
+        Route::get('/profile', [TeacherController::class, 'profile'])->name('profile');
+        Route::get('/profile/edit', [TeacherController::class, 'editProfile'])->name('profile.edit');
+        Route::put('/profile', [TeacherController::class, 'updateProfile'])->name('profile.update');
+        // Teacher announcement creation
+        Route::get('/announcements/create', [TeacherController::class, 'createAnnouncementForm'])->name('announcements.create');
+        Route::post('/announcements', [TeacherController::class, 'createAnnouncement'])->name('announcements.store');
         Route::get('/schedules', [TeacherController::class, 'schedules'])->name('schedules');
     });
 

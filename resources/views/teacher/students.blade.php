@@ -13,6 +13,12 @@
                     </div>
                 </div>
 
+                <div class="mb-3 d-flex justify-content-end">
+                    <a href="{{ route('teacher.grades.manage') }}" class="btn btn-outline-success btn-sm">
+                        <i class="bi bi-bar-chart me-1"></i> Kelola Nilai
+                    </a>
+                </div>
+
                 @if($classes->count() > 0)
                     @foreach($classes as $class)
                         <div class="card border-0 shadow-sm mb-4">
@@ -70,9 +76,9 @@
 
                                                         <div class="d-flex justify-content-between align-items-center mt-3">
                                                             <span class="badge
-                                                                                @if($student->status === 'active') bg-success
-                                                                                @else bg-secondary
-                                                                                @endif">
+                                                                                                                        @if($student->status === 'active') bg-success
+                                                                                                                        @else bg-secondary
+                                                                                                                        @endif">
                                                                 {{ ucfirst($student->status) }}
                                                             </span>
 

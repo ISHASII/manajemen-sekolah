@@ -89,12 +89,12 @@
                                        id="remember"
                                        {{ old('remember') ? 'checked' : '' }}>
                                 <label class="form-check-label small" for="remember">
-                                    {{ __('Remember Me') }}
+                                    {{ __('Ingat Saya') }}
                                 </label>
                             </div>
                             @if (Route::has('password.request'))
                                 <a class="text-decoration-none small" href="{{ route('password.request') }}">
-                                    {{ __('Forgot Password?') }}
+                                    {{ __('Lupa Password') }}
                                 </a>
                             @endif
                         </div>
@@ -108,11 +108,13 @@
 
                         <!-- Register Link -->
                         <div class="text-center">
-                            <span class="text-muted small">{{ __("Don't have an account?") }}</span>
-                            @if (Route::has('register'))
-                                <a href="{{ route('register') }}" class="text-decoration-none small fw-semibold">
-                                    {{ __('Sign Up') }}
+                            <span class="text-muted small">{{ __("Tidak Memiliki Akun?") }}</span>
+                            @if (Route::has('student.register'))
+                                <a href="{{ route('student.register') }}" class="text-decoration-none small fw-semibold">
+                                    {{ __('Daftar') }}
                                 </a>
+                            @else
+                                <a href="{{ url('/register-student') }}" class="text-decoration-none small fw-semibold">{{ __('Sign Up') }}</a>
                             @endif
                         </div>
                     </form>

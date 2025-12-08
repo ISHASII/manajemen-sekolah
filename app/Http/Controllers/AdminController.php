@@ -525,7 +525,8 @@ class AdminController extends Controller
     public function storeTeacher(Request $request)
     {
         // convert empty subject selection to null so 'nullable|integer' validation passes
-        if ($request->filled('subjects') && $request->input('subjects') === '') {
+        // Normalize subjects entry: allow array input
+        if ($request->filled('subjects') && is_string($request->input('subjects')) && $request->input('subjects') === '') {
             $request->merge(['subjects' => null]);
         }
         $request->validate([
@@ -533,7 +534,12 @@ class AdminController extends Controller
             'email' => 'required|email|unique:users,email',
             'teacher_id' => 'required|string|unique:teachers,teacher_id',
             'nip' => 'nullable|string|max:100',
-            'subjects' => 'nullable|integer|exists:subjects,id',
+            'subjects' => 'nullable|array',
+            'subjects.*' => 'nullable|integer|exists:subjects,id',
+            'qualifications' => 'nullable|array',
+            'qualifications.*' => 'nullable|string|max:255',
+            'certifications' => 'nullable|array',
+            'certifications.*' => 'nullable|string|max:255',
             'hire_date' => 'required|date',
             'status' => 'nullable|in:active,inactive,retired'
         ]);
@@ -551,7 +557,9 @@ class AdminController extends Controller
                 'user_id' => $user->id,
                 'teacher_id' => $request->teacher_id,
                 'nip' => $request->nip,
-                'subjects' => $request->has('subjects') ? [$request->input('subjects')] : null,
+                'subjects' => $request->has('subjects_present') ? ($request->has('subjects') ? array_values(array_filter(array_map('intval', (array)$request->input('subjects')), fn($v) => $v !== 0)) : []) : null,
+                'qualifications' => $request->has('qualifications_present') ? ($request->filled('qualifications') ? array_values(array_filter(is_array($request->qualifications) ? array_map('trim', $request->qualifications) : array_map('trim', explode(',', $request->qualifications)), fn($v) => $v !== null && $v !== '')) : []) : null,
+                'certifications' => $request->has('certifications_present') ? ($request->filled('certifications') ? array_values(array_filter(is_array($request->certifications) ? array_map('trim', $request->certifications) : array_map('trim', explode(',', $request->certifications)), fn($v) => $v !== null && $v !== '')) : []) : null,
                 'hire_date' => $request->hire_date,
                 'status' => $request->status ?? 'active'
             ]);
@@ -573,7 +581,7 @@ class AdminController extends Controller
     public function updateTeacher(Request $request, $id)
     {
         // convert empty subject selection to null so 'nullable|integer' validation passes
-        if ($request->filled('subjects') && $request->input('subjects') === '') {
+        if ($request->filled('subjects') && is_string($request->input('subjects')) && $request->input('subjects') === '') {
             $request->merge(['subjects' => null]);
         }
         $teacher = Teacher::findOrFail($id);
@@ -584,7 +592,12 @@ class AdminController extends Controller
             'email' => 'required|email|unique:users,email,' . $user->id,
             'teacher_id' => 'required|string|unique:teachers,teacher_id,' . $teacher->id,
             'nip' => 'nullable|string|max:100',
-            'subjects' => 'nullable|integer|exists:subjects,id',
+            'subjects' => 'nullable|array',
+            'subjects.*' => 'nullable|integer|exists:subjects,id',
+            'qualifications' => 'nullable|array',
+            'qualifications.*' => 'nullable|string|max:255',
+            'certifications' => 'nullable|array',
+            'certifications.*' => 'nullable|string|max:255',
             'hire_date' => 'required|date',
             'status' => 'nullable|in:active,inactive,retired'
         ]);
@@ -595,13 +608,23 @@ class AdminController extends Controller
                 'email' => $request->email
             ]);
 
-            $teacher->update([
+            $teacherData = [
                 'teacher_id' => $request->teacher_id,
                 'nip' => $request->nip,
-                'subjects' => $request->has('subjects') ? [$request->input('subjects')] : null,
                 'hire_date' => $request->hire_date,
                 'status' => $request->status ?? $teacher->status
-            ]);
+            ];
+            // Only overwrite array fields when the corresponding presence marker is set
+            if ($request->has('subjects_present')) {
+                $teacherData['subjects'] = $request->has('subjects') ? array_values(array_filter(array_map('intval', (array)$request->input('subjects')), fn($v) => $v !== 0)) : [];
+            }
+            if ($request->has('qualifications_present')) {
+                $teacherData['qualifications'] = $request->filled('qualifications') ? array_values(array_filter(is_array($request->qualifications) ? array_map('trim', $request->qualifications) : array_map('trim', explode(',', $request->qualifications)), fn($v) => $v !== null && $v !== '')) : [];
+            }
+            if ($request->has('certifications_present')) {
+                $teacherData['certifications'] = $request->filled('certifications') ? array_values(array_filter(is_array($request->certifications) ? array_map('trim', $request->certifications) : array_map('trim', explode(',', $request->certifications)), fn($v) => $v !== null && $v !== '')) : [];
+            }
+            $teacher->update($teacherData);
         } catch (\Exception $e) {
             \Log::error('Failed to update teacher', ['error' => $e->getMessage(), 'input' => $request->all()]);
             return redirect()->back()->withInput()->with('error', 'Gagal memperbarui guru: ' . $e->getMessage());

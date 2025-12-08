@@ -22,8 +22,8 @@
                             // $teacher is User model (role=teacher) with optional ->teacher relation
                             $profile = $teacher->profile_photo ?? null;
                             $teacherProfile = $teacher->teacher ?? null;
-                            $subjects = $teacherProfile->subjects ?? [];
                             $qualification = data_get($teacherProfile, 'qualifications', null);
+                            $certifications = data_get($teacherProfile, 'certifications', null);
                         @endphp
                         <div class="col-xl-3 col-lg-4 col-md-6">
                             <div class="card rounded-4 shadow-lg p-4 h-100 text-center bg-dark-subtle"
@@ -31,7 +31,7 @@
                                 <div class="mb-3 d-flex align-items-center justify-content-center mx-auto rounded-circle bg-gray"
                                     style="width:90px; height:90px; overflow:hidden;">
                                     @if($profile)
-                                        <img src="{{ asset($profile) }}" alt="{{ $teacher->name }}"
+                                        <img src="{{ Storage::url($profile) }}" alt="{{ $teacher->name }}"
                                             style="width:90px; height:90px; object-fit:cover;">
                                     @else
                                         <div class="d-flex align-items-center justify-content-center bg-secondary"
@@ -44,15 +44,22 @@
                                 <h5 class="fw-semibold text-white mb-1">{{ $teacher->name }}</h5>
                                 @if(!empty($subjects))
                                     @php
+                                        $subjectMap = $subjectMap ?? [];
                                         // Normalize subjects into a string. Subjects might be an array of scalars or arrays/objects
-                                        $subjectsList = collect((array) $subjects)->map(function ($s) {
+                                        $subjectsList = [];
+                                        foreach ((array) $subjects as $s) {
                                             if (is_array($s) || is_object($s)) {
-                                                // Try common keys
                                                 $sArr = (array) $s;
-                                                return data_get($sArr, 'name') ?? data_get($sArr, 'subject') ?? implode(' - ', array_filter(array_values($sArr)));
+                                                $subjectsList[] = data_get($sArr, 'name') ?? data_get($sArr, 'subject') ?? implode(' - ', array_filter(array_values($sArr)));
+                                            } else {
+                                                if (is_numeric($s) && isset($subjectMap[intval($s)])) {
+                                                    $subjectsList[] = $subjectMap[intval($s)];
+                                                } else {
+                                                    $subjectsList[] = (string) $s;
+                                                }
                                             }
-                                            return (string) $s;
-                                        })->filter()->values()->all();
+                                        }
+                                        $subjectsList = array_values(array_filter($subjectsList));
                                     @endphp
                                     <p class="mb-2 text-white-50 small">{{ implode(', ', $subjectsList) }}</p>
                                 @endif
@@ -73,7 +80,20 @@
                                             return (string) $q;
                                         })->filter()->values()->all();
                                     @endphp
-                                    <p class="text-white-50 small mb-3">{{ implode('; ', $qualList) }}</p>
+                                    <p class="text-white-50 small mb-3">Kualifikasi: {{ implode(', ', $qualList) }}</p>
+                                @endif
+
+                                @if($certifications)
+                                    @php
+                                        $certList = collect((array) $certifications)->map(function ($c) {
+                                            if (is_array($c) || is_object($c)) {
+                                                $cArr = (array) $c;
+                                                return data_get($cArr, 'name') ?? data_get($cArr, 'certification') ?? implode(' - ', array_filter(array_values($cArr)));
+                                            }
+                                            return (string) $c;
+                                        })->filter()->values()->all();
+                                    @endphp
+                                    <p class="text-white-50 small mb-3">Sertifikasi: {{ implode(', ', $certList) }}</p>
                                 @endif
 
                                 <div class="d-flex align-items-center justify-content-center gap-2">

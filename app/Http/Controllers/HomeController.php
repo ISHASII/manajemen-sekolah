@@ -99,7 +99,31 @@ class HomeController extends Controller
             ->with('teacher')
             ->get();
 
-        return view('teachers', compact('teachers'));
+        // Collect all numeric subject IDs used by teachers so we can map them to names in a single query
+        $allSubjectIds = [];
+        foreach ($teachers as $t) {
+            $profile = $t->teacher ?? null;
+            if (!$profile) continue;
+            $subj = $profile->subjects ?? [];
+            if (is_string($subj)) {
+                $maybe = @json_decode($subj, true);
+                if (is_array($maybe)) $subj = $maybe;
+                elseif (strpos($subj, ',') !== false) $subj = array_map('trim', explode(',', $subj));
+                else $subj = [$subj];
+            }
+            if (is_array($subj)) {
+                foreach ($subj as $item) {
+                    if (is_numeric($item)) $allSubjectIds[] = intval($item);
+                }
+            }
+        }
+        $allSubjectIds = array_values(array_unique(array_filter($allSubjectIds)));
+        $subjectMap = [];
+        if (!empty($allSubjectIds)) {
+            $subjectMap = \App\Models\Subject::whereIn('id', $allSubjectIds)->pluck('name', 'id')->toArray();
+        }
+
+        return view('teachers', compact('teachers', 'subjectMap'));
     }
 
     /**

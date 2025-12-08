@@ -72,11 +72,6 @@
                             <div class="col-lg-6 col-md-6">
                                 <div class="stats-card">
                                     <div class="row g-3">
-                                        <div class="col-5">
-                                            <img src="https://images.unsplash.com/photo-1559757175-0eb5d962591b?w=200&h=150&fit=crop"
-                                                alt="Speech Therapy" class="img-fluid rounded"
-                                                style="height: 120px; width: 100%; object-fit: cover;">
-                                        </div>
                                         <div class="col-7">
                                             <h5 class="fw-bold text-white mb-2">Ruang Terapi Wicara</h5>
                                             <p class="text-white opacity-90 small mb-3">Ruang kedap suara dengan peralatan
@@ -96,11 +91,6 @@
                             <div class="col-lg-6 col-md-6">
                                 <div class="stats-card">
                                     <div class="row g-3">
-                                        <div class="col-5">
-                                            <img src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=200&h=150&fit=crop"
-                                                alt="Physical Therapy" class="img-fluid rounded"
-                                                style="height: 120px; width: 100%; object-fit: cover;">
-                                        </div>
                                         <div class="col-7">
                                             <h5 class="fw-bold text-white mb-2">Ruang Fisioterapi</h5>
                                             <p class="text-white opacity-90 small mb-3">Ruang terapi fisik dengan peralatan
@@ -121,11 +111,6 @@
                             <div class="col-lg-6 col-md-6">
                                 <div class="stats-card">
                                     <div class="row g-3">
-                                        <div class="col-5">
-                                            <img src="https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?w=200&h=150&fit=crop"
-                                                alt="Occupational Therapy" class="img-fluid rounded"
-                                                style="height: 120px; width: 100%; object-fit: cover;">
-                                        </div>
                                         <div class="col-7">
                                             <h5 class="fw-bold text-white mb-2">Ruang Terapi Okupasi</h5>
                                             <p class="text-white opacity-90 small mb-3">Ruang latihan keterampilan hidup
@@ -146,11 +131,6 @@
                             <div class="col-lg-6 col-md-6">
                                 <div class="stats-card">
                                     <div class="row g-3">
-                                        <div class="col-5">
-                                            <img src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=200&h=150&fit=crop"
-                                                alt="Music Therapy" class="img-fluid rounded"
-                                                style="height: 120px; width: 100%; object-fit: cover;">
-                                        </div>
                                         <div class="col-7">
                                             <h5 class="fw-bold text-white mb-2">Ruang Terapi Musik</h5>
                                             <p class="text-white opacity-90 small mb-3">Studio musik dengan berbagai alat

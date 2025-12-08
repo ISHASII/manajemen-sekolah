@@ -116,7 +116,7 @@
             background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
             min-height: 100vh;
             color: #ffffff;
-            -webkit-font-smoothing: antialiased;
+            @stack('scripts') -webkit-font-smoothing: antialiased;
             font-family: 'Inter', sans-serif;
         }
 
