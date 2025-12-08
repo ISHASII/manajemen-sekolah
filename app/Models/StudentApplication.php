@@ -25,8 +25,10 @@ class StudentApplication extends Model
         'disability_info',
         'education_history',
         'desired_class',
+        'orphan_status',
         'additional_info',
         'documents',
+        'medical_info',
         'parent_email',
         'status',
         'notes',
@@ -41,6 +43,7 @@ class StudentApplication extends Model
         'education_history' => 'array',
         'additional_info' => 'array',
         'documents' => 'array',
+        'orphan_status' => 'string',
         'application_date' => 'date'
     ];
 }

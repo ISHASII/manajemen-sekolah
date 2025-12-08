@@ -287,10 +287,14 @@ class AdminController extends Controller
                 'parent_name' => $application->parent_name,
                 'parent_phone' => $application->parent_phone,
                 'parent_address' => $application->parent_address,
-                'parent_job' => $application->parent_job,
-                'health_info' => $application->health_info,
-                'disability_info' => $application->disability_info,
-                'education_history' => $application->education_history,
+                    'parent_email' => $application->parent_email ?? null,
+                    'parent_job' => $application->parent_job,
+                    'medical_info' => $application->medical_info ?? null,
+                    'health_info' => $application->health_info,
+                    'disability_info' => $application->disability_info,
+                    'is_orphan' => ($application->orphan_status ?? 'none') !== 'none',
+                    'orphan_status' => $application->orphan_status ?? 'none',
+                    'education_history' => $application->education_history,
                 'enrollment_date' => now(),
             ]);
                 } catch (\Illuminate\Database\QueryException $qe) {
@@ -389,7 +393,24 @@ class AdminController extends Controller
             'parent_name' => 'required|string',
             'parent_phone' => 'required|string',
             'parent_address' => 'required|string',
+            'parent_email' => 'nullable|email',
+            'parent_job' => 'nullable|string|max:255',
             'enrollment_date' => 'required|date',
+            'phone' => 'nullable|string|max:20',
+            'gender' => 'nullable|in:male,female',
+            'medical_info' => 'nullable|string',
+            'health_info' => 'nullable|array',
+            'health_info.*' => 'nullable|string|max:255',
+            'disability_info' => 'nullable|array',
+            'disability_info.*' => 'nullable|string|max:255',
+            'education_history.previous_school' => 'nullable|string|max:255',
+            'education_history.graduation_year' => 'nullable|integer',
+            'orphan_status' => 'nullable|in:none,yatim,piatu,yatim_piatu',
+            'birth_certificate' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'kk' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'last_certificate' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'photo' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
+            'medical_certificate' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
             'status' => 'nullable|in:active,inactive,graduated,transferred'
         ]);
 
@@ -411,9 +432,32 @@ class AdminController extends Controller
                     'email' => $request->email,
                     'password' => \Illuminate\Support\Facades\Hash::make('password'),
                     'role' => 'student',
-                    'is_active' => true
+                    'is_active' => true,
+                    'phone' => $request->phone,
+                    'gender' => $request->gender,
+                    'birth_date' => $request->birth_date,
+                    'address' => $request->address,
                 ]);
             }
+
+            // Merge health/disability 'other' fields
+            $healthArr = [];
+            if ($request->filled('health_info')) {
+                $healthArr = array_map('trim', (array)$request->input('health_info'));
+            }
+            if ($request->filled('health_info_other')) {
+                $healthArr[] = trim($request->input('health_info_other'));
+            }
+            $healthArr = array_values(array_filter($healthArr, fn($v) => $v !== null && $v !== ''));
+
+            $disabilityArr = [];
+            if ($request->filled('disability_info')) {
+                $disabilityArr = array_map('trim', (array)$request->input('disability_info'));
+            }
+            if ($request->filled('disability_info_other')) {
+                $disabilityArr[] = trim($request->input('disability_info_other'));
+            }
+            $disabilityArr = array_values(array_filter($disabilityArr, fn($v) => $v !== null && $v !== ''));
 
             $student = Student::create([
                 'user_id' => $user->id,
@@ -427,15 +471,46 @@ class AdminController extends Controller
                 'parent_name' => $request->parent_name,
                 'parent_phone' => $request->parent_phone,
                 'parent_address' => $request->parent_address,
+                'parent_email' => $request->parent_email,
                 'parent_job' => $request->parent_job,
+                'medical_info' => $request->medical_info,
+                'health_info' => $healthArr ?: null,
+                'disability_info' => $disabilityArr ?: null,
+                'education_history' => [
+                    'previous_school' => $request->input('education_history.previous_school'),
+                    'graduation_year' => $request->input('education_history.graduation_year')
+                ],
+                'orphan_status' => $request->input('orphan_status') ?? 'none',
                 'enrollment_date' => $request->enrollment_date,
                 'status' => $request->status ?? 'active',
-                'is_orphan' => $request->boolean('is_orphan', false)
+                'is_orphan' => ($request->input('orphan_status') ?? 'none') !== 'none'
             ]);
 
             if ($student->class_id) {
                 $class = ClassRoom::find($student->class_id);
                 if ($class) $class->increment('current_students');
+            }
+            // Handle uploaded documents for this student
+            foreach (['birth_certificate', 'kk', 'last_certificate', 'photo', 'medical_certificate'] as $key) {
+                if ($request->hasFile($key)) {
+                    $file = $request->file($key);
+                    $filename = 'student_' . $student->id . '_' . $key . '_' . time() . '.' . $file->getClientOriginalExtension();
+                    $path = $file->storeAs('student-documents', $filename, 'public');
+                    $doc = Document::create([
+                        'documentable_type' => Student::class,
+                        'documentable_id' => $student->id,
+                        'document_type' => $key,
+                        'document_name' => $file->getClientOriginalName(),
+                        'file_path' => $path,
+                        'file_size' => $file->getSize(),
+                        'mime_type' => $file->getMimeType(),
+                    ]);
+                    // If photo, also set the user's profile photo
+                    if ($key === 'photo') {
+                        $user->profile_photo = $path;
+                        $user->save();
+                    }
+                }
             }
         } catch (\Exception $e) {
             \Log::error('Failed to create student', ['error' => $e->getMessage(), 'input' => $request->all()]);
@@ -477,10 +552,32 @@ class AdminController extends Controller
         try {
             $user->update([
                 'name' => $request->name,
-                'email' => $request->email
+                'email' => $request->email,
+                'phone' => $request->phone,
+                'gender' => $request->gender,
+                'birth_date' => $request->birth_date,
+                'address' => $request->address,
             ]);
 
             $oldClass = $student->class_id;
+            // Merge 'other' fields into arrays if provided
+            $healthArr = [];
+            if ($request->filled('health_info')) {
+                $healthArr = array_map('trim', (array)$request->input('health_info'));
+            }
+            if ($request->filled('health_info_other')) {
+                $healthArr[] = trim($request->input('health_info_other'));
+            }
+            $healthArr = array_values(array_filter($healthArr, fn($v) => $v !== null && $v !== ''));
+
+            $disabilityArr = [];
+            if ($request->filled('disability_info')) {
+                $disabilityArr = array_map('trim', (array)$request->input('disability_info'));
+            }
+            if ($request->filled('disability_info_other')) {
+                $disabilityArr[] = trim($request->input('disability_info_other'));
+            }
+            $disabilityArr = array_values(array_filter($disabilityArr, fn($v) => $v !== null && $v !== ''));
             $student->update([
                 'student_id' => $request->student_id,
                 'class_id' => $request->class_id,
@@ -492,10 +589,19 @@ class AdminController extends Controller
                 'parent_name' => $request->parent_name,
                 'parent_phone' => $request->parent_phone,
                 'parent_address' => $request->parent_address,
+                'parent_email' => $request->parent_email,
+                'medical_info' => $request->medical_info,
+                'health_info' => $healthArr ?: null,
+                'disability_info' => $disabilityArr ?: null,
+                'education_history' => [
+                    'previous_school' => $request->input('education_history.previous_school'),
+                    'graduation_year' => $request->input('education_history.graduation_year')
+                ],
+                'orphan_status' => $request->input('orphan_status') ?? 'none',
                 'parent_job' => $request->parent_job,
                 'enrollment_date' => $request->enrollment_date,
                 'status' => $request->status ?? $student->status,
-                'is_orphan' => $request->boolean('is_orphan', $student->is_orphan)
+                'is_orphan' => ($request->input('orphan_status') ?? $student->orphan_status) !== 'none'
             ]);
 
             if ($oldClass != $request->class_id) {
@@ -506,6 +612,45 @@ class AdminController extends Controller
                 if ($request->class_id) {
                     $new = ClassRoom::find($request->class_id);
                     if ($new) $new->increment('current_students');
+                }
+            }
+            // Process file uploads/update
+            foreach (['birth_certificate', 'kk', 'last_certificate', 'photo', 'medical_certificate'] as $key) {
+                if ($request->hasFile($key)) {
+                    $file = $request->file($key);
+                    $filename = 'student_' . $student->id . '_' . $key . '_' . time() . '.' . $file->getClientOriginalExtension();
+                    $path = $file->storeAs('student-documents', $filename, 'public');
+                    $existing = $student->documents()->where('document_type', $key)->first();
+                    if ($existing) {
+                        // Remove old file if it exists
+                        if ($existing->file_path && Storage::disk('public')->exists($existing->file_path)) {
+                            Storage::disk('public')->delete($existing->file_path);
+                        }
+                        $existing->update([
+                            'document_name' => $file->getClientOriginalName(),
+                            'file_path' => $path,
+                            'file_size' => $file->getSize(),
+                            'mime_type' => $file->getMimeType(),
+                        ]);
+                        if ($key === 'photo') {
+                            $user->profile_photo = $path;
+                            $user->save();
+                        }
+                    } else {
+                        Document::create([
+                            'documentable_type' => Student::class,
+                            'documentable_id' => $student->id,
+                            'document_type' => $key,
+                            'document_name' => $file->getClientOriginalName(),
+                            'file_path' => $path,
+                            'file_size' => $file->getSize(),
+                            'mime_type' => $file->getMimeType(),
+                        ]);
+                        if ($key === 'photo') {
+                            $user->profile_photo = $path;
+                            $user->save();
+                        }
+                    }
                 }
             }
         } catch (\Exception $e) {

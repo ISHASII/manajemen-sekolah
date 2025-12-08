@@ -37,24 +37,26 @@ class StudentApplicationController extends Controller
             'parent_address' => 'required|string',
             'parent_email' => 'nullable|email',
             'parent_job' => 'nullable|string|max:255',
+            'orphan_status' => 'nullable|in:none,yatim,piatu,yatim_piatu',
             'desired_class' => 'required|in:SD,SMP,SMA',
             'health_conditions' => 'nullable|array',
+            'health_conditions.*' => 'nullable|string|max:255',
+            'health_conditions_other' => 'nullable|string|max:255',
             'disabilities' => 'nullable|array',
+            'disabilities.*' => 'nullable|string|max:255',
+            'disabilities_other' => 'nullable|string|max:255',
             'previous_school' => 'nullable|string|max:255',
             'graduation_year' => 'nullable|integer',
             'birth_certificate' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
-            'last_certificate' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'last_certificate' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'medical_certificate' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
             'photo' => 'required|file|mimes:jpg,jpeg,png|max:2048',
             'agreement' => 'accepted',
             'password' => 'required|string|min:8|confirmed',
         ]);
-
-        // Generate application number
-        $applicationNumber = 'APP' . date('Y') . str_pad(StudentApplication::count() + 1, 4, '0', STR_PAD_LEFT);
-
         // Handle file uploads - required documents
         $documents = [];
-        foreach (['birth_certificate', 'last_certificate', 'photo'] as $key) {
+        foreach (['birth_certificate', 'last_certificate', 'photo', 'kk', 'medical_certificate'] as $key) {
             if ($request->hasFile($key)) {
                 $file = $request->file($key);
                 $filename = time() . '_' . $key . '.' . $file->getClientOriginalExtension();
@@ -69,6 +71,28 @@ class StudentApplicationController extends Controller
                 ];
             }
         }
+
+        // Generate application number
+        $applicationNumber = 'APP' . date('Y') . str_pad(StudentApplication::count() + 1, 4, '0', STR_PAD_LEFT);
+
+        // Merge 'other' into arrays if provided
+        $healthArr = [];
+        if ($request->filled('health_conditions')) {
+            $healthArr = array_map('trim', (array)$request->input('health_conditions'));
+        }
+        if ($request->filled('health_conditions_other')) {
+            $healthArr[] = trim($request->input('health_conditions_other'));
+        }
+        $healthArr = array_values(array_filter($healthArr, fn($v) => $v !== null && $v !== ''));
+
+        $disabilityArr = [];
+        if ($request->filled('disabilities')) {
+            $disabilityArr = array_map('trim', (array)$request->input('disabilities'));
+        }
+        if ($request->filled('disabilities_other')) {
+            $disabilityArr[] = trim($request->input('disabilities_other'));
+        }
+        $disabilityArr = array_values(array_filter($disabilityArr, fn($v) => $v !== null && $v !== ''));
 
         // Create application
         $application = StudentApplication::create([
@@ -88,13 +112,15 @@ class StudentApplicationController extends Controller
             'parent_address' => $request->parent_address,
             'parent_job' => $request->parent_job,
             'desired_class' => $request->desired_class,
-            'health_info' => $request->health_conditions ?? [],
-            'disability_info' => $request->disabilities ?? [],
+            'orphan_status' => $request->input('orphan_status') ?? 'none',
+            'health_info' => $healthArr,
+            'disability_info' => $disabilityArr,
             'education_history' => [
                 'previous_school' => $request->previous_school,
                 'graduation_year' => $request->graduation_year,
             ],
             'documents' => $documents,
+            'medical_info' => $request->input('medical_info') ?? null,
             'application_date' => now(),
             'password' => Hash::make($request->input('password')),
         ]);

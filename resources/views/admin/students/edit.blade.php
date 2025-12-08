@@ -21,7 +21,7 @@
                     </ul>
                 </div>
             @endif
-            <form action="{{ route('admin.students.update', $student->id) }}" method="POST">
+            <form action="{{ route('admin.students.update', $student->id) }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
                 <div class="row g-3">
@@ -129,6 +129,177 @@
                         <input type="date" name="enrollment_date" class="form-control"
                             value="{{ old('enrollment_date', $student->enrollment_date?->toDateString()) }}" required>
                         @error('enrollment_date') <div class="text-danger small">{{ $message }}</div> @enderror
+                    </div>
+                    <div class="col-md-12">
+                        <hr>
+                        <h5>Dokumen Siswa</h5>
+                    </div>
+                    @php
+                        $docMap = [];
+                        foreach($student->documents as $d) {
+                            $docMap[$d->document_type] = $d;
+                        }
+                    @endphp
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Akta Kelahiran (PDF/JPG/PNG)</label>
+                        @if(isset($docMap['birth_certificate']))
+                            <div class="mb-2">
+                                <a href="{{ Storage::url($docMap['birth_certificate']->file_path) }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-download me-1"></i>Lihat Akta Kelahiran
+                                </a>
+                            </div>
+                        @endif
+                        <input type="file" name="birth_certificate" class="form-control">
+                        @error('birth_certificate') <div class="text-danger small">{{ $message }}</div> @enderror
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Kartu Keluarga (KK) (PDF/JPG/PNG)</label>
+                        @if(isset($docMap['kk']))
+                            <div class="mb-2">
+                                <a href="{{ Storage::url($docMap['kk']->file_path) }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-download me-1"></i>Lihat KK
+                                </a>
+                            </div>
+                        @endif
+                        <input type="file" name="kk" class="form-control">
+                        @error('kk') <div class="text-danger small">{{ $message }}</div> @enderror
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Ijazah/Surat Keterangan Lulus Terakhir (PDF/JPG/PNG)</label>
+                        @if(isset($docMap['last_certificate']))
+                            <div class="mb-2">
+                                <a href="{{ Storage::url($docMap['last_certificate']->file_path) }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-download me-1"></i>Lihat Ijazah Terakhir
+                                </a>
+                            </div>
+                        @endif
+                        <input type="file" name="last_certificate" class="form-control">
+                        @error('last_certificate') <div class="text-danger small">{{ $message }}</div> @enderror
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Pas Foto 3x4 (JPG/PNG)</label>
+                        @if(isset($docMap['photo']))
+                            <div class="mb-2">
+                                <a href="{{ Storage::url($docMap['photo']->file_path) }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-download me-1"></i>Lihat Foto
+                                </a>
+                            </div>
+                        @endif
+                        <input type="file" name="photo" class="form-control">
+                        @error('photo') <div class="text-danger small">{{ $message }}</div> @enderror
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Sertifikat Medis (PDF/JPG/PNG)</label>
+                        @if(isset($docMap['medical_certificate']))
+                            <div class="mb-2">
+                                <a href="{{ Storage::url($docMap['medical_certificate']->file_path) }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-download me-1"></i>Lihat Sertifikat Medis
+                                </a>
+                            </div>
+                        @endif
+                        <input type="file" name="medical_certificate" class="form-control">
+                        @error('medical_certificate') <div class="text-danger small">{{ $message }}</div> @enderror
+                    </div>
+                </div>
+                <hr class="my-3" />
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Nomor Telepon Siswa</label>
+                        <input type="text" name="phone" class="form-control" value="{{ old('phone', $student->user->phone) }}">
+                        @error('phone') <div class="text-danger small">{{ $message }}</div> @enderror
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Jenis Kelamin</label>
+                        <select name="gender" class="form-select">
+                            <option value="">-- Pilih --</option>
+                            <option value="male" {{ old('gender', $student->user->gender) == 'male' ? 'selected' : '' }}>Laki-laki</option>
+                            <option value="female" {{ old('gender', $student->user->gender) == 'female' ? 'selected' : '' }}>Perempuan</option>
+                        </select>
+                        @error('gender') <div class="text-danger small">{{ $message }}</div> @enderror
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Email Orang Tua</label>
+                        <input type="email" name="parent_email" class="form-control" value="{{ old('parent_email', $student->parent_email) }}">
+                        @error('parent_email') <div class="text-danger small">{{ $message }}</div> @enderror
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Pekerjaan Orang Tua</label>
+                        <input type="text" name="parent_job" class="form-control" value="{{ old('parent_job', $student->parent_job) }}">
+                        @error('parent_job') <div class="text-danger small">{{ $message }}</div> @enderror
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Informasi Medis</label>
+                        <textarea name="medical_info" rows="3" class="form-control">{{ old('medical_info', $student->medical_info) }}</textarea>
+                        @error('medical_info') <div class="text-danger small">{{ $message }}</div> @enderror
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label">Kondisi Kesehatan</label>
+                        @php
+                            $healthOpts = ['Alergi','Asma','Penyakit Jantung','Epilepsi','Lainnya'];
+                            $selectedHealth = old('health_info', $student->health_info ?? []);
+                        @endphp
+                        <div class="row">
+                            @foreach($healthOpts as $k => $label)
+                                <div class="col-md-2">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="health_info[]" value="{{ $label }}" id="health_{{ $k }}"
+                                            {{ in_array($label, (array) $selectedHealth) ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="health_{{ $k }}">{{ $label }}</label>
+                                    </div>
+                                </div>
+                            @endforeach
+                            <div class="col-md-4 mt-2">
+                                <input type="text" name="health_info_other" class="form-control mt-2" placeholder="Jika 'Lainnya', sebutkan..." value="{{ old('health_info_other') }}">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label">Disabilitas</label>
+                        @php
+                            $disabilityOpts = ['Gangguan Penglihatan','Gangguan Pendengaran','Disabilitas Fisik','Disabilitas Intelektual','Lainnya'];
+                            $selectedDis = old('disability_info', $student->disability_info ?? []);
+                        @endphp
+                        <div class="row">
+                            @foreach($disabilityOpts as $k => $label)
+                                <div class="col-md-2">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="disability_info[]" value="{{ $label }}" id="disability_{{ $k }}"
+                                            {{ in_array($label, (array) $selectedDis) ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="disability_{{ $k }}">{{ $label }}</label>
+                                    </div>
+                                </div>
+                            @endforeach
+                            <div class="col-md-4 mt-2">
+                                <input type="text" name="disability_info_other" class="form-control mt-2" placeholder="Jika 'Lainnya', sebutkan..." value="{{ old('disability_info_other') }}">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Sekolah Sebelumnya</label>
+                        <input type="text" name="education_history[previous_school]" class="form-control" value="{{ old('education_history.previous_school', $student->education_history['previous_school'] ?? null) }}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Tahun Lulus</label>
+                        <input type="number" name="education_history[graduation_year]" class="form-control" value="{{ old('education_history.graduation_year', $student->education_history['graduation_year'] ?? null) }}">
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label">Status Anak (Yatim/Piatu)</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="orphan_status" id="orphan_none" value="none" {{ old('orphan_status', $student->orphan_status ?? 'none') == 'none' ? 'checked' : '' }}>
+                            <label class="form-check-label" for="orphan_none">Tidak Kedua Orang Tua</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="orphan_status" id="orphan_yatim" value="yatim" {{ old('orphan_status', $student->orphan_status) == 'yatim' ? 'checked' : '' }}>
+                            <label class="form-check-label" for="orphan_yatim">Yatim (Ayah Meninggal)</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="orphan_status" id="orphan_piatu" value="piatu" {{ old('orphan_status', $student->orphan_status) == 'piatu' ? 'checked' : '' }}>
+                            <label class="form-check-label" for="orphan_piatu">Piatu (Ibu Meninggal)</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="orphan_status" id="orphan_both" value="yatim_piatu" {{ old('orphan_status', $student->orphan_status) == 'yatim_piatu' ? 'checked' : '' }}>
+                            <label class="form-check-label" for="orphan_both">Yatim & Piatu (Kedua Orang Tua Meninggal)</label>
+                        </div>
                     </div>
                 </div>
                 <div class="mt-4 text-end">

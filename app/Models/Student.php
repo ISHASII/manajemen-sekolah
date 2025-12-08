@@ -19,12 +19,14 @@ class Student extends Model
         'parent_phone',
         'parent_address',
         'parent_job',
+        'parent_email',
         'health_info',
         'disability_info',
         'education_history',
         'interests_talents',
         'status',
         'is_orphan',
+        'orphan_status',
         'enrollment_date'
     ];
 
@@ -33,6 +35,8 @@ class Student extends Model
         'health_info' => 'array',
         'disability_info' => 'array',
         'education_history' => 'array',
+        'parent_email' => 'string',
+        'medical_info' => 'string',
         'interests_talents' => 'array',
         'is_orphan' => 'boolean',
         'enrollment_date' => 'date'

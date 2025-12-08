@@ -7,6 +7,7 @@ use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Http\Request;
 use App\Models\StudentApplication;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\ValidationException;
 
 class LoginController extends Controller
 {
@@ -63,6 +64,9 @@ class LoginController extends Controller
                 ->withInput($request->only($this->username(), 'remember'))
                 ->withErrors([$this->username() => __('Akun Anda belum aktif. Pendaftaran sedang menunggu persetujuan admin.')]);
         }
-        return parent::sendFailedLoginResponse($request);
+        // Default behavior: throw the same validation exception that the trait would throw
+        throw ValidationException::withMessages([
+            $this->username() => [trans('auth.failed')],
+        ]);
     }
 }

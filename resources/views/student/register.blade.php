@@ -75,6 +75,65 @@
                                 <div class="col-md-6 mb-3"></div>
                             </div>
 
+                            <!-- Health & Disability -->
+                            <div class="card border-secondary mt-4">
+                                <div class="card-header bg-secondary text-white">
+                                    <h5 class="mb-0">Data Disabilitas & Kesehatan</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <label class="form-label">Kondisi Kesehatan (centang yang sesuai)</label>
+                                        <div class="row">
+                                            @php
+                                                $healthOpts = ['alergi' => 'Alergi', 'asthma' => 'Asma', 'heart' => 'Penyakit Jantung', 'epilepsy' => 'Epilepsi', 'other' => 'Lainnya'];
+                                                $selectedHealth = old('health_conditions', []);
+                                            @endphp
+                                            @foreach($healthOpts as $k => $label)
+                                                <div class="col-md-3">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox"
+                                                            name="health_conditions[]" value="{{ $label }}" id="health_{{ $k }}"
+                                                            {{ in_array($label, (array) $selectedHealth) ? 'checked' : '' }}>
+                                                        <label class="form-check-label"
+                                                            for="health_{{ $k }}">{{ $label }}</label>
+                                                    </div>
+                                                </div>
+                                            @endforeach
+                                            <div class="col-md-6 mt-2">
+                                                <input type="text" class="form-control mt-2" name="health_conditions_other"
+                                                    id="health_conditions_other" placeholder="Jika 'Lainnya', sebutkan..."
+                                                    value="{{ old('health_conditions_other') }}">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label">Data Disabilitas (centang yang sesuai)</label>
+                                        <div class="row">
+                                            @php
+                                                $disabilityOpts = ['visual' => 'Gangguan Penglihatan', 'hearing' => 'Gangguan Pendengaran', 'physical' => 'Disabilitas Fisik', 'intellectual' => 'Disabilitas Intelektual', 'other' => 'Lainnya'];
+                                                $selectedDis = old('disabilities', []);
+                                            @endphp
+                                            @foreach($disabilityOpts as $k => $label)
+                                                <div class="col-md-3">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" name="disabilities[]"
+                                                            value="{{ $label }}" id="disability_{{ $k }}" {{ in_array($label, (array) $selectedDis) ? 'checked' : '' }}>
+                                                        <label class="form-check-label"
+                                                            for="disability_{{ $k }}">{{ $label }}</label>
+                                                    </div>
+                                                </div>
+                                            @endforeach
+                                            <div class="col-md-6 mt-2">
+                                                <input type="text" class="form-control mt-2" name="disabilities_other"
+                                                    id="disabilities_other" placeholder="Jika 'Lainnya', sebutkan..."
+                                                    value="{{ old('disabilities_other') }}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label for="email" class="form-label required">Email</label>
@@ -215,6 +274,35 @@
                                                 <div class="invalid-feedback">{{ $message }}</div>
                                             @enderror
                                         </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label">Status Anak (Yatim/Piatu)</label>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="orphan_status"
+                                                    id="orphan_none" value="none" {{ old('orphan_status', 'none') == 'none' ? 'checked' : '' }}>
+                                                <label class="form-check-label" for="orphan_none">Tidak Ketiganya</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="orphan_status"
+                                                    id="orphan_yatim" value="yatim" {{ old('orphan_status') == 'yatim' ? 'checked' : '' }}>
+                                                <label class="form-check-label" for="orphan_yatim">Yatim (Ayah
+                                                    Meninggal)</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="orphan_status"
+                                                    id="orphan_piatu" value="piatu" {{ old('orphan_status') == 'piatu' ? 'checked' : '' }}>
+                                                <label class="form-check-label" for="orphan_piatu">Piatu (Ibu
+                                                    Meninggal)</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="orphan_status"
+                                                    id="orphan_both" value="yatim_piatu" {{ old('orphan_status') == 'yatim_piatu' ? 'checked' : '' }}>
+                                                <label class="form-check-label" for="orphan_both">Yatim & Piatu (Kedua Orang
+                                                    Tua Meninggal)</label>
+                                            </div>
+                                            @error('orphan_status')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </div>
                                     </div>
                                     <div class="mb-3">
                                         <label for="parent_job" class="form-label">Pekerjaan Orang Tua/Wali</label>
@@ -257,12 +345,19 @@
                                         @enderror
                                     </div>
                                     <div class="mb-3">
+                                        <label for="kk" class="form-label">Kartu Keluarga (KK) (PDF/JPG/PNG)</label>
+                                        <input type="file" class="form-control @error('kk') is-invalid @enderror" id="kk"
+                                            name="kk" accept=".pdf,.jpg,.jpeg,.png">
+                                        @error('kk')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                    <div class="mb-3">
                                         <label for="last_certificate" class="form-label">Ijazah/Surat Keterangan Lulus
-                                            Terakhir (PDF/JPG/PNG)</label>
+                                            Terakhir (PDF/JPG/PNG) <small class="text-muted">(opsional)</small></label>
                                         <input type="file"
                                             class="form-control @error('last_certificate') is-invalid @enderror"
-                                            id="last_certificate" name="last_certificate" accept=".pdf,.jpg,.jpeg,.png"
-                                            required>
+                                            id="last_certificate" name="last_certificate" accept=".pdf,.jpg,.jpeg,.png">
                                         @error('last_certificate')
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
@@ -272,6 +367,17 @@
                                         <input type="file" class="form-control @error('photo') is-invalid @enderror"
                                             id="photo" name="photo" accept=".jpg,.jpeg,.png" required>
                                         @error('photo')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="medical_certificate" class="form-label">Sertifikat Medis
+                                            (PDF/JPG/PNG) <small class="text-muted">(opsional)</small></label>
+                                        <input type="file"
+                                            class="form-control @error('medical_certificate') is-invalid @enderror"
+                                            id="medical_certificate" name="medical_certificate"
+                                            accept=".pdf,.jpg,.jpeg,.png">
+                                        @error('medical_certificate')
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
                                     </div>
@@ -285,6 +391,18 @@
                                     name="motivation" rows="4"
                                     placeholder="Ceritakan alasan dan motivasi Anda ingin bergabung di sekolah ini...">{{ old('motivation') }}</textarea>
                                 @error('motivation')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="medical_info" class="form-label">Informasi Medis (opsional)</label>
+                                <textarea class="form-control @error('medical_info') is-invalid @enderror" id="medical_info"
+                                    name="medical_info" rows="3">{{ old('medical_info') }}</textarea>
+                                <div class="form-text text-white">Tambahkan informasi medis penting (alergi, kondisi kronis,
+                                    dsb.)
+                                </div>
+                                @error('medical_info')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>

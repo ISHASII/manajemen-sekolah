@@ -69,6 +69,17 @@
                                 <hr>
                                 <p><strong>Nama:</strong> {{ $application->parent_name }}</p>
                                 <p><strong>Telepon:</strong> {{ $application->parent_phone }}</p>
+                                <p><strong>Status Anak:</strong>
+                                    @php
+                                        $statusMap = [
+                                            'none' => 'Tidak Ketiganya',
+                                            'yatim' => 'Yatim (Ayah Meninggal)',
+                                            'piatu' => 'Piatu (Ibu Meninggal)',
+                                            'yatim_piatu' => 'Yatim & Piatu (Kedua Orang Tua Meninggal)'
+                                        ];
+                                    @endphp
+                                    {{ $statusMap[$application->orphan_status ?? 'none'] ?? 'Tidak Kedua Orang Tua' }}
+                                </p>
                                 <p><strong>Pekerjaan:</strong> {{ $application->parent_job ?: '-' }}</p>
                                 <p><strong>Alamat:</strong> {{ $application->parent_address }}</p>
 
@@ -118,6 +129,14 @@
                             </div>
                         @endif
 
+                        @if($application->medical_info)
+                            <div class="mb-3">
+                                <strong>Informasi Medis</strong>
+                                <hr>
+                                <p>{{ $application->medical_info }}</p>
+                            </div>
+                        @endif
+
                         @if($application->documents && count($application->documents) > 0)
                             <div class="mb-3">
                                 <strong>Dokumen</strong>
@@ -126,7 +145,7 @@
                                     @foreach($application->documents as $document)
                                         <div class="col-md-4 mb-2">
                                             <div class="card">
-                                                <div class="card-body text-center">
+                                                <div class="card-body text-center bg-warning rounded-3">
                                                     <i class="fas fa-file fa-2x text-danger mb-2"></i>
                                                     <h6>{{ ucfirst(str_replace('_', ' ', $document['type'])) }}</h6>
                                                     <small class="text-muted">{{ $document['name'] }}</small>
