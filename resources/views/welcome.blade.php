@@ -21,7 +21,7 @@
                     <div class="d-inline-flex align-items-center gap-2 px-3 py-2 rounded-pill mb-4"
                         style="background: rgba(245, 158, 11, 0.2);">
                         <i class="bi bi-star-fill text-warning"></i>
-                        <span class="small fw-medium text-warning">Sekolah Luar Biasa Terbaik</span>
+                        <span class="small fw-medium text-warning">Sekolah Luar Biasa</span>
                     </div>
 
                     <h1 class="display-4 fw-bold text-white mb-4" style="line-height: 1.2;">

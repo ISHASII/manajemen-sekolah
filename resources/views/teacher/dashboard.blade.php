@@ -11,6 +11,7 @@
             @endphp
             <!-- Header Dashboard -->
             <div class="row mb-4">
+                @php $classes = collect($classes ?? []); @endphp
                 <div class="col-12">
                     <div class="card bg-success text-white">
                         <div class="card-body">
@@ -202,37 +203,49 @@
                                 <a href="{{ route('teacher.profile') }}" class="btn btn-outline-secondary btn-sm">
                                     <i class="bi bi-person-gear me-2"></i>Edit Profil
                                 </a>
+                                <a href="{{ route('teacher.materials.index') }}" class="btn btn-outline-primary btn-sm">
+                                    <i class="bi bi-folder-symlink me-2"></i>Materi Saya
+                                </a>
                             </div>
                         </div>
                     </div>
 
                     <!-- Kelas yang Diampu -->
-                    <div class="card border-0 shadow-sm">
-                        <div class="card-header bg-white border-bottom">
-                            <h5 class="mb-0">
-                                <i class="bi bi-collection me-2 text-primary"></i>
+                    <div class="card border-0 shadow-sm" style="border-radius: 12px;">
+                        <div class="card-header bg-white border-bottom" style="border-radius: 12px 12px 0 0;">
+                            <h5 class="mb-0 d-flex align-items-center" style="font-weight: 600;">
+                                <i class="bi bi-collection me-2 text-primary" style="font-size: 1.2rem;"></i>
                                 Kelas yang Diampu
                             </h5>
                         </div>
+
                         <div class="card-body">
                             @if($classes && $classes->count() > 0)
                                 <div class="list-group list-group-flush">
                                     @foreach($classes as $class)
-                                        <div
-                                            class="list-group-item px-0 border-0 border-bottom d-flex justify-content-between align-items-center">
+                                        <div class="list-group-item border-0 d-flex justify-content-between align-items-center"
+                                            style="
+                                                                    padding: 14px;
+                                                                    margin-bottom: 8px;
+                                                                    border-radius: 10px;
+                                                                    background: white;
+                                                                    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+                                                                    transition: 0.2s;
+                                                                "
+                                            onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.15)'"
+                                            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 6px rgba(0,0,0,0.08)'">
                                             <div>
-                                                <h6 class="mb-1">{{ $class->name }}</h6>
-                                                <small class="text-muted">
+                                                <h6 class="mb-1" style="font-weight: 600; color:#222;">{{ $class->name }}</h6>
+                                                <small class="text-muted" style="font-size: 0.85rem;">
                                                     <i class="bi bi-people me-1"></i>
                                                     {{ $class->students_count ?? 0 }} siswa
                                                 </small>
                                             </div>
-                                            <div class="btn-group btn-group-sm" role="group">
-                                                <a href="{{ route('teacher.class.detail', $class->id) }}"
-                                                    class="btn btn-outline-primary btn-sm">
-                                                    <i class="bi bi-eye"></i>
-                                                </a>
-                                            </div>
+
+                                            <a href="{{ route('teacher.class.detail', $class->id) }}" class="btn btn-sm bg-warning"
+                                                style="border-radius: 20px; padding: 4px 14px; font-size: 0.85rem;">
+                                                <i class="bi bi-eye me-1"></i> Lihat
+                                            </a>
                                         </div>
                                     @endforeach
                                 </div>
@@ -244,6 +257,7 @@
                             @endif
                         </div>
                     </div>
+
 
                     <!-- Pengumuman Terbaru -->
                     <div class="card border-0 shadow-sm mt-4">
@@ -372,9 +386,9 @@
                                                         </span>
                                                     </td>
                                                     <td>
-                                                        <a href="{{ route('teacher.student.detail', $student->id) }}"
-                                                            class="btn btn-sm btn-outline-primary">
-                                                            <i class="bi bi-eye"></i>
+                                                        <a href="{{ route('teacher.students.detail', $student->id) }}"
+                                                            class="btn btn-sm btn-outline-light">
+                                                            <i class="bi bi-eye text-white"></i>
                                                         </a>
                                                     </td>
                                                 </tr>
@@ -408,8 +422,6 @@
             background: #ffffff;
             /* White background only for the main page content */
             min-height: 100vh;
-            /* Ensure the background covers full viewport content area */
-            /* Do not change card-specific colors; wrapper only changes page background */
         }
 
         .icon {
@@ -487,8 +499,8 @@
         }
 
         /* Make the header of each card orange inside teacher pages without changing card body colors
-                                                                           -- also override any Bootstrap `bg-white` utility class using `!important` to ensure this
-                                                                           styling applies when markup uses `bg-white` on the header. */
+                                                                                                                               -- also override any Bootstrap `bg-white` utility class using `!important` to ensure this
+                                                                                                                               styling applies when markup uses `bg-white` on the header. */
         .teacher-page-wrapper .card-header,
         .teacher-page-wrapper .card-header.bg-white {
             background-color: #fd7e14 !important;
@@ -568,10 +580,10 @@
                     labels: ['A (90-100)', 'B (80-89)', 'C (70-79)', 'D (60-69)', 'E (<60)'],
                     datasets: [{
                         data: [
-                                                                                                            {{ $gradeDistribution['A'] ?? 0 }},
-                                                                                                            {{ $gradeDistribution['B'] ?? 0 }},
-                                                                                                            {{ $gradeDistribution['C'] ?? 0 }},
-                                                                                                            {{ $gradeDistribution['D'] ?? 0 }},
+                                                                                                                                                                {{ $gradeDistribution['A'] ?? 0 }},
+                                                                                                                                                                {{ $gradeDistribution['B'] ?? 0 }},
+                                                                                                                                                                {{ $gradeDistribution['C'] ?? 0 }},
+                                                                                                                                                                {{ $gradeDistribution['D'] ?? 0 }},
                             {{ $gradeDistribution['E'] ?? 0 }}
                         ],
                         backgroundColor: [

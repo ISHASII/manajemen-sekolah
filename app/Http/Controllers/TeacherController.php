@@ -12,6 +12,7 @@ use App\Models\StudentSkill;
 use App\Models\ClassRoom;
 use App\Models\Subject;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use App\Models\User;
@@ -40,11 +41,24 @@ class TeacherController extends Controller
         $todaySchedules = $schedules->where('day_of_week', $today);
         $todaySchedulesCount = $todaySchedules->count();
 
-        $classes = Schedule::where('teacher_id', $user->id)
-            ->with('classRoom')
-            ->get()
-            ->pluck('classRoom')
-            ->unique('id');
+        $scheduleClassIds = Schedule::where('teacher_id', $user->id)
+            ->pluck('class_id')
+            ->unique()
+            ->filter()
+            ->values()
+            ->all();
+        $homeroomClassIds = ClassRoom::where('homeroom_teacher_id', $user->id)->pluck('id')->unique()->filter()->values()->all();
+        $classIds = array_values(array_unique(array_merge($scheduleClassIds, $homeroomClassIds)));
+        $classes = collect();
+        if (!empty($classIds)) {
+            $classes = ClassRoom::whereIn('id', $classIds)
+                ->with('homeroomTeacher')
+                ->withCount('students')
+                ->get();
+        }
+        if (!is_object($classes) || !method_exists($classes, 'count')) {
+            $classes = collect();
+        }
 
         $totalStudents = 0;
         foreach ($classes as $class) {
@@ -116,12 +130,26 @@ class TeacherController extends Controller
     public function students()
     {
         $user = Auth::user();
+        // Collect class IDs from schedules and fetch ClassRoom with students to ensure proper relationships
+        $scheduleClassIds = Schedule::where('teacher_id', $user->id)
+            ->pluck('class_id')
+            ->unique()
+            ->filter()
+            ->values()
+            ->all();
+        $homeroomClassIds = ClassRoom::where('homeroom_teacher_id', $user->id)->pluck('id')->unique()->filter()->values()->all();
+        $classIds = array_values(array_unique(array_merge($scheduleClassIds, $homeroomClassIds)));
 
-        $classes = Schedule::where('teacher_id', $user->id)
-            ->with(['classRoom.students.user'])
-            ->get()
-            ->pluck('classRoom')
-            ->unique('id');
+        $classes = collect();
+        if (!empty($classIds)) {
+            $classes = ClassRoom::whereIn('id', $classIds)
+                ->with(['students.user'])
+                ->withCount('students')
+                ->get();
+        }
+
+        // Defensive: ensure $classes is a Collection (avoid accidental string values in views)
+        $classes = collect($classes);
 
         return view('teacher.students', compact('classes'));
     }
@@ -135,7 +163,21 @@ class TeacherController extends Controller
             ->where('class_id', $student->class_id)
             ->exists();
 
-        if (!$hasAccess) {
+        // Also allow access if the teacher is the homeroom teacher for the student's class
+        $isHomeroom = ClassRoom::where('id', $student->class_id)
+            ->where('homeroom_teacher_id', Auth::id())
+            ->exists();
+
+        // As a final fallback, allow access if the teacher is explicitly assigned via the teacher profile (teacher->user_id),
+        // supporting cases where schedule might be missing but teacher still owns the class content.
+        $teacherModel = Teacher::where('user_id', Auth::id())->first();
+        $isAssignedViaTeacherModel = false;
+        if ($teacherModel) {
+            // If Teacher profile has subjects or classes metadata, we could check, but for now, allow if this teacher is homeroom or schedule-based only
+            $isAssignedViaTeacherModel = false;
+        }
+
+        if (!$hasAccess && !$isHomeroom && !$isAssignedViaTeacherModel) {
             abort(403, 'Anda tidak memiliki akses ke data siswa ini.');
         }
 
@@ -149,6 +191,25 @@ class TeacherController extends Controller
             ->get();
 
         return view('teacher.student-detail', compact('student', 'grades', 'skills'));
+    }
+
+    public function classDetail($id)
+    {
+        $user = Auth::user();
+        $classRoom = ClassRoom::with(['students.user', 'schedules.subject', 'homeroomTeacher'])->findOrFail($id);
+
+        // Determine whether the teacher is allowed to view this class (teaches on schedule or is homeroom)
+        $teachesClass = Schedule::where('teacher_id', $user->id)->where('class_id', $id)->exists();
+        $isHomeroom = ($classRoom->homeroom_teacher_id ?? null) === $user->id;
+
+        if (!$teachesClass && !$isHomeroom) {
+            abort(403, 'Anda tidak memiliki akses ke data kelas ini.');
+        }
+
+        $students = $classRoom->students()->with('user')->get();
+        $schedules = Schedule::where('class_id', $id)->with(['subject', 'teacher'])->get();
+
+        return view('teacher.classes.detail', compact('classRoom', 'students', 'schedules'));
     }
 
     public function addGrade(Request $request)
@@ -178,6 +239,45 @@ class TeacherController extends Controller
         return back()->with('success', 'Nilai berhasil ditambahkan!');
     }
 
+    public function updateGrade(Request $request, $id)
+    {
+        $grade = Grade::findOrFail($id);
+        if ($grade->teacher_id !== Auth::id()) {
+            abort(403, 'Unauthorized');
+        }
+
+        $request->validate([
+            'subject_id' => 'required|exists:subjects,id',
+            'score' => 'required|numeric|min:0|max:100',
+            'assessment_type' => 'required|in:daily,midterm,final,project',
+            'semester' => 'required|string',
+            'assessment_date' => 'required|date',
+            'notes' => 'nullable|string',
+        ]);
+
+        $grade->update([
+            'subject_id' => $request->subject_id,
+            'score' => $request->score,
+            'grade' => $this->calculateGrade($request->score),
+            'assessment_type' => $request->assessment_type,
+            'semester' => $request->semester,
+            'notes' => $request->notes,
+            'assessment_date' => $request->assessment_date,
+        ]);
+
+        return back()->with('success', 'Nilai berhasil diperbarui!');
+    }
+
+    public function destroyGrade($id)
+    {
+        $grade = Grade::findOrFail($id);
+        if ($grade->teacher_id !== Auth::id()) {
+            abort(403, 'Unauthorized');
+        }
+        $grade->delete();
+        return back()->with('success', 'Nilai berhasil dihapus!');
+    }
+
     public function addSkill(Request $request)
     {
         $request->validate([
@@ -199,6 +299,40 @@ class TeacherController extends Controller
         ]);
 
         return back()->with('success', 'Keterampilan berhasil ditambahkan!');
+    }
+
+    public function updateSkill(Request $request, $id)
+    {
+        $skill = StudentSkill::findOrFail($id);
+        if ($skill->assessed_by !== Auth::id()) {
+            abort(403, 'Unauthorized');
+        }
+
+        $request->validate([
+            'skill_name' => 'required|string|max:255',
+            'skill_category' => 'required|in:academic,technical,soft_skill,language,art,sport',
+            'proficiency_level' => 'required|in:beginner,intermediate,advanced,expert',
+            'description' => 'nullable|string'
+        ]);
+
+        $skill->update([
+            'skill_name' => $request->skill_name,
+            'skill_category' => $request->skill_category,
+            'proficiency_level' => $request->proficiency_level,
+            'description' => $request->description,
+            'assessed_date' => now()
+        ]);
+        return back()->with('success', 'Keterampilan berhasil diperbarui!');
+    }
+
+    public function destroySkill($id)
+    {
+        $skill = StudentSkill::findOrFail($id);
+        if ($skill->assessed_by !== Auth::id()) {
+            abort(403, 'Unauthorized');
+        }
+        $skill->delete();
+        return back()->with('success', 'Keterampilan berhasil dihapus!');
     }
 
     private function calculateGrade($score)
@@ -299,6 +433,7 @@ class TeacherController extends Controller
             'qualifications.*' => 'nullable|string|max:255',
             'certifications' => 'nullable|array',
             'certifications.*' => 'nullable|string|max:255',
+            'password' => 'nullable|string|min:8|confirmed',
         ]);
 
         // Update user fields
@@ -317,6 +452,10 @@ class TeacherController extends Controller
             $filename = 'teacher_' . $user->id . '_' . time() . '.' . $file->getClientOriginalExtension();
             $path = $file->storeAs('profile-photos', $filename, 'public');
             $user->profile_photo = $path;
+        }
+        // Update password if supplied
+        if ($request->filled('password')) {
+            $user->password = Hash::make($request->password);
         }
         $user->save();
 
@@ -382,13 +521,22 @@ class TeacherController extends Controller
         $user = Auth::user();
         $teacher = Teacher::where('user_id', $user->id)->first();
 
-        // Get classes taught by teacher
-        $classes = Schedule::where('teacher_id', $user->id)
-            ->with('classRoom')
-            ->get()
-            ->pluck('classRoom')
-            ->unique('id')
-            ->values();
+        // Get classes taught by teacher (from schedule) and classes where the teacher is homeroom
+        $scheduleClassIds = Schedule::where('teacher_id', $user->id)
+            ->pluck('class_id')
+            ->unique()
+            ->filter()
+            ->values()
+            ->all();
+        $homeroomClassIds = ClassRoom::where('homeroom_teacher_id', $user->id)->pluck('id')->unique()->filter()->values()->all();
+        $classIds = array_values(array_unique(array_merge($scheduleClassIds, $homeroomClassIds)));
+        $classes = collect();
+        if (!empty($classIds)) {
+            $classes = ClassRoom::whereIn('id', $classIds)
+                ->with('homeroomTeacher')
+                ->withCount('students')
+                ->get();
+        }
 
         // Get list of subjects that the teacher teaches (by name mapping) or fallback to all active subjects
         $subjectQuery = Subject::where('is_active', true);

@@ -123,18 +123,24 @@ Route::middleware('auth')->group(function () {
         Route::get('/grades', [StudentController::class, 'grades'])->name('grades');
         // Announcements accessible by students
         Route::get('/announcements', [StudentController::class, 'announcements'])->name('announcements');
+        Route::get('/materials', [StudentController::class, 'materials'])->name('materials');
     });
 
     // Teacher Routes
     Route::middleware('role:teacher')->prefix('teacher')->name('teacher.')->group(function () {
         Route::get('/dashboard', [TeacherController::class, 'dashboard'])->name('dashboard');
         Route::get('/students', [TeacherController::class, 'students'])->name('students');
+        Route::get('/classes/{id}', [TeacherController::class, 'classDetail'])->name('class.detail');
         Route::get('/students/{id}', [TeacherController::class, 'studentDetail'])->name('students.detail');
         Route::post('/grades', [TeacherController::class, 'addGrade'])->name('grades.store');
+        Route::put('/grades/{id}', [TeacherController::class, 'updateGrade'])->name('grades.update');
+        Route::delete('/grades/{id}', [TeacherController::class, 'destroyGrade'])->name('grades.destroy');
         // Grade management UI (per-class/subject bulk inputs)
         Route::get('/grades/manage', [TeacherController::class, 'manageGrades'])->name('grades.manage');
         Route::post('/grades/manage', [TeacherController::class, 'storeBulkGrades'])->name('grades.manage.store');
         Route::post('/skills', [TeacherController::class, 'addSkill'])->name('skills.store');
+        Route::put('/skills/{id}', [TeacherController::class, 'updateSkill'])->name('skills.update');
+        Route::delete('/skills/{id}', [TeacherController::class, 'destroySkill'])->name('skills.destroy');
         // Teacher profile management
         Route::get('/profile', [TeacherController::class, 'profile'])->name('profile');
         Route::get('/profile/edit', [TeacherController::class, 'editProfile'])->name('profile.edit');
@@ -143,6 +149,13 @@ Route::middleware('auth')->group(function () {
         Route::get('/announcements/create', [TeacherController::class, 'createAnnouncementForm'])->name('announcements.create');
         Route::post('/announcements', [TeacherController::class, 'createAnnouncement'])->name('announcements.store');
         Route::get('/schedules', [TeacherController::class, 'schedules'])->name('schedules');
+        // Teacher materials
+        Route::get('/materials', [App\Http\Controllers\TeacherMaterialsController::class, 'index'])->name('materials.index');
+        Route::get('/materials/create', [App\Http\Controllers\TeacherMaterialsController::class, 'create'])->name('materials.create');
+        Route::post('/materials', [App\Http\Controllers\TeacherMaterialsController::class, 'store'])->name('materials.store');
+        Route::get('/materials/{id}/edit', [App\Http\Controllers\TeacherMaterialsController::class, 'edit'])->name('materials.edit');
+        Route::put('/materials/{id}', [App\Http\Controllers\TeacherMaterialsController::class, 'update'])->name('materials.update');
+        Route::delete('/materials/{id}', [App\Http\Controllers\TeacherMaterialsController::class, 'destroy'])->name('materials.destroy');
     });
 
     // Alumni Routes

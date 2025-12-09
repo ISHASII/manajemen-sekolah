@@ -38,7 +38,7 @@ class StudentApplicationController extends Controller
             'parent_email' => 'nullable|email',
             'parent_job' => 'nullable|string|max:255',
             'orphan_status' => 'nullable|in:none,yatim,piatu,yatim_piatu',
-            'desired_class' => 'required|in:SD,SMP,SMA',
+            'desired_class' => 'required|in:SD,SMP,SMA,kejuruan',
             'health_conditions' => 'nullable|array',
             'health_conditions.*' => 'nullable|string|max:255',
             'health_conditions_other' => 'nullable|string|max:255',

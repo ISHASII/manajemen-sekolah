@@ -25,6 +25,7 @@
                             <thead class="table-light">
                                 <tr>
                                     <th>Nama</th>
+                                    <th>Tingkat</th>
                                     <th>Wali Kelas</th>
                                     <th>Jumlah Siswa</th>
                                     <th>Status</th>
@@ -35,6 +36,7 @@
                                 @foreach($classes as $class)
                                     <tr>
                                         <td>{{ $class->name }}</td>
+                                        <td>{{ $class->grade_level ?? '-' }}</td>
                                         <td>{{ optional($class->homeroomTeacher)->name ?? '-' }}</td>
                                         <td>{{ $class->current_students ?? 0 }}</td>
                                         <td>

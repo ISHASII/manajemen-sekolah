@@ -119,6 +119,20 @@
                         @error('hire_date') <div class="text-danger small">{{ $message }}</div> @enderror
                     </div>
                     <div class="col-md-6">
+                        <label class="form-label">Password (opsional)</label>
+                        <input type="password" name="password" class="form-control" autocomplete="new-password">
+                        <small class="form-text" style="color: black;">
+                            Kosongkan untuk menggunakan password default <code>password</code>.
+                        </small>
+                        @error('password') <div class="text-danger small">{{ $message }}</div> @enderror
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Konfirmasi Password</label>
+                        <input type="password" name="password_confirmation" class="form-control"
+                            autocomplete="new-password">
+                        @error('password_confirmation') <div class="text-danger small">{{ $message }}</div> @enderror
+                    </div>
+                    <div class="col-md-6">
                         <label class="form-label">Status</label>
                         <select name="status" class="form-select">
                             <option value="active" {{ old('status') == 'active' ? 'selected' : '' }}>Aktif</option>

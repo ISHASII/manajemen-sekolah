@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\User;
 
 class StudentSkill extends Model
 {
@@ -30,5 +31,15 @@ class StudentSkill extends Model
     public function assessor()
     {
         return $this->belongsTo(User::class, 'assessed_by');
+    }
+
+    /**
+     * Backwards-compatible alias: some controllers/views expect 'assessedBy' relation.
+     */
+    public function assessedBy()
+    {
+        return $this->belongsTo(User::class, 'assessed_by')->withDefault([
+            'name' => '—'
+        ]);
     }
 }

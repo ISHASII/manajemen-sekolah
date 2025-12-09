@@ -49,7 +49,7 @@ class VerificationController extends Controller
     public function updatePreference(Request $request)
     {
         $request->validate([
-            'desired_class' => 'required|in:SD,SMP,SMA'
+            'desired_class' => 'required|in:SD,SMP,SMA,kejuruan'
         ]);
 
         $user = Auth::user();

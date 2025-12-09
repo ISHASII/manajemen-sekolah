@@ -11,6 +11,7 @@ use App\Models\StudentSkill;
 use App\Models\Document;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Hash;
 use App\Models\StudentApplication;
 
 class StudentController extends Controller
@@ -200,6 +201,7 @@ class StudentController extends Controller
             'parent_address' => 'nullable|string',
             'parent_job' => 'nullable|string|max:255',
             'email' => 'nullable|email|unique:users,email,' . $user->id,
+            'password' => 'nullable|string|min:8|confirmed',
             'phone' => 'nullable|string|max:20',
             'profile_photo' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             'nisn' => 'nullable|string|max:50|unique:students,nisn,' . $student->id,
@@ -218,6 +220,10 @@ class StudentController extends Controller
         // update email and phone directly
         if ($request->filled('email')) {
             $userUpdated['email'] = $request->email;
+        }
+        // Password is optional; if provided, hash it and update the user's password
+        if ($request->filled('password')) {
+            $userUpdated['password'] = Hash::make($request->password);
         }
         if ($request->filled('phone')) {
             $userUpdated['phone'] = $request->phone;
@@ -323,5 +329,18 @@ class StudentController extends Controller
         }
 
         return view('student.schedules', compact('schedules'));
+    }
+
+    public function materials()
+    {
+        $user = Auth::user();
+        $student = Student::where('user_id', $user->id)->with('classRoom')->first();
+        $materials = collect();
+        if ($student && $student->classRoom) {
+            $materials = \App\Models\TeachingMaterial::where(function($q) use ($student) {
+                $q->whereNull('class_id')->orWhere('class_id', $student->classRoom->id);
+            })->where('is_visible', true)->orderBy('title', 'asc')->paginate(20);
+        }
+        return view('student.materials.index', compact('materials'));
     }
 }

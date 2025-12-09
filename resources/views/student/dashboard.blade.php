@@ -187,6 +187,9 @@
                             <a href="{{ route('student.profile') }}" class="btn btn-outline-info btn-sm">
                                 <i class="bi bi-person-gear me-2"></i>Edit Profil
                             </a>
+                            <a href="{{ route('student.materials') }}" class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-folder-symlink me-2"></i>Materi Kelas
+                            </a>
                             <a href="{{ route('student.grades') }}" class="btn btn-outline-secondary btn-sm">
                                 <i class="bi bi-award me-2"></i>Keterampilan Saya
                             </a>

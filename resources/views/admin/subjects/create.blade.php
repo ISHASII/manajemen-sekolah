@@ -9,21 +9,14 @@
             <form action="{{ route('admin.subjects.store') }}" method="POST">
                 @csrf
                 <div class="row g-3">
-                    <div class="col-md-4">
-                        <label class="form-label">Kategori</label>
-                        <select name="category" class="form-select">
-                            <option value="">-- Pilih Kategori --</option>
-                            <option value="academic" {{ old('category') == 'academic' ? 'selected' : '' }}>Academic</option>
-                            <option value="vocational" {{ old('category') == 'vocational' ? 'selected' : '' }}>Vocational
-                            </option>
-                            <option value="extracurricular" {{ old('category') == 'extracurricular' ? 'selected' : '' }}>
-                                Extracurricular</option>
-                        </select>
-                        @error('category') <div class="text-danger small">{{ $message }}</div> @enderror
+                    <div class="col-md-6">
+                        <label class="form-label">Nama Mata Pelajaran</label>
+                        <input type="text" name="name" class="form-control" value="{{ old('name') }}" required>
+                        @error('name') <div class="text-danger small">{{ $message }}</div> @enderror
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Kode</label>
-                        <input type="text" name="code" class="form-control" value="{{ old('code') }}">
+                        <input type="text" name="code" class="form-control" value="{{ old('code') }}" required>
                         @error('code') <div class="text-danger small">{{ $message }}</div> @enderror
                     </div>
                     <div class="col-md-4">

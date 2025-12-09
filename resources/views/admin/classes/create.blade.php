@@ -16,7 +16,18 @@
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Tingkat / Semester</label>
-                        <input type="text" name="grade_level" class="form-control" value="{{ old('grade_level') }}">
+                        <div class="input-group">
+                            <select id="grade-level-select" class="form-select me-2" aria-label="Tingkat Preset">
+                                <option value="">-- Pilih Tingkat --</option>
+                                <option value="SD">SD</option>
+                                <option value="SMP">SMP</option>
+                                <option value="SMA">SMA</option>
+                                <option value="kejuruan">kejuruan</option>
+                                <option value="other">Lainnya...</option>
+                            </select>
+                            <input type="text" id="grade_level_input" name="grade_level" class="form-control"
+                                value="{{ old('grade_level') }}" placeholder="Contoh: X, XI, Kejuruan, etc.">
+                        </div>
                         @error('grade_level') <div class="text-danger small">{{ $message }}</div> @enderror
                     </div>
                     <div class="col-md-6">
@@ -56,4 +67,20 @@
             </form>
         </div>
     </div>
+    <script>
+        // Sync preset select with the grade level input
+        (function () {
+            var sel = document.getElementById('grade-level-select');
+            var input = document.getElementById('grade_level_input');
+            sel && sel.addEventListener('change', function (e) {
+                var v = e.target.value;
+                if (v === 'other' || v === '') {
+                    // allow custom input
+                    input.focus();
+                    return;
+                }
+                input.value = v;
+            });
+        })();
+    </script>
 @endsection

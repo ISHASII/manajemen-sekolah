@@ -5,6 +5,7 @@
 @section('content')
     <div class="teacher-page-wrapper">
         <div class="container-fluid py-4">
+            @php $classes = collect($classes ?? []); @endphp
             <div class="row mb-3">
                 <div class="col-12">
                     <div class="card border-0 shadow-sm">

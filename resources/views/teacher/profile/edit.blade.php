@@ -158,7 +158,7 @@
                                         @error('nip')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
                                     </div>
                                     <div class="mb-3">
-                                        <label class="form-label">Mata Pelajaran (pisahkan dengan koma)</label>
+                                        <label class="form-label">Mata Pelajaran</label>
                                         <input type="hidden" name="subjects_present" value="1">
                                         <select name="subjects[]" class="form-select" multiple>
                                             @foreach($subjects as $subject)
@@ -231,6 +231,17 @@
                                             </div>
                                         @endif
                                         @error('profile_photo')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Password Baru (opsional)</label>
+                                        <input type="password" name="password" class="form-control" autocomplete="new-password">
+                                        <small class="form-text text-white">Isi untuk mengganti password Anda (minimal 8 karakter).</small>
+                                        @error('password')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Konfirmasi Password</label>
+                                        <input type="password" name="password_confirmation" class="form-control" autocomplete="new-password">
+                                        @error('password_confirmation')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
                                     </div>
                                 </div>
                             </div>

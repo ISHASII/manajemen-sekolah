@@ -4,6 +4,7 @@
 
 @section('content')
     <div class="container py-4">
+        @php $classes = collect($classes ?? []); @endphp
         <div class="row">
             <div class="col-12">
                 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -22,7 +23,7 @@
                 @if($classes->count() > 0)
                     @foreach($classes as $class)
                         <div class="card border-0 shadow-sm mb-4">
-                            <div class="card-header bg-primary text-white">
+                            <div class="card-header bg-warning text-white">
                                 <div class="row align-items-center">
                                     <div class="col">
                                         <h5 class="mb-0">{{ $class->name }}</h5>
@@ -40,7 +41,7 @@
                                     <div class="row">
                                         @foreach($class->students as $student)
                                             <div class="col-md-6 col-lg-4 mb-3">
-                                                <div class="card border h-100">
+                                                <div class="card border h-100 bg-light">
                                                     <div class="card-body">
                                                         <div class="d-flex align-items-start mb-3">
                                                             <div class="me-3">
@@ -75,25 +76,26 @@
                                                         @endif
 
                                                         <div class="d-flex justify-content-between align-items-center mt-3">
-                                                            <span class="badge
-                                                                                                                        @if($student->status === 'active') bg-success
-                                                                                                                        @else bg-secondary
-                                                                                                                        @endif">
+                                                            <span
+                                                                class="badge
+                                                                                                                                                                                                                                                                                                                                                                                                                                    @if($student->status === 'active') bg-success
+                                                                                                                                                                                                                                                                                                                                                                                                                                    @else bg-secondary
+                                                                                                                                                                                                                                                                                                                                                                                                                                    @endif">
                                                                 {{ ucfirst($student->status) }}
                                                             </span>
 
                                                             <div class="btn-group btn-group-sm">
                                                                 <a href="{{ route('teacher.students.detail', $student->id) }}"
-                                                                    class="btn btn-outline-primary">
-                                                                    <i class="fas fa-eye"></i>
+                                                                    class="btn btn-outline-light">
+                                                                    <i class="bi bi-eye text-white"></i>
                                                                 </a>
                                                                 <button class="btn btn-outline-success" data-bs-toggle="modal"
                                                                     data-bs-target="#addGradeModal{{ $student->id }}">
-                                                                    <i class="fas fa-plus"></i> Nilai
+                                                                    <i class="bi bi-plus-lg"></i> Nilai
                                                                 </button>
                                                                 <button class="btn btn-outline-info" data-bs-toggle="modal"
                                                                     data-bs-target="#addSkillModal{{ $student->id }}">
-                                                                    <i class="fas fa-star"></i> Skill
+                                                                    <i class="bi bi-star"></i> Skill
                                                                 </button>
                                                             </div>
                                                         </div>

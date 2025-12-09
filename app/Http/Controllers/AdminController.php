@@ -707,14 +707,15 @@ class AdminController extends Controller
             'certifications' => 'nullable|array',
             'certifications.*' => 'nullable|string|max:255',
             'hire_date' => 'required|date',
-            'status' => 'nullable|in:active,inactive,retired'
+            'status' => 'nullable|in:active,inactive,retired',
+            'password' => 'nullable|string|min:8|confirmed'
         ]);
 
         try {
             $user = User::create([
                 'name' => $request->name,
                 'email' => $request->email,
-                'password' => \Illuminate\Support\Facades\Hash::make('password'),
+                'password' => \Illuminate\Support\Facades\Hash::make($request->filled('password') ? $request->password : 'password'),
                 'role' => 'teacher',
                 'is_active' => true
             ]);
@@ -765,7 +766,8 @@ class AdminController extends Controller
             'certifications' => 'nullable|array',
             'certifications.*' => 'nullable|string|max:255',
             'hire_date' => 'required|date',
-            'status' => 'nullable|in:active,inactive,retired'
+            'status' => 'nullable|in:active,inactive,retired',
+            'password' => 'nullable|string|min:8|confirmed'
         ]);
 
         try {
@@ -773,6 +775,12 @@ class AdminController extends Controller
                 'name' => $request->name,
                 'email' => $request->email
             ]);
+
+            // Update password if provided
+            if ($request->filled('password')) {
+                $user->password = \Illuminate\Support\Facades\Hash::make($request->password);
+                $user->save();
+            }
 
             $teacherData = [
                 'teacher_id' => $request->teacher_id,

@@ -10,21 +10,22 @@
                 @csrf
                 @method('PUT')
                 <div class="row g-3">
-                    <div class="col-md-4">
-                        <label class="form-label">Kategori</label>
-                        <select name="category" class="form-select">
-                            <option value="">- Pilih -</option>
-                            <option value="academic" {{ old('category', $subject->category) == 'academic' ? 'selected' : '' }}>Academic</option>
-                            <option value="vocational" {{ old('category', $subject->category) == 'vocational' ? 'selected' : '' }}>Vocational</option>
-                            <option value="extracurricular" {{ old('category', $subject->category) == 'extracurricular' ? 'selected' : '' }}>Extracurricular</option>
-                        </select>
-                        required>
+                    <div class="col-md-6">
+                        <label class="form-label">Nama Mata Pelajaran</label>
+                        <input type="text" name="name" class="form-control" value="{{ old('name', $subject->name) }}"
+                            required>
                         @error('name') <div class="text-danger small">{{ $message }}</div> @enderror
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Kode</label>
+                        <input type="text" name="code" class="form-control" value="{{ old('code', $subject->code) }}"
+                            required>
+                        @error('code') <div class="text-danger small">{{ $message }}</div> @enderror
                     </div>
                     <div class="col-md-4">
                         <label class="form-label">Kategori</label>
                         <select name="category" class="form-select">
-                            <option value="">-- Pilih Kategori --</option>
+                            <option value="">- Pilih -</option>
                             <option value="academic" {{ old('category', $subject->category) == 'academic' ? 'selected' : '' }}>Academic</option>
                             <option value="vocational" {{ old('category', $subject->category) == 'vocational' ? 'selected' : '' }}>Vocational</option>
                             <option value="extracurricular" {{ old('category', $subject->category) == 'extracurricular' ? 'selected' : '' }}>Extracurricular</option>
@@ -36,12 +37,6 @@
                         <input type="number" name="credit_hours" class="form-control"
                             value="{{ old('credit_hours', $subject->credit_hours) ?? 0 }}">
                         @error('credit_hours') <div class="text-danger small">{{ $message }}</div> @enderror
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Kategori</label>
-                        <input type="text" name="category" class="form-control"
-                            value="{{ old('category', $subject->category) }}">
-                        @error('category') <div class="text-danger small">{{ $message }}</div> @enderror
                     </div>
                     <div class="col-md-4">
                         <label class="form-label">Status</label>

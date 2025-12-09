@@ -214,10 +214,12 @@
                                     <label for="desired_class" class="form-label required">Kelas yang Dituju</label>
                                     <select class="form-select @error('desired_class') is-invalid @enderror"
                                         id="desired_class" name="desired_class" required>
-                                        <option value="">Pilih Tingkat (SD/SMP/SMA)</option>
+                                        <option value="">Pilih Tingkat (SD/SMP/SMA/Kejuruan)</option>
                                         <option value="SD" {{ old('desired_class') == 'SD' ? 'selected' : '' }}>SD</option>
                                         <option value="SMP" {{ old('desired_class') == 'SMP' ? 'selected' : '' }}>SMP</option>
                                         <option value="SMA" {{ old('desired_class') == 'SMA' ? 'selected' : '' }}>SMA</option>
+                                        <option value="kejuruan" {{ old('desired_class') == 'kejuruan' ? 'selected' : '' }}>
+                                            Kejuruan</option>
                                     </select>
                                     @error('desired_class')
                                         <div class="invalid-feedback">{{ $message }}</div>

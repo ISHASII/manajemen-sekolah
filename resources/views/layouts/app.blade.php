@@ -96,6 +96,23 @@
             transform: translateY(-2px);
         }
 
+        /* Small icon buttons used across the UI - keep consistent width/height and centered icon */
+        .btn-icon {
+            padding: 0.375rem 0.5rem !important;
+            width: 42px !important;
+            height: 38px !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            border-radius: 8px !important;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+            line-height: 1 !important;
+        }
+
+        .btn-icon i {
+            font-size: 1rem !important;
+        }
+
         /* subtle page background */
         html,
         body {
@@ -537,6 +554,45 @@
                 toolbar.classList.remove('open');
             }
         });
+    </script>
+
+    <script>
+        // Modal fallback initializer:
+        // Some environments (ESM bundling / missing global) may prevent Bootstrap's
+        // automatic data-api from opening modals. This small listener guarantees
+        // modal buttons will open their target when clicked.
+        (function () {
+            function handleModalTriggerClick(e) {
+                var btn = e.target.closest('[data-bs-toggle="modal"]');
+                if (!btn) return;
+                // Prevent double handling (native/data-api may already open it)
+                e.preventDefault();
+
+                var target = btn.getAttribute('data-bs-target') || btn.dataset.bsTarget;
+                if (!target) return;
+
+                try {
+                    var modalEl = document.querySelector(target);
+                    if (!modalEl) return;
+                    // If Bootstrap is available, use its Modal API. Otherwise do nothing.
+                    if (window.bootstrap && window.bootstrap.Modal) {
+                        var m = new window.bootstrap.Modal(modalEl);
+                        m.show();
+                    } else {
+                        // If bootstrap not present yet, attempt to dispatch a click after a tick
+                        setTimeout(function () {
+                            if (window.bootstrap && window.bootstrap.Modal) {
+                                try { new window.bootstrap.Modal(modalEl).show(); } catch (err) { console.warn(err); }
+                            }
+                        }, 50);
+                    }
+                } catch (err) {
+                    console.warn('modal fallback error', err);
+                }
+            }
+
+            document.addEventListener('click', handleModalTriggerClick, true);
+        })();
     </script>
 </body>
 
