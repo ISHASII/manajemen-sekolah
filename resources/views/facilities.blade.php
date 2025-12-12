@@ -5,11 +5,11 @@
         <div class="row min-vh-100">
             <div class="col-12">
                 <!-- Academic Facilities Section -->
-                <section class="py-5" style="background: rgba(255, 255, 255, 0.05);">
+                <section class="py-5" style="background: #ffffff;">
                     <div class="container">
                         <div class="text-center mb-5">
-                            <h2 class="display-6 fw-bold text-white mb-3">Fasilitas Akademik</h2>
-                            <p class="lead text-white opacity-75">Ruang belajar yang nyaman dan mendukung proses
+                            <h2 class="display-6 fw-bold text-warning mb-3">Fasilitas Akademik</h2>
+                            <p class="lead text-warning">Ruang belajar yang nyaman dan mendukung proses
                                 pembelajaran optimal</p>
                         </div>
 
@@ -20,9 +20,9 @@
                                         <img src="https://images.unsplash.com/photo-1497486751825-1233686d5d80?w=300&h=200&fit=crop"
                                             alt="Classroom" class="img-fluid rounded mb-3"
                                             style="height: 150px; width: 100%; object-fit: cover;">
-                                        <h5 class="fw-bold text-white mb-2">Ruang Kelas Modern</h5>
+                                        <h5 class="fw-bold text-warning mb-2">Ruang Kelas Modern</h5>
                                     </div>
-                                    <p class="text-white opacity-90 small text-start">Ruang kelas yang dirancang khusus
+                                    <p class="text-dark small text-start">Ruang kelas yang dirancang khusus
                                         dengan pencahayaan optimal, AC, dan peralatan pembelajaran adaptif untuk berbagai
                                         jenis kebutuhan khusus.</p>
                                 </div>
@@ -34,9 +34,9 @@
                                         <img src="https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=300&h=200&fit=crop"
                                             alt="Library" class="img-fluid rounded mb-3"
                                             style="height: 150px; width: 100%; object-fit: cover;">
-                                        <h5 class="fw-bold text-white mb-2">Perpustakaan Digital</h5>
+                                        <h5 class="fw-bold text-warning mb-2">Perpustakaan Digital</h5>
                                     </div>
-                                    <p class="text-white opacity-90 small text-start">Perpustakaan dengan koleksi buku
+                                    <p class="text-dark small text-start">Perpustakaan dengan koleksi buku
                                         braile, audiobook, dan materi pembelajaran digital yang dapat diakses dengan mudah
                                         oleh semua siswa.</p>
                                 </div>
@@ -48,9 +48,9 @@
                                         <img src="https://images.unsplash.com/photo-1562774053-701939374585?w=300&h=200&fit=crop"
                                             alt="Computer Lab" class="img-fluid rounded mb-3"
                                             style="height: 150px; width: 100%; object-fit: cover;">
-                                        <h5 class="fw-bold text-white mb-2">Lab Komputer</h5>
+                                        <h5 class="fw-bold text-warning mb-2">Lab Komputer</h5>
                                     </div>
-                                    <p class="text-white opacity-90 small text-start">Laboratorium komputer dengan perangkat
+                                    <p class="text-dark small text-start">Laboratorium komputer dengan perangkat
                                         lunak khusus dan teknologi assistive untuk mendukung pembelajaran digital dan
                                         keterampilan teknologi.</p>
                                 </div>
@@ -152,11 +152,11 @@
                 </section>
 
                 <!-- Recreation & Support Facilities Section -->
-                <section class="py-5" style="background: rgba(255, 255, 255, 0.05);">
+                <section class="py-5" style="background: #ffffff;">
                     <div class="container">
                         <div class="text-center mb-5">
-                            <h2 class="display-6 fw-bold text-white mb-3">Fasilitas Penunjang</h2>
-                            <p class="lead text-white opacity-75">Area rekreasi dan fasilitas penunjang untuk kehidupan
+                            <h2 class="display-6 fw-bold text-warning mb-3">Fasilitas Penunjang</h2>
+                            <p class="lead text-warning">Area rekreasi dan fasilitas penunjang untuk kehidupan
                                 sekolah yang lengkap</p>
                         </div>
 
@@ -167,8 +167,8 @@
                                         style="width: 60px; height: 60px;">
                                         <i class="bi bi-tree-fill"></i>
                                     </div>
-                                    <h5 class="fw-bold text-white mb-2">Taman Bermain</h5>
-                                    <p class="text-white opacity-75 small mb-0">Area bermain outdoor yang aman dengan
+                                    <h5 class="fw-bold text-warning mb-2">Taman Bermain</h5>
+                                    <p class="text-dark small mb-0">Area bermain outdoor yang aman dengan
                                         permainan yang disesuaikan untuk anak berkebutuhan khusus.</p>
                                 </div>
                             </div>
@@ -179,8 +179,8 @@
                                         style="width: 60px; height: 60px;">
                                         <i class="bi bi-heart-pulse-fill"></i>
                                     </div>
-                                    <h5 class="fw-bold text-white mb-2">Ruang UKS</h5>
-                                    <p class="text-white opacity-75 small mb-0">Unit kesehatan sekolah dengan tenaga medis
+                                    <h5 class="fw-bold text-warning mb-2">Ruang UKS</h5>
+                                    <p class="text-dark small mb-0">Unit kesehatan sekolah dengan tenaga medis
                                         profesional dan peralatan medis dasar.</p>
                                 </div>
                             </div>
@@ -191,8 +191,8 @@
                                         style="width: 60px; height: 60px;">
                                         <i class="bi bi-cup-hot-fill"></i>
                                     </div>
-                                    <h5 class="fw-bold text-white mb-2">Kantin Sehat</h5>
-                                    <p class="text-white opacity-75 small mb-0">Kantin dengan menu makanan sehat dan bergizi
+                                    <h5 class="fw-bold text-warning mb-2">Kantin Sehat</h5>
+                                    <p class="text-dark small mb-0">Kantin dengan menu makanan sehat dan bergizi
                                         yang disesuaikan dengan kebutuhan dietary siswa.</p>
                                 </div>
                             </div>
@@ -203,8 +203,8 @@
                                         style="width: 60px; height: 60px;">
                                         <i class="bi bi-car-front-fill"></i>
                                     </div>
-                                    <h5 class="fw-bold text-white mb-2">Area Parkir</h5>
-                                    <p class="text-white opacity-75 small mb-0">Tempat parkir yang luas dan aman dengan
+                                    <h5 class="fw-bold text-warning mb-2">Area Parkir</h5>
+                                    <p class="text-dark small mb-0">Tempat parkir yang luas dan aman dengan
                                         akses khusus untuk kendaraan penyandang disabilitas.</p>
                                 </div>
                             </div>
@@ -215,8 +215,8 @@
                                         style="width: 60px; height: 60px;">
                                         <i class="bi bi-camera-video-fill"></i>
                                     </div>
-                                    <h5 class="fw-bold text-white mb-2">CCTV & Keamanan</h5>
-                                    <p class="text-white opacity-75 small mb-0">Sistem keamanan 24 jam dengan CCTV dan
+                                    <h5 class="fw-bold text-warning mb-2">CCTV & Keamanan</h5>
+                                    <p class="text-dark small mb-0">Sistem keamanan 24 jam dengan CCTV dan
                                         petugas security untuk menjamin keamanan siswa.</p>
                                 </div>
                             </div>
@@ -227,8 +227,8 @@
                                         style="width: 60px; height: 60px;">
                                         <i class="bi bi-wifi"></i>
                                     </div>
-                                    <h5 class="fw-bold text-white mb-2">WiFi & Internet</h5>
-                                    <p class="text-white opacity-75 small mb-0">Akses internet cepat di seluruh area sekolah
+                                    <h5 class="fw-bold text-warning mb-2">WiFi & Internet</h5>
+                                    <p class="text-dark small mb-0">Akses internet cepat di seluruh area sekolah
                                         untuk mendukung pembelajaran digital.</p>
                                 </div>
                             </div>

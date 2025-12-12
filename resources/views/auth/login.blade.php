@@ -9,8 +9,8 @@
                     <!-- Header -->
                     <div class="text-center mb-4">
                         <div class="mb-3">
-                            <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 70px; height: 70px;">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="35" height="35" fill="currentColor" class="bi bi-person-circle text-primary" viewBox="0 0 16 16">
+                            <div class="bg-warning bg-opacity-15 rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 70px; height: 70px;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="35" height="35" fill="currentColor" class="bi bi-person-circle text-warning" viewBox="0 0 16 16">
                                     <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/>
                                     <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1z"/>
                                 </svg>
@@ -93,7 +93,7 @@
                                 </label>
                             </div>
                             @if (Route::has('password.request'))
-                                <a class="text-decoration-none small" href="{{ route('password.request') }}">
+                                <a class="text-decoration-none small text-danger" href="{{ route('password.request') }}">
                                     {{ __('Lupa Password') }}
                                 </a>
                             @endif
@@ -140,6 +140,25 @@
 
     .input-group-text {
         background-color: #f8f9fa;
+    }
+
+    /* Make the login card white and text dark */
+    .login-page .card {
+        background: #ffffff !important;
+        color: #000 !important;
+    }
+
+    .login-page .card h3,
+    .login-page .card p,
+    .login-page .card label,
+    .login-page .card .form-check-label {
+        color: #000 !important;
+    }
+
+    /* Replace any white text classes inside login card with dark colors */
+    .login-page .text-white,
+    .login-page .text-white-50 {
+        color: #000 !important;
     }
 
     /* Page-scoped orange icon rules for login page */

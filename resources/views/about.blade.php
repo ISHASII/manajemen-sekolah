@@ -277,17 +277,18 @@
 
         /* Vision Mission Cards */
         .vision-mission-card {
-            background: var(--card-bg);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: linear-gradient(135deg, var(--blue) 0%, rgba(7, 17, 51, 0.95) 100%);
+            backdrop-filter: blur(6px);
+            border: 1px solid rgba(7, 17, 51, 0.6);
             border-radius: 1.5rem;
             padding: 3rem 2rem;
             transition: all 0.4s ease;
+            color: #fff;
         }
 
         .vision-mission-card:hover {
-            background: linear-gradient(135deg, rgba(10, 29, 81, 0.12), rgba(30, 40, 81, 0.12));
-            border-color: rgba(10, 29, 81, 0.35);
+            background: linear-gradient(135deg, rgba(7, 17, 51, 0.98), rgba(10, 29, 81, 1));
+            border-color: rgba(7, 17, 51, 0.9);
             transform: translateY(-10px);
         }
 

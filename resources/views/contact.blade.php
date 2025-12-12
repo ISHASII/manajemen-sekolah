@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="container-fluid">
+    <div class="container-fluid contact-page">
         <div class="row min-vh-100">
             <div class="col-12">
                 <!-- Hero Section -->
@@ -71,7 +71,7 @@
                 </section>
 
                 <!-- Map Section -->
-                <section class="py-5">
+                <section class="py-5 map-section">
                     <div class="container">
                         <div class="row justify-content-center">
                             <div class="col-lg-10">
@@ -103,4 +103,62 @@
             </div>
         </div>
     </div>
+
+    <style>
+        /* Make contact page backgrounds white and convert white text to black */
+        .contact-page {
+            background: #fff;
+        }
+
+        .contact-page .hero-section,
+        .contact-page .map-section {
+            background: #fff !important;
+        }
+
+        /* Ensure all headings and text are dark for readability on white */
+        .contact-page .text-white,
+        .contact-page .text-white-50,
+        .contact-page .text-white-90,
+        .contact-page .text-white.opacity-90,
+        .contact-page .text-white.opacity-75 {
+            color: #000 !important;
+        }
+
+        .contact-page h1,
+        .contact-page h2,
+        .contact-page h5,
+        .contact-page h6,
+        .contact-page p,
+        .contact-page .lead {
+            color: #000 !important;
+        }
+
+        /* Convert stats-card background to navy transparent and text to dark for readability */
+        .contact-page .stats-card {
+            background: rgba(10, 29, 81, 0.06) !important;
+            /* transparent navy */
+            color: #000 !important;
+            border-radius: 12px;
+            padding: 1rem;
+            border: 1px solid rgba(10, 29, 81, 0.08);
+        }
+
+        .contact-page .stats-card h6,
+        .contact-page .stats-card p {
+            color: #000 !important;
+        }
+
+        /* Make stat icons visible on navy transparent background */
+        .contact-page .stats-card i[class*="bi-"],
+        .contact-page .hero-badge i[class*="bi-"] {
+            color: var(--orange) !important;
+        }
+
+        /* Make map tile background navy transparent and text dark */
+        .contact-page .stats-card .text-center>div[style*="height: 400px"] {
+            background: rgba(10, 29, 81, 0.06) !important;
+            border-radius: 12px;
+            border: 1px solid rgba(10, 29, 81, 0.12);
+        }
+    </style>
 @endsection

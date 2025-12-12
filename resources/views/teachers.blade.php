@@ -3,13 +3,13 @@
 @section('title', 'Tenaga Pendidik')
 
 @section('content')
-    <section class="py-5" style="background: linear-gradient(135deg, rgba(10,29,81,0.02), rgba(10,29,81,0.03));">
+    <section class="py-5 bg-white">
         <div class="container py-5">
             <div class="text-center mb-5">
                 <span class="badge rounded-pill px-3 py-2 mb-3"
                     style="background: rgba(245,158,11,0.15); color: var(--orange);">Tenaga Pendidik</span>
-                <h1 class="display-5 fw-bold mb-3" style="color: #fff;">Tenaga Pendidik</h1>
-                <p class="lead text-white-50 mx-auto" style="max-width: 800px;">
+                <h1 class="display-5 fw-bold mb-3" style="color: var(--primary);">Tenaga Pendidik</h1>
+                <p class="lead mx-auto" style="max-width: 800px; color: var(--primary);">
                     Profesional guru dan tenaga pendidik kami yang berdedikasi, berpengalaman, dan berkomitmen untuk
                     mendampingi tumbuh kembang siswa.
                 </p>

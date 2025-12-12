@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="container">
+    <div class="container reset-password-page">
         <div class="row justify-content-center">
             <div class="col-md-8">
                 <div class="card">
@@ -71,3 +71,33 @@
         </div>
     </div>
 @endsection
+
+@push('styles')
+    <style>
+        /* Reset Password page: card background white and dark text */
+        .reset-password-page .card {
+            background: #ffffff !important;
+            color: #000 !important;
+            border: 1px solid rgba(0, 0, 0, 0.06);
+        }
+
+        .reset-password-page .card .card-header {
+            background: #ffffff !important;
+            color: #000 !important;
+            font-weight: 600;
+        }
+
+        .reset-password-page .card label,
+        .reset-password-page .card .col-form-label,
+        .reset-password-page .card p,
+        .reset-password-page .card h5,
+        .reset-password-page .card .form-control,
+        .reset-password-page .card .invalid-feedback {
+            color: #000 !important;
+        }
+
+        .reset-password-page .form-control::placeholder {
+            color: #6c757d !important;
+        }
+    </style>
+@endpush

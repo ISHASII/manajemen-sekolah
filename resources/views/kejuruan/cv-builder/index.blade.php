@@ -459,36 +459,36 @@
             function addEducation() {
                 const container = document.getElementById('educationContainer');
                 const html = `
-                                            <div class="education-item border rounded p-3 mb-3" data-index="${educationIndex}">
-                                                <div class="row g-3">
-                                                    <div class="col-md-6">
-                                                        <label class="form-label">Nama Sekolah/Kampus</label>
-                                                        <input type="text" class="form-control" name="education[${educationIndex}][school]">
+                                                    <div class="education-item border rounded p-3 mb-3" data-index="${educationIndex}">
+                                                        <div class="row g-3">
+                                                            <div class="col-md-6">
+                                                                <label class="form-label">Nama Sekolah/Kampus</label>
+                                                                <input type="text" class="form-control" name="education[${educationIndex}][school]">
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <label class="form-label">Jurusan/Program Studi</label>
+                                                                <input type="text" class="form-control" name="education[${educationIndex}][major]">
+                                                            </div>
+                                                            <div class="col-md-3">
+                                                                <label class="form-label">Tahun Masuk</label>
+                                                                <input type="text" class="form-control" name="education[${educationIndex}][year_start]">
+                                                            </div>
+                                                            <div class="col-md-3">
+                                                                <label class="form-label">Tahun Lulus</label>
+                                                                <input type="text" class="form-control" name="education[${educationIndex}][year_end]">
+                                                            </div>
+                                                            <div class="col-md-3">
+                                                                <label class="form-label">IPK/Nilai (Opsional)</label>
+                                                                <input type="text" class="form-control" name="education[${educationIndex}][gpa]">
+                                                            </div>
+                                                            <div class="col-md-3 d-flex align-items-end">
+                                                                <button type="button" class="btn btn-outline-danger btn-sm w-100" onclick="removeItem(this, '.education-item')">
+                                                                    <i class="bi bi-trash"></i> Hapus
+                                                                </button>
+                                                            </div>
+                                                        </div>
                                                     </div>
-                                                    <div class="col-md-6">
-                                                        <label class="form-label">Jurusan/Program Studi</label>
-                                                        <input type="text" class="form-control" name="education[${educationIndex}][major]">
-                                                    </div>
-                                                    <div class="col-md-3">
-                                                        <label class="form-label">Tahun Masuk</label>
-                                                        <input type="text" class="form-control" name="education[${educationIndex}][year_start]">
-                                                    </div>
-                                                    <div class="col-md-3">
-                                                        <label class="form-label">Tahun Lulus</label>
-                                                        <input type="text" class="form-control" name="education[${educationIndex}][year_end]">
-                                                    </div>
-                                                    <div class="col-md-3">
-                                                        <label class="form-label">IPK/Nilai (Opsional)</label>
-                                                        <input type="text" class="form-control" name="education[${educationIndex}][gpa]">
-                                                    </div>
-                                                    <div class="col-md-3 d-flex align-items-end">
-                                                        <button type="button" class="btn btn-outline-danger btn-sm w-100" onclick="removeItem(this, '.education-item')">
-                                                            <i class="bi bi-trash"></i> Hapus
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        `;
+                                                `;
                 container.insertAdjacentHTML('beforeend', html);
                 educationIndex++;
             }
@@ -496,36 +496,36 @@
             function addExperience() {
                 const container = document.getElementById('experienceContainer');
                 const html = `
-                                            <div class="experience-item border rounded p-3 mb-3" data-index="${experienceIndex}">
-                                                <div class="row g-3">
-                                                    <div class="col-md-6">
-                                                        <label class="form-label">Nama Perusahaan</label>
-                                                        <input type="text" class="form-control" name="experience[${experienceIndex}][company]">
+                                                    <div class="experience-item border rounded p-3 mb-3" data-index="${experienceIndex}">
+                                                        <div class="row g-3">
+                                                            <div class="col-md-6">
+                                                                <label class="form-label">Nama Perusahaan</label>
+                                                                <input type="text" class="form-control" name="experience[${experienceIndex}][company]">
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <label class="form-label">Posisi/Jabatan</label>
+                                                                <input type="text" class="form-control" name="experience[${experienceIndex}][position]">
+                                                            </div>
+                                                            <div class="col-md-3">
+                                                                <label class="form-label">Tahun Mulai</label>
+                                                                <input type="text" class="form-control" name="experience[${experienceIndex}][year_start]">
+                                                            </div>
+                                                            <div class="col-md-3">
+                                                                <label class="form-label">Tahun Selesai</label>
+                                                                <input type="text" class="form-control" name="experience[${experienceIndex}][year_end]">
+                                                            </div>
+                                                            <div class="col-md-6 d-flex align-items-end">
+                                                                <button type="button" class="btn btn-outline-danger btn-sm" onclick="removeItem(this, '.experience-item')">
+                                                                    <i class="bi bi-trash"></i> Hapus
+                                                                </button>
+                                                            </div>
+                                                            <div class="col-12">
+                                                                <label class="form-label">Deskripsi Pekerjaan</label>
+                                                                <textarea class="form-control" name="experience[${experienceIndex}][description]" rows="3"></textarea>
+                                                            </div>
+                                                        </div>
                                                     </div>
-                                                    <div class="col-md-6">
-                                                        <label class="form-label">Posisi/Jabatan</label>
-                                                        <input type="text" class="form-control" name="experience[${experienceIndex}][position]">
-                                                    </div>
-                                                    <div class="col-md-3">
-                                                        <label class="form-label">Tahun Mulai</label>
-                                                        <input type="text" class="form-control" name="experience[${experienceIndex}][year_start]">
-                                                    </div>
-                                                    <div class="col-md-3">
-                                                        <label class="form-label">Tahun Selesai</label>
-                                                        <input type="text" class="form-control" name="experience[${experienceIndex}][year_end]">
-                                                    </div>
-                                                    <div class="col-md-6 d-flex align-items-end">
-                                                        <button type="button" class="btn btn-outline-danger btn-sm" onclick="removeItem(this, '.experience-item')">
-                                                            <i class="bi bi-trash"></i> Hapus
-                                                        </button>
-                                                    </div>
-                                                    <div class="col-12">
-                                                        <label class="form-label">Deskripsi Pekerjaan</label>
-                                                        <textarea class="form-control" name="experience[${experienceIndex}][description]" rows="3"></textarea>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        `;
+                                                `;
                 container.insertAdjacentHTML('beforeend', html);
                 experienceIndex++;
             }
@@ -533,43 +533,43 @@
             function addSkill() {
                 const container = document.getElementById('skillsContainer');
                 const html = `
-                                            <div class="col-md-3 skill-item">
-                                                <div class="input-group">
-                                                    <input type="text" class="form-control" name="skills[]" placeholder="Keahlian baru">
-                                                    <button type="button" class="btn btn-outline-danger" onclick="this.closest('.skill-item').remove()">
-                                                        <i class="bi bi-x"></i>
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        `;
+                                                    <div class="col-md-3 skill-item">
+                                                        <div class="input-group">
+                                                            <input type="text" class="form-control" name="skills[]" placeholder="Keahlian baru">
+                                                            <button type="button" class="btn btn-outline-danger" onclick="this.closest('.skill-item').remove()">
+                                                                <i class="bi bi-x"></i>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                `;
                 container.insertAdjacentHTML('beforeend', html);
             }
 
             function addPortfolio() {
                 const container = document.getElementById('portfolioContainer');
                 const html = `
-                                            <div class="portfolio-item border rounded p-3 mb-3" data-index="${portfolioIndex}">
-                                                <div class="row g-3">
-                                                    <div class="col-md-6">
-                                                        <label class="form-label">Nama Proyek</label>
-                                                        <input type="text" class="form-control" name="portfolio[${portfolioIndex}][title]">
+                                                    <div class="portfolio-item border rounded p-3 mb-3" data-index="${portfolioIndex}">
+                                                        <div class="row g-3">
+                                                            <div class="col-md-6">
+                                                                <label class="form-label">Nama Proyek</label>
+                                                                <input type="text" class="form-control" name="portfolio[${portfolioIndex}][title]">
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <label class="form-label">Link Proyek</label>
+                                                                <input type="url" class="form-control" name="portfolio[${portfolioIndex}][link]">
+                                                            </div>
+                                                            <div class="col-md-10">
+                                                                <label class="form-label">Deskripsi Singkat</label>
+                                                                <input type="text" class="form-control" name="portfolio[${portfolioIndex}][description]">
+                                                            </div>
+                                                            <div class="col-md-2 d-flex align-items-end">
+                                                                <button type="button" class="btn btn-outline-danger btn-sm w-100" onclick="removeItem(this, '.portfolio-item')">
+                                                                    <i class="bi bi-trash"></i>
+                                                                </button>
+                                                            </div>
+                                                        </div>
                                                     </div>
-                                                    <div class="col-md-6">
-                                                        <label class="form-label">Link Proyek</label>
-                                                        <input type="url" class="form-control" name="portfolio[${portfolioIndex}][link]">
-                                                    </div>
-                                                    <div class="col-md-10">
-                                                        <label class="form-label">Deskripsi Singkat</label>
-                                                        <input type="text" class="form-control" name="portfolio[${portfolioIndex}][description]">
-                                                    </div>
-                                                    <div class="col-md-2 d-flex align-items-end">
-                                                        <button type="button" class="btn btn-outline-danger btn-sm w-100" onclick="removeItem(this, '.portfolio-item')">
-                                                            <i class="bi bi-trash"></i>
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        `;
+                                                `;
                 container.insertAdjacentHTML('beforeend', html);
                 portfolioIndex++;
             }
@@ -577,28 +577,28 @@
             function addCertification() {
                 const container = document.getElementById('certificationContainer');
                 const html = `
-                                            <div class="certification-item border rounded p-3 mb-3" data-index="${certificationIndex}">
-                                                <div class="row g-3">
-                                                    <div class="col-md-5">
-                                                        <label class="form-label">Nama Sertifikat/Pelatihan</label>
-                                                        <input type="text" class="form-control" name="certifications[${certificationIndex}][name]">
+                                                    <div class="certification-item border rounded p-3 mb-3" data-index="${certificationIndex}">
+                                                        <div class="row g-3">
+                                                            <div class="col-md-5">
+                                                                <label class="form-label">Nama Sertifikat/Pelatihan</label>
+                                                                <input type="text" class="form-control" name="certifications[${certificationIndex}][name]">
+                                                            </div>
+                                                            <div class="col-md-4">
+                                                                <label class="form-label">Penerbit/Lembaga</label>
+                                                                <input type="text" class="form-control" name="certifications[${certificationIndex}][issuer]">
+                                                            </div>
+                                                            <div class="col-md-2">
+                                                                <label class="form-label">Tahun</label>
+                                                                <input type="text" class="form-control" name="certifications[${certificationIndex}][year]">
+                                                            </div>
+                                                            <div class="col-md-1 d-flex align-items-end">
+                                                                <button type="button" class="btn btn-outline-danger btn-sm w-100" onclick="removeItem(this, '.certification-item')">
+                                                                    <i class="bi bi-trash"></i>
+                                                                </button>
+                                                            </div>
+                                                        </div>
                                                     </div>
-                                                    <div class="col-md-4">
-                                                        <label class="form-label">Penerbit/Lembaga</label>
-                                                        <input type="text" class="form-control" name="certifications[${certificationIndex}][issuer]">
-                                                    </div>
-                                                    <div class="col-md-2">
-                                                        <label class="form-label">Tahun</label>
-                                                        <input type="text" class="form-control" name="certifications[${certificationIndex}][year]">
-                                                    </div>
-                                                    <div class="col-md-1 d-flex align-items-end">
-                                                        <button type="button" class="btn btn-outline-danger btn-sm w-100" onclick="removeItem(this, '.certification-item')">
-                                                            <i class="bi bi-trash"></i>
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        `;
+                                                `;
                 container.insertAdjacentHTML('beforeend', html);
                 certificationIndex++;
             }
@@ -606,29 +606,29 @@
             function addLanguage() {
                 const container = document.getElementById('languageContainer');
                 const html = `
-                                            <div class="language-item border rounded p-3 mb-3" data-index="${languageIndex}">
-                                                <div class="row g-3">
-                                                    <div class="col-md-5">
-                                                        <label class="form-label">Bahasa</label>
-                                                        <input type="text" class="form-control" name="languages[${languageIndex}][name]">
+                                                    <div class="language-item border rounded p-3 mb-3" data-index="${languageIndex}">
+                                                        <div class="row g-3">
+                                                            <div class="col-md-5">
+                                                                <label class="form-label">Bahasa</label>
+                                                                <input type="text" class="form-control" name="languages[${languageIndex}][name]">
+                                                            </div>
+                                                            <div class="col-md-5">
+                                                                <label class="form-label">Tingkat Kemahiran</label>
+                                                                <select class="form-select" name="languages[${languageIndex}][level]">
+                                                                    <option value="Native">Native (Bahasa Ibu)</option>
+                                                                    <option value="Fluent">Fluent (Lancar)</option>
+                                                                    <option value="Intermediate">Intermediate (Menengah)</option>
+                                                                    <option value="Basic">Basic (Dasar)</option>
+                                                                </select>
+                                                            </div>
+                                                            <div class="col-md-2 d-flex align-items-end">
+                                                                <button type="button" class="btn btn-outline-danger btn-sm w-100" onclick="removeItem(this, '.language-item')">
+                                                                    <i class="bi bi-trash"></i>
+                                                                </button>
+                                                            </div>
+                                                        </div>
                                                     </div>
-                                                    <div class="col-md-5">
-                                                        <label class="form-label">Tingkat Kemahiran</label>
-                                                        <select class="form-select" name="languages[${languageIndex}][level]">
-                                                            <option value="Native">Native (Bahasa Ibu)</option>
-                                                            <option value="Fluent">Fluent (Lancar)</option>
-                                                            <option value="Intermediate">Intermediate (Menengah)</option>
-                                                            <option value="Basic">Basic (Dasar)</option>
-                                                        </select>
-                                                    </div>
-                                                    <div class="col-md-2 d-flex align-items-end">
-                                                        <button type="button" class="btn btn-outline-danger btn-sm w-100" onclick="removeItem(this, '.language-item')">
-                                                            <i class="bi bi-trash"></i>
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        `;
+                                                `;
                 container.insertAdjacentHTML('beforeend', html);
                 languageIndex++;
             }
