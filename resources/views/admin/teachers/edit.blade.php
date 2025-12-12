@@ -53,7 +53,29 @@
                         <input type="hidden" name="subjects_present" value="1">
                         <select name="subjects[]" class="form-select" multiple>
                             @php
-                                $selectedSubjects = (array) old('subjects', $teacher->subjects ?? []);
+                                // Normalize selected subject IDs to an array of strings
+                                $selectedSubjects = old('subjects');
+                                if (is_null($selectedSubjects)) {
+                                    $subjectSource = $teacher->subjects ?? [];
+                                    // If it's an Eloquent Collection, pluck ids
+                                    if ($subjectSource instanceof \Illuminate\Support\Collection) {
+                                        $selectedSubjects = $subjectSource->pluck('id')->toArray();
+                                    } elseif (is_array($subjectSource) && count($subjectSource) > 0) {
+                                        // array of models/arrays or plain id array
+                                        $first = reset($subjectSource);
+                                        if (is_object($first)) {
+                                            $selectedSubjects = array_map(fn($s) => $s->id ?? ($s->getAttribute('id') ?? null), $subjectSource);
+                                        } elseif (is_array($first)) {
+                                            $selectedSubjects = array_map(fn($s) => $s['id'] ?? null, $subjectSource);
+                                        } else {
+                                            // simple array of ids
+                                            $selectedSubjects = $subjectSource;
+                                        }
+                                    } else {
+                                        $selectedSubjects = [];
+                                    }
+                                }
+                                $selectedSubjects = array_filter(array_map('strval', (array) $selectedSubjects));
                             @endphp
                             @foreach($subjects as $subject)
                                 <option value="{{ $subject->id }}" {{ in_array((string) $subject->id, array_map('strval', $selectedSubjects)) ? 'selected' : '' }}>{{ $subject->name }}</option>
@@ -74,8 +96,18 @@
                                 @endif
                                 @if(is_array($quals) && count($quals) > 0)
                                     @foreach($quals as $q)
+                                        @php
+                                            // Normalize qualification value to string to prevent array/object output
+                                            if (is_array($q)) {
+                                                $qVal = $q['name'] ?? $q['title'] ?? implode(', ', $q);
+                                            } elseif (is_object($q)) {
+                                                $qVal = property_exists($q, 'name') ? $q->name : (property_exists($q, 'title') ? $q->title : (method_exists($q, '__toString') ? (string) $q : json_encode($q)));
+                                            } else {
+                                                $qVal = (string) $q;
+                                            }
+                                        @endphp
                                         <div class="input-row input-group mb-2">
-                                            <input type="text" name="qualifications[]" class="form-control" value="{{ $q }}">
+                                            <input type="text" name="qualifications[]" class="form-control" value="{{ $qVal }}">
                                             <button type="button" class="btn btn-outline-danger remove-input ms-2">Hapus</button>
                                         </div>
                                     @endforeach
@@ -102,8 +134,17 @@
                                 @endif
                                 @if(is_array($certs) && count($certs) > 0)
                                     @foreach($certs as $c)
+                                        @php
+                                            if (is_array($c)) {
+                                                $cVal = $c['name'] ?? $c['title'] ?? implode(', ', $c);
+                                            } elseif (is_object($c)) {
+                                                $cVal = property_exists($c, 'name') ? $c->name : (property_exists($c, 'title') ? $c->title : (method_exists($c, '__toString') ? (string) $c : json_encode($c)));
+                                            } else {
+                                                $cVal = (string) $c;
+                                            }
+                                        @endphp
                                         <div class="input-row input-group mb-2">
-                                            <input type="text" name="certifications[]" class="form-control" value="{{ $c }}">
+                                            <input type="text" name="certifications[]" class="form-control" value="{{ $cVal }}">
                                             <button type="button" class="btn btn-outline-danger remove-input ms-2">Hapus</button>
                                         </div>
                                     @endforeach

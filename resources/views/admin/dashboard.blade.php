@@ -251,6 +251,8 @@
                                         <div class="btn-group-vertical w-100" role="group">
                                             <a href="{{ route('admin.students.index') }}"
                                                 class="btn btn-outline-primary btn-sm">Kelola Siswa</a>
+                                            <a href="{{ route('admin.students.kejuruan') }}"
+                                                class="btn btn-outline-secondary btn-sm">Kelola Siswa Kejuruan</a>
                                             <a href="{{ route('admin.teachers.index') }}"
                                                 class="btn btn-outline-success btn-sm">Kelola Guru</a>
                                             <a href="{{ route('admin.users.index') }}"
@@ -370,11 +372,16 @@
         <!-- Grafik Pendaftaran -->
         <div class="col-lg-6 mb-4">
             <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white border-bottom">
-                    <h5 class="mb-0">
+                <div class="card-header bg-white border-bottom d-flex align-items-center justify-content-between">
+                    <h5 class="mb-0 d-flex align-items-center">
                         <i class="bi bi-graph-up me-2 text-success"></i>
-                        Statistik Pendaftaran (6 Bulan Terakhir)
+                        Statistik Pendaftaran
                     </h5>
+                    <div class="d-flex align-items-center gap-2">
+                        <label class="mb-0 small text-muted">Tahun</label>
+                        <select id="dashboardStatsYear" class="form-select form-select-sm">
+                        </select>
+                    </div>
                 </div>
                 <div class="card-body">
                     <canvas id="registrationChart" height="300"></canvas>
@@ -385,11 +392,21 @@
         <!-- Distribusi Kelas -->
         <div class="col-lg-6 mb-4">
             <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white border-bottom">
-                    <h5 class="mb-0">
-                        <i class="bi bi-pie-chart me-2 text-info"></i>
+                <div class="card-header bg-white border-bottom d-flex align-items-center justify-content-between">
+                    <h5 class="mb-0 d-flex align-items-center">
+                        <i class="bi bi-bar-chart me-2 text-info"></i>
                         Distribusi Siswa per Kelas
                     </h5>
+                    <div class="d-flex align-items-center gap-2">
+                        <label class="mb-0 small text-muted">Tingkat</label>
+                        <select id="dashboardClassLevel" class="form-select form-select-sm">
+                            <option value="all">Semua</option>
+                            <option value="sd">SD</option>
+                            <option value="smp">SMP</option>
+                            <option value="sma">SMA</option>
+                            <option value="kejuruan">Kejuruan</option>
+                        </select>
+                    </div>
                 </div>
                 <div class="card-body">
                     <canvas id="classDistributionChart" height="300"></canvas>
@@ -547,18 +564,10 @@
             const registrationChart = new Chart(regCtx, {
                 type: 'line',
                 data: {
-                    labels: [
-                        @foreach($registrationChartData['labels'] ?? ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'] as $label)
-                            '{{ $label }}',
-                        @endforeach
-                                                                                                                        ],
+                    labels: [],
                     datasets: [{
                         label: 'Pendaftaran',
-                        data: [
-                            @foreach($registrationChartData['data'] ?? [10, 15, 8, 22, 18, 12] as $data)
-                                {{ $data }},
-                            @endforeach
-                                                                                                                            ],
+                        data: [],
                         borderColor: '#198754',
                         backgroundColor: 'rgba(25, 135, 84, 0.1)',
                         borderWidth: 2,
@@ -585,19 +594,19 @@
             // Grafik Distribusi Kelas
             const classCtx = document.getElementById('classDistributionChart').getContext('2d');
             const classDistributionChart = new Chart(classCtx, {
-                type: 'doughnut',
+                type: 'bar',
                 data: {
                     labels: [
                         @foreach($classDistributionData['labels'] ?? ['Kelas X', 'Kelas XI', 'Kelas XII'] as $label)
                             '{{ $label }}',
                         @endforeach
-                                                                                                                        ],
+                                                                                                                                            ],
                     datasets: [{
                         data: [
                             @foreach($classDistributionData['data'] ?? [45, 38, 42] as $data)
                                 {{ $data }},
                             @endforeach
-                                                                                                                            ],
+                                                                                                                                                ],
                         backgroundColor: [
                             '#0d6efd',
                             '#198754',
@@ -615,12 +624,14 @@
                     maintainAspectRatio: false,
                     plugins: {
                         legend: {
-                            position: 'bottom',
-                            labels: {
-                                usePointStyle: true,
-                                padding: 20
-                            }
+                            display: false
                         }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { autoSkip: false }
+                        },
+                        y: { beginAtZero: true }
                     }
                 }
             });
@@ -642,16 +653,62 @@
                 }, 30);
             });
 
-            // Auto refresh untuk data real-time
-            setInterval(function () {
-                // Update hanya statistik kecil tanpa reload page
-                fetch('{{ route("admin.dashboard.stats") }}')
+            // Function to load dashboard stats and update chart
+            function loadDashboardStats(year = new Date().getFullYear(), classLevel = 'all') {
+                fetch('{{ route("admin.dashboard.stats") }}?year=' + year + '&class_level=' + classLevel)
                     .then(response => response.json())
                     .then(data => {
-                        // Update counters jika diperlukan
+                        // Update counters if provided
                         console.log('Stats updated:', data);
+                        if (data.registration) {
+                            registrationChart.data.labels = data.registration.labels;
+                            registrationChart.data.datasets[0].data = data.registration.data;
+                            registrationChart.update();
+                        }
+
+                        // Populate year select options if not populated
+                        const yearSelect = document.getElementById('dashboardStatsYear');
+                        if (yearSelect && yearSelect.options.length === 0 && data.registration.years) {
+                            data.registration.years.forEach(function (y) {
+                                const opt = document.createElement('option');
+                                opt.value = y; opt.text = y; yearSelect.appendChild(opt);
+                            });
+                            // set current selected
+                            yearSelect.value = data.registration.year;
+                        }
+                        if (data.classDistribution) {
+                            const cd = data.classDistribution;
+                            classDistributionChart.data.labels = cd.labels;
+                            classDistributionChart.data.datasets[0].data = cd.data;
+                            classDistributionChart.update();
+                            // Set class level select to server-provided value if available
+                            const classLevelSelect = document.getElementById('dashboardClassLevel');
+                            if (classLevelSelect && cd.class_level) {
+                                classLevelSelect.value = cd.class_level;
+                            }
+                        }
                     });
-            }, 30000); // Update setiap 30 detik
+            }
+
+            // Initial load
+            // Initial class level from server if provided
+            const initialClassLevel = '{{ $classDistributionData['class_level'] ?? 'all' }}';
+            // Initial load
+            loadDashboardStats(new Date().getFullYear(), initialClassLevel);
+
+            // Year filter change
+            const yearSelect = document.getElementById('dashboardStatsYear');
+            const classLevelSelect = document.getElementById('dashboardClassLevel');
+            if (yearSelect) {
+                yearSelect.addEventListener('change', function () {
+                    loadDashboardStats(this.value, classLevelSelect ? classLevelSelect.value : 'all');
+                });
+            }
+            if (classLevelSelect) {
+                classLevelSelect.addEventListener('change', function () {
+                    loadDashboardStats(yearSelect ? yearSelect.value : new Date().getFullYear(), this.value);
+                });
+            }
         });
     </script>
 @endpush

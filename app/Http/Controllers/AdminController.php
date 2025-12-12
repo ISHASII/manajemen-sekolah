@@ -87,6 +87,30 @@ class AdminController extends Controller
         $activeTeachers = $totalTeachers; // alias for blade
         $totalSubjects = Subject::count();
 
+        // Registration chart: last 6 months
+        $labels = [];
+        $regData = [];
+        $indMonths = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agt','Sep','Okt','Nov','Des'];
+        for ($i = 5; $i >= 0; $i--) {
+            $dt = now()->subMonths($i);
+            $labels[] = $indMonths[(int)$dt->format('n') - 1];
+            $regData[] = StudentApplication::whereYear('created_at', $dt->year)
+                ->whereMonth('created_at', $dt->month)
+                ->count();
+        }
+        $registrationChartData = ['labels' => $labels, 'data' => $regData];
+
+        // Class distribution (for class chart) - support optional filter by grade level (sd, smp, sma, kejuruan)
+        // Default: class rooms only (SD/SMP/SMA)
+        $classLabels = [];
+        $classData = [];
+        $classesForChart = ClassRoom::withCount('students')->orderBy('name')->get();
+        foreach ($classesForChart as $c) {
+            $classLabels[] = $c->name;
+            $classData[] = $c->students_count ?? 0;
+        }
+        $classDistributionData = ['labels' => $classLabels, 'data' => $classData];
+
         return view('admin.dashboard', compact(
             'totalApplications', 'pendingApplications', 'totalStudents', 'totalTeachers',
             'totalClasses', 'totalAlumni', 'recentApplications', 'recentAnnouncements', 'studentStats'
@@ -95,6 +119,8 @@ class AdminController extends Controller
             'newStudentsThisMonth' => $newStudentsThisMonth,
             'activeTeachers' => $activeTeachers,
             'totalSubjects' => $totalSubjects,
+            'registrationChartData' => $registrationChartData,
+            'classDistributionData' => $classDistributionData,
         ]);
     }
 
@@ -366,15 +392,119 @@ class AdminController extends Controller
         return redirect()->route('admin.applications.index')->with('success', 'Aplikasi berhasil ditolak.');
     }
 
-    public function students()
+    public function students(Request $request)
     {
-        // Show all users with role=student (includes users who do not have a Student record yet)
-        $students = \App\Models\User::with(['student.classRoom'])
-            ->where('role', 'student')
-            ->orderBy('created_at', 'desc')
-            ->paginate(50);
+        // Show users with role=student and apply optional filters
+        $query = \App\Models\User::with(['student.classRoom', 'student.trainingClasses'])
+            ->where('role', 'student');
 
-        return view('admin.students.index', compact('students'));
+        // Filter: name (search across name)
+        if ($request->filled('name')) {
+            $q = $request->get('name');
+            $query->where('name', 'like', "%{$q}%");
+        }
+
+        // Filter: orphan_status (yatim / piatu / yatim_piatu / none)
+        if ($request->filled('orphan_status')) {
+            $orphan = $request->get('orphan_status');
+            $query->whereHas('student', function ($qsub) use ($orphan) {
+                $qsub->where('orphan_status', $orphan);
+            });
+        }
+
+        // Filter: class
+        if ($request->filled('class_id')) {
+            $classId = $request->get('class_id');
+            $query->whereHas('student', function ($qsub) use ($classId) {
+                $qsub->where('class_id', $classId);
+            });
+        }
+
+        // Filter by training class - only applicable for kejuruan listing
+        if ($request->filled('training_class_id')) {
+            $tid = $request->get('training_class_id');
+            $query->whereHas('student.trainingClasses', function ($qsub) use ($tid) {
+                $qsub->where('training_classes.id', $tid);
+            });
+        }
+
+        // Filter: has disability (1 = has, 0 = none)
+        if ($request->filled('has_disability')) {
+            $has = (int)$request->get('has_disability');
+            if ($has === 1) {
+                $query->whereHas('student', function ($qsub) {
+                    $qsub->whereNotNull('disability_info')
+                        ->whereRaw("disability_info <> '[]'");
+                });
+            } else {
+                $query->whereHas('student', function ($qsub) {
+                    $qsub->whereNull('disability_info')
+                        ->orWhereRaw("disability_info = '[]'");
+                });
+            }
+        }
+
+        $students = $query->orderBy('created_at', 'desc')->paginate(50)->appends($request->query());
+
+        // For the class filter dropdown
+        $classes = \App\Models\ClassRoom::orderBy('name')->get();
+        $trainingClasses = \App\Models\TrainingClass::orderBy('title')->get();
+
+        // Make the filter form action configurable when rendering the view
+        $filterAction = route('admin.students.index');
+
+        return view('admin.students.index', compact('students', 'classes', 'trainingClasses', 'filterAction'));
+    }
+
+    /**
+     * List only kejuruan users (role = kejuruan) and reuse the students table view
+     */
+    public function kejuruanStudents(Request $request)
+    {
+        $query = \App\Models\User::with(['student.classRoom', 'student.trainingClasses'])
+            ->where('role', 'kejuruan');
+
+        if ($request->filled('name')) {
+            $q = $request->get('name');
+            $query->where('name', 'like', "%{$q}%");
+        }
+
+        if ($request->filled('orphan_status')) {
+            $orphan = $request->get('orphan_status');
+            $query->whereHas('student', function ($qsub) use ($orphan) {
+                $qsub->where('orphan_status', $orphan);
+            });
+        }
+
+        // Filter by training class (for kejuruan users)
+        if ($request->filled('training_class_id')) {
+            $tid = $request->get('training_class_id');
+            $query->whereHas('student.trainingClasses', function ($qsub) use ($tid) {
+                $qsub->where('training_classes.id', $tid);
+            });
+        }
+
+        if ($request->filled('has_disability')) {
+            $has = (int)$request->get('has_disability');
+            if ($has === 1) {
+                $query->whereHas('student', function ($qsub) {
+                    $qsub->whereNotNull('disability_info')
+                        ->whereRaw("disability_info <> '[]'");
+                });
+            } else {
+                $query->whereHas('student', function ($qsub) {
+                    $qsub->whereNull('disability_info')
+                        ->orWhereRaw("disability_info = '[]'");
+                });
+            }
+        }
+
+        $students = $query->orderBy('created_at', 'desc')->paginate(50)->appends($request->query());
+        $classes = \App\Models\ClassRoom::orderBy('name')->get();
+        $trainingClasses = \App\Models\TrainingClass::orderBy('title')->get();
+        $filterAction = route('admin.students.kejuruan');
+
+        return view('admin.students.index', compact('students', 'classes', 'trainingClasses', 'filterAction'))->with('isKejuruan', true);
     }
 
     public function createStudentForm(Request $request)
@@ -1561,6 +1691,54 @@ class AdminController extends Controller
         $totalClasses = ClassRoom::where('is_active', true)->count();
         $totalAlumni = Schema::hasTable('alumni') ? Alumni::count() : 0;
 
+        // Registration stats per month for a given year (default current year)
+        $year = (int) request()->query('year', date('Y'));
+
+        // Get counts grouped by month
+        $monthly = StudentApplication::selectRaw('MONTH(created_at) as month, COUNT(*) as count')
+            ->whereYear('created_at', $year)
+            ->groupBy('month')
+            ->pluck('count', 'month')
+            ->toArray();
+
+        // Build labels for 12 months and data array
+        $months = [
+            'Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'
+        ];
+        $data = [];
+        for ($m = 1; $m <= 12; $m++) {
+            $data[] = isset($monthly[$m]) ? (int) $monthly[$m] : 0;
+        }
+
+        // Provide a list of available years based on applications (last 5 years)
+        $minYear = (int) StudentApplication::selectRaw('MIN(YEAR(created_at)) as min_year')->value('min_year') ?: date('Y');
+        $years = range(max($minYear, date('Y') - 5), date('Y'));
+
+        // Build class distribution based on class_level filter
+        $classLevel = request()->query('class_level', 'all');
+        $classLabels = [];
+        $classData = [];
+        if (strtolower($classLevel) === 'kejuruan') {
+            $classesForChart = TrainingClass::withCount('students')->orderBy('title')->get();
+            foreach ($classesForChart as $c) {
+                $classLabels[] = $c->title;
+                $classData[] = $c->students_count ?? 0;
+            }
+        } else {
+            // Filter by grade_level when provided
+            $classQuery = ClassRoom::withCount('students')->orderBy('name');
+            if (!in_array(strtolower($classLevel), ['all', ''])) {
+                $classQuery->whereRaw('LOWER(grade_level) = ?', [strtolower($classLevel)]);
+            }
+            $classesForChart = $classQuery->get();
+            foreach ($classesForChart as $c) {
+                $classLabels[] = $c->name;
+                $classData[] = $c->students_count ?? 0;
+            }
+        }
+
+        $classDistribution = ['labels' => $classLabels, 'data' => $classData, 'class_level' => $classLevel];
+
         return response()->json([
             'totalApplications' => $totalApplications,
             'pendingApplications' => $pendingApplications,
@@ -1568,6 +1746,13 @@ class AdminController extends Controller
             'totalTeachers' => $totalTeachers,
             'totalClasses' => $totalClasses,
             'totalAlumni' => $totalAlumni,
+            'registration' => [
+                'labels' => $months,
+                'data' => $data,
+                'year' => $year,
+                'years' => $years,
+            ],
+            'classDistribution' => $classDistribution,
         ]);
     }
 

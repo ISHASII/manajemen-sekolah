@@ -56,6 +56,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/applications/{id}/approve', [AdminController::class, 'approveApplication'])->name('applications.approve');
         Route::post('/applications/{id}/reject', [AdminController::class, 'rejectApplication'])->name('applications.reject');
         Route::get('/students', [AdminController::class, 'students'])->name('students.index');
+        // Manage kejuruan students (separate listing filtered by role)
+        Route::get('/students/kejuruan', [AdminController::class, 'kejuruanStudents'])->name('students.kejuruan');
         Route::get('/students/create', [AdminController::class, 'createStudentForm'])->name('students.create');
         Route::post('/students', [AdminController::class, 'storeStudent'])->name('students.store');
         Route::get('/students/{id}/edit', [AdminController::class, 'editStudent'])->name('students.edit');
