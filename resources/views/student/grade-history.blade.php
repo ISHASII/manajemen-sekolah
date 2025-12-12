@@ -3,7 +3,7 @@
 @section('title', 'Riwayat Nilai & Kelas')
 
 @section('content')
-    <div class="container-fluid">
+    <div class="container-fluid grade-history-page">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2>Riwayat Nilai & Kelas Lengkap</h2>
             <a href="{{ auth()->user()->role === 'kejuruan' ? route('kejuruan.dashboard') : route('student.dashboard') }}"
@@ -233,6 +233,42 @@
             </div>
         @endif
     </div>
+
+    @push('styles')
+        <style>
+            /* Grade History page: white background, dark text */
+            .grade-history-page {
+                background: #ffffff !important;
+                color: #000 !important;
+                padding: 48px 0;
+                min-height: calc(100vh - 120px);
+            }
+
+            .grade-history-page .card {
+                background: #ffffff !important;
+                color: #000 !important;
+                border: 1px solid rgba(0,0,0,0.06);
+            }
+
+            .grade-history-page .card .card-header {
+                color: #fff !important;
+            }
+
+            .grade-history-page .table thead th {
+                background: #f8fafc !important;
+                color: #000 !important;
+            }
+
+            .grade-history-page .badge.bg-light {
+                background: #f1f5f9 !important;
+                color: #000 !important;
+            }
+
+            .grade-history-page .bi {
+                color: var(--primary) !important;
+            }
+        </style>
+    @endpush
 
     <style>
         .timeline {

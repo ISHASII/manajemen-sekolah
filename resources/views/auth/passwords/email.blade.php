@@ -14,6 +14,15 @@
                             </div>
                         @endif
 
+                        @if(session('reset_link') && app()->isLocal())
+                            <div class="alert alert-info">
+                                <strong>Development reset link:</strong>
+                                <div class="mt-2">
+                                    <a href="{{ session('reset_link') }}">Open reset link</a>
+                                </div>
+                            </div>
+                        @endif
+
                         <form method="POST" action="{{ route('password.email') }}">
                             @csrf
 
