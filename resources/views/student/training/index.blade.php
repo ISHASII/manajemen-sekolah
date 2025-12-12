@@ -3,6 +3,7 @@
 @section('title', 'Pelatihan Kejuruan')
 
 @section('content')
+    <div class="training-classes-page">
     <div class="container py-4">
         <h3>Pelatihan Kejuruan</h3>
         <div class="row">
@@ -53,4 +54,13 @@
             @endforelse
         </div>
     </div>
+    </div>
+
+    @push('styles')
+        <style>
+            .training-classes-page {
+                background: #ffffff !important;
+            }
+        </style>
+    @endpush
 @endsection
