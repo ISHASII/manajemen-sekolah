@@ -19,7 +19,13 @@ class StudentController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
-        $this->middleware('role:student');
+        // Allow both student and kejuruan roles
+        $this->middleware(function ($request, $next) {
+            if (!auth()->user()->isStudent()) {
+                abort(403, 'Access denied.');
+            }
+            return $next($request);
+        });
     }
 
     public function dashboard()
@@ -66,6 +72,20 @@ class StudentController extends Controller
         $grades = collect();
         $todaySchedules = collect();
         $recentGrades = collect();
+        $attendancePercent = 0;
+        $averageGrade = 0;
+        $pendingAssignments = 0;
+
+        // Indonesian day names
+        $daysInIndonesian = [
+            'monday' => 'Senin',
+            'tuesday' => 'Selasa',
+            'wednesday' => 'Rabu',
+            'thursday' => 'Kamis',
+            'friday' => 'Jumat',
+            'saturday' => 'Sabtu',
+            'sunday' => 'Minggu',
+        ];
 
         if ($student && $student->classRoom) {
             $schedules = Schedule::where('class_id', $student->classRoom->id)
@@ -90,9 +110,26 @@ class StudentController extends Controller
                 ->latest()
                 ->take(5)
                 ->get();
+
+            // Calculate average grade
+            if ($grades->count() > 0) {
+                $averageGrade = $grades->avg('score');
+            }
+
+            // Calculate pending assignments (materials without submissions)
+            $materials = \App\Models\TeachingMaterial::where('class_id', $student->classRoom->id)
+                ->where('is_visible', true)
+                ->get();
+            $submittedMaterialIds = \App\Models\StudentSubmission::where('student_id', $student->id)
+                ->pluck('material_id')
+                ->toArray();
+            $pendingAssignments = $materials->whereNotIn('id', $submittedMaterialIds)->count();
+
+            // Mock attendance (you can implement real attendance tracking later)
+            $attendancePercent = 85;
         }
 
-        return view('student.dashboard', compact('student', 'application', 'announcements', 'schedules', 'grades', 'todaySchedules', 'recentGrades'));
+        return view('student.dashboard', compact('student', 'application', 'announcements', 'schedules', 'grades', 'todaySchedules', 'recentGrades', 'attendancePercent', 'averageGrade', 'pendingAssignments', 'daysInIndonesian'));
     }
 
     public function profile()
@@ -108,8 +145,9 @@ class StudentController extends Controller
         $documents = Document::where('documentable_type', Student::class)
             ->where('documentable_id', $student->id)
             ->get();
+        $portfolios = \App\Models\StudentPortfolio::where('student_id', $student->id)->get();
 
-        return view('student.profile', compact('student', 'documents', 'application'));
+        return view('student.profile', compact('student', 'documents', 'application', 'portfolios'));
     }
 
     /**
@@ -205,6 +243,9 @@ class StudentController extends Controller
             'phone' => 'nullable|string|max:20',
             'profile_photo' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             'nisn' => 'nullable|string|max:50|unique:students,nisn,' . $student->id,
+            'job_interest' => 'nullable|string|max:255',
+            'cv_link' => 'nullable|url|max:2048',
+            'portfolio_links' => 'nullable|string',
         ]);
 
         // $user and $student are already loaded
@@ -260,6 +301,9 @@ class StudentController extends Controller
             'parent_address' => $request->parent_address ?? $student->parent_address,
             'parent_job' => $request->parent_job ?? $student->parent_job,
             'nisn' => $request->nisn ?? $student->nisn,
+            'job_interest' => ($student->classRoom && $student->classRoom->grade_level === 'kejuruan') ? ($request->job_interest ?? $student->job_interest) : $student->job_interest,
+            'cv_link' => ($student->classRoom && $student->classRoom->grade_level === 'kejuruan') ? ($request->cv_link ?? $student->cv_link) : $student->cv_link,
+            'portfolio_links' => ($student->classRoom && $student->classRoom->grade_level === 'kejuruan') ? ($request->portfolio_links ? array_map('trim', explode(',', $request->portfolio_links)) : $student->portfolio_links) : $student->portfolio_links,
         ], function ($v) {
             return $v !== null;
         });
@@ -331,16 +375,158 @@ class StudentController extends Controller
         return view('student.schedules', compact('schedules'));
     }
 
-    public function materials()
+    /**
+     * List training classes available for kejuruan students
+     */
+    public function trainingIndex()
+    {
+        $user = Auth::user();
+        $student = Student::where('user_id', $user->id)->first();
+        $classes = collect();
+        if ($student && $student->classRoom && $student->classRoom->grade_level === 'kejuruan') {
+            $classes = \App\Models\TrainingClass::where('open_to_kejuruan', true)->withCount('students')->orderBy('start_at', 'desc')->get();
+        }
+        // Determine if the student currently has an active training that hasn't ended (enrolled)
+        $hasActiveTraining = false;
+        if ($student) {
+            $hasActiveTraining = $student->trainingClasses()
+                ->wherePivot('status', 'enrolled')
+                ->where(function($q) {
+                    $q->whereNull('end_at')
+                      ->orWhere('end_at', '>=', now());
+                })->exists();
+        }
+        return view('student.training.index', compact('classes', 'student', 'hasActiveTraining'));
+    }
+
+    public function trainingShow($id)
+    {
+        $training = \App\Models\TrainingClass::withCount('students')->findOrFail($id);
+        $user = Auth::user();
+        $student = Student::where('user_id', $user->id)->first();
+        $hasActiveTraining = false;
+        if ($student) {
+            $hasActiveTraining = $student->trainingClasses()
+                ->wherePivot('status', 'enrolled')
+                ->where(function($q) {
+                    $q->whereNull('end_at')
+                      ->orWhere('end_at', '>=', now());
+                })->exists();
+        }
+        return view('student.training.show', compact('training', 'hasActiveTraining', 'student'));
+    }
+
+    public function enrollTraining($id)
+    {
+        $user = Auth::user();
+        $student = Student::where('user_id', $user->id)->first();
+        if (!$student) {
+            return back()->with('error', 'Profil siswa tidak ditemukan');
+        }
+        $training = \App\Models\TrainingClass::findOrFail($id);
+        // Only allow if open_to_kejuruan and student's class is kejuruan
+        if (!$training->open_to_kejuruan || !($student->classRoom && $student->classRoom->grade_level === 'kejuruan')) {
+            return back()->with('error', 'Anda tidak berhak mengikuti pelatihan ini');
+        }
+
+        // If the student is currently enrolled in another active training, disallow new enrollments
+        $hasActiveOtherTraining = $student->trainingClasses()
+            ->wherePivot('status', 'enrolled')
+            ->where(function($q) {
+                $q->whereNull('end_at')
+                  ->orWhere('end_at', '>=', now());
+            })
+            ->where('training_classes.id', '!=', $training->id)
+            ->exists();
+        if ($hasActiveOtherTraining) {
+            return back()->with('error', 'Anda sedang mengikuti pelatihan lain. Selesaikan dulu pelatihan tersebut sebelum mendaftar yang baru.');
+        }
+        // Enroll (attach) if not already
+        if (!$student->trainingClasses()->where('training_classes.id', $training->id)->exists()) {
+            $student->trainingClasses()->attach($training->id, ['enrolled_at' => now(), 'status' => 'enrolled']);
+        }
+        return back()->with('success', 'Terdaftar pada pelatihan');
+    }
+
+    public function unenrollTraining($id)
+    {
+        $user = Auth::user();
+        $student = Student::where('user_id', $user->id)->first();
+        if (!$student) {
+            return back()->with('error', 'Profil siswa tidak ditemukan');
+        }
+        $training = \App\Models\TrainingClass::findOrFail($id);
+        $student->trainingClasses()->detach($training->id);
+        return back()->with('success', 'Anda telah dibatalkan pendaftarannya');
+    }
+
+    public function materials(Request $request)
     {
         $user = Auth::user();
         $student = Student::where('user_id', $user->id)->with('classRoom')->first();
         $materials = collect();
-        if ($student && $student->classRoom) {
-            $materials = \App\Models\TeachingMaterial::where(function($q) use ($student) {
-                $q->whereNull('class_id')->orWhere('class_id', $student->classRoom->id);
-            })->where('is_visible', true)->orderBy('title', 'asc')->paginate(20);
+        if ($student) {
+            $trainingClassIds = $student->trainingClasses()->pluck('training_classes.id')->toArray();
+            $filterTrainingClass = (int) $request->query('training_class_id', 0);
+
+            $isKejuruan = ($user->role === 'kejuruan' || ($student->classRoom && ($student->classRoom->grade_level === 'kejuruan')));
+
+            if ($isKejuruan) {
+                // kejuruan students should only see materials from training classes they belong to
+                $query = \App\Models\TeachingMaterial::whereIn('training_class_id', $trainingClassIds ?: [0]);
+                if ($filterTrainingClass) {
+                    $query->where('training_class_id', $filterTrainingClass);
+                }
+                $materials = $query
+                    ->where('is_visible', true)
+                    ->with(['trainingClass', 'submissions' => function($q) use ($student) { $q->where('student_id', $student->id)->orderBy('created_at', 'desc'); }])
+                    ->orderBy('title', 'asc')
+                    ->paginate(20);
+            } else {
+                $query = \App\Models\TeachingMaterial::where(function($q) use ($student, $trainingClassIds) {
+                    $q->whereNull('class_id')
+                      ->orWhere('class_id', $student->classRoom?->id ?? 0)
+                      ->orWhereIn('training_class_id', $trainingClassIds ?: [0]);
+                });
+                if ($filterTrainingClass) {
+                    $query->where('training_class_id', $filterTrainingClass);
+                }
+                $materials = $query->where('is_visible', true)->with(['classRoom', 'subject', 'trainingClass', 'submissions' => function($q) use ($student) { $q->where('student_id', $student->id)->orderBy('created_at', 'desc'); }])->orderBy('title', 'asc')->paginate(20);
+            }
         }
-        return view('student.materials.index', compact('materials'));
+        return view('student.materials.index', compact('materials', 'isKejuruan'));
+    }
+
+    public function gradeHistory()
+    {
+        $user = Auth::user();
+        $student = Student::where('user_id', $user->id)->first();
+
+        if (!$student) {
+            return redirect()->route('student.dashboard')->with('error', 'Data siswa tidak ditemukan.');
+        }
+
+        // Get complete grade history with all details
+        $gradeHistory = \App\Models\StudentGradeHistory::where('student_id', $student->id)
+            ->with('classRoom')
+            ->orderBy('academic_year', 'desc')
+            ->orderBy('semester', 'desc')
+            ->get();
+
+        // Get current grades
+        $currentGrades = Grade::where('student_id', $student->id)
+            ->with('subject')
+            ->orderBy('assessment_date', 'desc')
+            ->get();
+
+        // Get training classes history (for kejuruan students)
+        $trainingHistory = [];
+        if ($user->role === 'kejuruan') {
+            $trainingHistory = $student->trainingClasses()
+                ->withPivot(['enrolled_at', 'status'])
+                ->get();
+        }
+
+        return view('student.grade-history', compact('gradeHistory', 'currentGrades', 'trainingHistory', 'student'));
     }
 }

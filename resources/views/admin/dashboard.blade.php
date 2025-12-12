@@ -117,7 +117,8 @@
                                 </h2>
                                 <p class="mb-0 opacity-75">
                                     <i class="bi bi-calendar-check me-2"></i>
-                                    {{ \Carbon\Carbon::now()->format('l, d F Y') }}
+                                    {{ $daysInIndonesian[strtolower(\Carbon\Carbon::now()->format('l'))] ?? \Carbon\Carbon::now()->format('l') }},
+                                    {{ \Carbon\Carbon::now()->format('d F Y') }}
                                 </p>
                                 <p class="mb-0 opacity-50 small">
                                     Selamat datang, {{ Auth::user()->name }}
@@ -271,6 +272,8 @@
                                         <div class="btn-group-vertical w-100" role="group">
                                             <a href="{{ route('admin.classes.index') }}"
                                                 class="btn btn-outline-primary btn-sm">Kelola Kelas</a>
+                                            <a href="{{ route('admin.training-classes.index') }}"
+                                                class="btn btn-outline-primary btn-sm">Kelola Pelatihan</a>
                                             <a href="{{ route('admin.subjects.index') }}"
                                                 class="btn btn-outline-success btn-sm">Mata Pelajaran</a>
                                             <a href="{{ route('admin.schedules.index') }}"
@@ -548,14 +551,14 @@
                         @foreach($registrationChartData['labels'] ?? ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'] as $label)
                             '{{ $label }}',
                         @endforeach
-                                                                                                    ],
+                                                                                                                        ],
                     datasets: [{
                         label: 'Pendaftaran',
                         data: [
                             @foreach($registrationChartData['data'] ?? [10, 15, 8, 22, 18, 12] as $data)
                                 {{ $data }},
                             @endforeach
-                                                                                                        ],
+                                                                                                                            ],
                         borderColor: '#198754',
                         backgroundColor: 'rgba(25, 135, 84, 0.1)',
                         borderWidth: 2,
@@ -588,13 +591,13 @@
                         @foreach($classDistributionData['labels'] ?? ['Kelas X', 'Kelas XI', 'Kelas XII'] as $label)
                             '{{ $label }}',
                         @endforeach
-                                                                                                    ],
+                                                                                                                        ],
                     datasets: [{
                         data: [
                             @foreach($classDistributionData['data'] ?? [45, 38, 42] as $data)
                                 {{ $data }},
                             @endforeach
-                                                                                                        ],
+                                                                                                                            ],
                         backgroundColor: [
                             '#0d6efd',
                             '#198754',

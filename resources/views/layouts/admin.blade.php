@@ -5,7 +5,8 @@
         /* Admin specific layout styling scoped under .admin-page-wrapper to avoid touching navbar/footer */
         .admin-page-wrapper {
             background: #ffffff;
-            color: #111827; /* dark text for admin pages */
+            color: #111827;
+            /* dark text for admin pages */
             min-height: calc(100vh - 120px);
             padding: 2rem 0;
         }
@@ -13,8 +14,8 @@
         .admin-page-wrapper .card {
             background: #ffffff;
             color: #111827;
-            border: 1px solid rgba(0,0,0,0.04);
-            box-shadow: 0 8px 24px rgba(2,6,23,0.04);
+            border: 1px solid rgba(0, 0, 0, 0.04);
+            box-shadow: 0 8px 24px rgba(2, 6, 23, 0.04);
         }
 
         /* make specific admin icons/avatars a primary/blue color */
@@ -47,6 +48,43 @@
         .admin-page-wrapper .recent-applications-table .bi {
             color: #111827 !important;
             fill: #111827 !important;
+        }
+
+        /* Custom pagination styling */
+        .admin-page-wrapper .pagination .page-link {
+            color: #111827;
+            border-color: #dee2e6;
+            background-color: #fff;
+            transition: all 0.2s ease;
+        }
+
+        .admin-page-wrapper .pagination .page-link:hover {
+            color: var(--primary);
+            background-color: #f8f9fa;
+            border-color: var(--primary);
+        }
+
+        .admin-page-wrapper .pagination .page-item.active .page-link {
+            background-color: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+
+        .admin-page-wrapper .pagination .page-item.disabled .page-link {
+            color: #6c757d;
+            background-color: #fff;
+            border-color: #dee2e6;
+        }
+
+        /* Ensure pagination icons are black */
+        .admin-page-wrapper .pagination .page-link i,
+        .admin-page-wrapper .pagination .page-link .bi {
+            color: #111827 !important;
+        }
+
+        .admin-page-wrapper .pagination .page-link:hover i,
+        .admin-page-wrapper .pagination .page-link:hover .bi {
+            color: var(--primary) !important;
         }
 
         /* make site footer icons white when on admin pages */

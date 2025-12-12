@@ -26,7 +26,8 @@
                 <div class="mb-3">
                     <label class="form-label">Siswa</label>
                     @if(isset($students) && count($students) > 0)
-                        <select name="student_id" class="form-select" required>
+                        <select name="student_id" class="form-select" id="student_select" required>
+                            <option value="">Pilih Siswa</option>
                             @foreach($students as $s)
                                 <option value="{{ $s->id }}" {{ old('student_id') == $s->id ? 'selected' : '' }}>
                                     {{ optional($s->user)->name ?? 'ID-' . $s->id }}
@@ -60,8 +61,9 @@
                     <input type="url" name="linkedin_profile" class="form-control" value="{{ old('linkedin_profile') }}">
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">Skills (pisahkan dengan koma)</label>
-                    <input type="text" name="skills" class="form-control" value="{{ old('skills') }}">
+                    <label class="form-label">Skills (diisi otomatis dari data siswa)</label>
+                    <input type="text" name="skills" id="skills_input" class="form-control" readonly>
+                    <small class="form-text text-muted">Skills akan terisi otomatis ketika siswa dipilih</small>
                 </div>
                 <div class="d-grid gap-2">
                     <button class="btn btn-primary">Simpan</button>
@@ -69,4 +71,38 @@
             </form>
         </div>
     </div>
+
+    <script>
+        document.getElementById('student_select').addEventListener('change', function () {
+            const studentId = this.value;
+            const skillsInput = document.getElementById('skills_input');
+
+            if (studentId) {
+                // Fetch student skills via AJAX
+                fetch(`/admin/students/${studentId}/skills`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.skills && data.skills.length > 0) {
+                            skillsInput.value = data.skills.join(', ');
+                        } else {
+                            skillsInput.value = 'Tidak ada skills yang tercatat';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching skills:', error);
+                        skillsInput.value = 'Error mengambil data skills';
+                    });
+            } else {
+                skillsInput.value = '';
+            }
+        });
+
+        // Load skills on page load if student is already selected
+        document.addEventListener('DOMContentLoaded', function () {
+            const studentSelect = document.getElementById('student_select');
+            if (studentSelect.value) {
+                studentSelect.dispatchEvent(new Event('change'));
+            }
+        });
+    </script>
 @endsection

@@ -17,9 +17,18 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             SchoolSeeder::class,
-            UserSeeder::class,
-            ClassRoomSeeder::class,
             SubjectSeeder::class,
+            UserSeeder::class, // Now includes teachers, students, classrooms, and schedules
+            TrainingClassSeeder::class,
+            StudentTrainingClassSeeder::class,
+            StudentApplicationSeeder::class,
+            AnnouncementSeeder::class,
+            GradeSeeder::class,
+            StudentPortfolioSeeder::class,
+            StudentSkillSeeder::class,
+            TeachingMaterialSeeder::class,
+            DocumentSeeder::class,
+            AlumniSeeder::class,
         ]);
     }
 }

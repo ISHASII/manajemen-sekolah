@@ -11,11 +11,6 @@
                 <div class="small text-muted">{{ $classRoom->grade_level ?? '-' }} — {{ $classRoom->description ?? '' }}
                 </div>
             </div>
-            <div>
-                <a href="{{ route('teacher.students') }}" class="btn btn-outline-secondary">Kembali</a>
-                <a href="{{ route('teacher.grades.manage', ['class_id' => $classRoom->id]) }}"
-                    class="btn btn-primary">Kelola Nilai</a>
-            </div>
         </div>
 
         <div class="row g-3">

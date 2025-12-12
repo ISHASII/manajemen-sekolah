@@ -18,15 +18,32 @@
                             <div class="list-group-item d-flex justify-content-between align-items-center">
                                 <div>
                                     <strong>{{ $m->title }}</strong>
-                                    <div class="small text-dark">{{ $m->classRoom?->name ?? '-' }} -
+                                    @if(isset($hasSubmissionsTable) && $hasSubmissionsTable && ($m->submissions_count ?? 0) > 0)
+                                        <span class="badge bg-info text-dark">{{ $m->submissions_count ?? 0 }}</span>
+                                    @endif
+                                    <div class="small text-dark">{{ $m->classRoom?->name ?? ($m->trainingClass?->title ?? '-') }} -
                                         {{ $m->subject?->name ?? '-' }}
                                     </div>
                                 </div>
                                 <div>
-                                    <a class="btn btn-sm btn-outline-secondary text-dark" href="{{ Storage::url($m->file_path) }}"
-                                        target="_blank">Lihat/Unduh</a>
-                                    <a class="btn btn-sm btn-outline-primary text-dark"
-                                        href="{{ route('teacher.materials.edit', $m->id) }}">Edit</a>
+                                    @if($m->file_type === 'link')
+                                        <a class="btn btn-sm btn-outline-secondary text-dark" href="{{ $m->file_path }}"
+                                            target="_blank">Buka Link</a>
+                                    @else
+                                        <a class="btn btn-sm btn-outline-secondary text-dark" href="{{ Storage::url($m->file_path) }}"
+                                            target="_blank">Lihat/Unduh</a>
+                                    @endif
+                                    @php
+                                        $editRoute = route('teacher.materials.edit', $m->id);
+                                        if ($m->training_class_id) {
+                                            $editRoute .= '?training_class_id=' . $m->training_class_id;
+                                        } elseif ($m->class_id) {
+                                            $editRoute .= '?class_id=' . $m->class_id;
+                                        }
+                                    @endphp
+                                    <a class="btn btn-sm btn-outline-primary text-dark" href="{{ $editRoute }}">Edit</a>
+                                    <a class="btn btn-sm btn-outline-info text-dark"
+                                        href="{{ route('teacher.materials.submissions.index', $m->id) }}">Lihat Pengumpulan</a>
                                     <form method="POST" action="{{ route('teacher.materials.destroy', $m->id) }}"
                                         class="d-inline-block" onsubmit="return confirm('Hapus materi?')">
                                         @csrf

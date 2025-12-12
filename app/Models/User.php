@@ -78,6 +78,15 @@ class User extends Authenticatable
 
     public function isStudent()
     {
-        return $this->role === 'student';
+        // treat kejuruan users as students for UI purposes
+        return $this->role === 'student' || $this->role === 'kejuruan';
+    }
+
+    /**
+     * Explicit helper to check for 'kejuruan' role.
+     */
+    public function isKejuruan()
+    {
+        return $this->role === 'kejuruan';
     }
 }

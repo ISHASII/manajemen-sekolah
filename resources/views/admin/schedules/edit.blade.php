@@ -74,28 +74,48 @@
                     <div class="col-md-3">
                         <label class="form-label">Hari</label>
                         <select name="day_of_week" class="form-select" required>
-                            <option value="monday" {{ old('day_of_week', $schedule->day_of_week) == 'monday' ? 'selected' : '' }}>Monday</option>
-                            <option value="tuesday" {{ old('day_of_week', $schedule->day_of_week) == 'tuesday' ? 'selected' : '' }}>Tuesday</option>
-                            <option value="wednesday" {{ old('day_of_week', $schedule->day_of_week) == 'wednesday' ? 'selected' : '' }}>Wednesday</option>
-                            <option value="thursday" {{ old('day_of_week', $schedule->day_of_week) == 'thursday' ? 'selected' : '' }}>Thursday</option>
-                            <option value="friday" {{ old('day_of_week', $schedule->day_of_week) == 'friday' ? 'selected' : '' }}>Friday</option>
-                            <option value="saturday" {{ old('day_of_week', $schedule->day_of_week) == 'saturday' ? 'selected' : '' }}>Saturday</option>
-                            <option value="sunday" {{ old('day_of_week', $schedule->day_of_week) == 'sunday' ? 'selected' : '' }}>Sunday</option>
+                            <option value="monday" {{ old('day_of_week', $schedule->day_of_week) == 'monday' ? 'selected' : '' }}>Senin</option>
+                            <option value="tuesday" {{ old('day_of_week', $schedule->day_of_week) == 'tuesday' ? 'selected' : '' }}>Selasa</option>
+                            <option value="wednesday" {{ old('day_of_week', $schedule->day_of_week) == 'wednesday' ? 'selected' : '' }}>Rabu</option>
+                            <option value="thursday" {{ old('day_of_week', $schedule->day_of_week) == 'thursday' ? 'selected' : '' }}>Kamis</option>
+                            <option value="friday" {{ old('day_of_week', $schedule->day_of_week) == 'friday' ? 'selected' : '' }}>Jumat</option>
+                            <option value="saturday" {{ old('day_of_week', $schedule->day_of_week) == 'saturday' ? 'selected' : '' }}>Sabtu</option>
+                            <option value="sunday" {{ old('day_of_week', $schedule->day_of_week) == 'sunday' ? 'selected' : '' }}>Minggu</option>
                         </select>
                         @error('day_of_week') <div class="text-danger small">{{ $message }}</div> @enderror
                     </div>
                     <div class="col-md-3">
                         <label class="form-label">Mulai</label>
-                        <input type="time" name="start_time" class="form-control"
-                            value="{{ old('start_time', \Carbon\Carbon::parse($schedule->start_time)->format('H:i')) }}"
-                            required>
+                        <select name="start_time" class="form-select" required>
+                            <option value="">-- Pilih Waktu Mulai --</option>
+                            @php $currentStartTime = old('start_time', \Carbon\Carbon::parse($schedule->start_time)->format('H:i')); @endphp
+                            @for($hour = 0; $hour < 24; $hour++)
+                                @for($minute = 0; $minute < 60; $minute += 30)
+                                    @php $time = sprintf('%02d:%02d', $hour, $minute); @endphp
+                                    <option value="{{ $time }}" {{ $currentStartTime == $time ? 'selected' : '' }}>
+                                        {{ $time }} @if($hour < 12) (Pagi) @elseif($hour < 15) (Siang) @elseif($hour < 18) (Sore)
+                                        @else (Malam) @endif
+                                    </option>
+                                @endfor
+                            @endfor
+                        </select>
                         @error('start_time') <div class="text-danger small">{{ $message }}</div> @enderror
                     </div>
                     <div class="col-md-3">
                         <label class="form-label">Selesai</label>
-                        <input type="time" name="end_time" class="form-control"
-                            value="{{ old('end_time', \Carbon\Carbon::parse($schedule->end_time)->format('H:i')) }}"
-                            required>
+                        <select name="end_time" class="form-select" required>
+                            <option value="">-- Pilih Waktu Selesai --</option>
+                            @php $currentEndTime = old('end_time', \Carbon\Carbon::parse($schedule->end_time)->format('H:i')); @endphp
+                            @for($hour = 0; $hour < 24; $hour++)
+                                @for($minute = 0; $minute < 60; $minute += 30)
+                                    @php $time = sprintf('%02d:%02d', $hour, $minute); @endphp
+                                    <option value="{{ $time }}" {{ $currentEndTime == $time ? 'selected' : '' }}>
+                                        {{ $time }} @if($hour < 12) (Pagi) @elseif($hour < 15) (Siang) @elseif($hour < 18) (Sore)
+                                        @else (Malam) @endif
+                                    </option>
+                                @endfor
+                            @endfor
+                        </select>
                         @error('end_time') <div class="text-danger small">{{ $message }}</div> @enderror
                     </div>
                     <div class="col-md-3">

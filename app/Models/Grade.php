@@ -10,6 +10,7 @@ class Grade extends Model
         'student_id',
         'subject_id',
         'teacher_id',
+        'training_class_id',
         'semester',
         'score',
         'grade',
@@ -36,5 +37,10 @@ class Grade extends Model
     public function teacher()
     {
         return $this->belongsTo(User::class, 'teacher_id');
+    }
+
+    public function trainingClass()
+    {
+        return $this->belongsTo(TrainingClass::class, 'training_class_id');
     }
 }

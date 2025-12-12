@@ -185,6 +185,11 @@
                         @error('parent_email') <div class="text-danger small">{{ $message }}</div> @enderror
                     </div>
                     <div class="col-md-6">
+                        <label class="form-label">Minat Kerja</label>
+                        <input type="text" name="job_interest" class="form-control" value="{{ old('job_interest') }}">
+                        @error('job_interest') <div class="text-danger small">{{ $message }}</div> @enderror
+                    </div>
+                    <div class="col-md-6">
                         <label class="form-label">Pekerjaan Orang Tua</label>
                         <input type="text" name="parent_job" class="form-control" value="{{ old('parent_job') }}">
                         @error('parent_job') <div class="text-danger small">{{ $message }}</div> @enderror
@@ -206,6 +211,14 @@
                                     <div class="form-check">
                                         <input class="form-check-input" type="checkbox" name="health_info[]" value="{{ $label }}" id="health_{{ $k }}"
                                             {{ in_array($label, (array) $selectedHealth) ? 'checked' : '' }}>
+                                <div class="col-md-12 mt-2">
+                                    <label class="form-label">CV / LinkedIn (URL)</label>
+                                    <input type="text" name="cv_link" class="form-control" value="{{ old('cv_link') }}">
+                                </div>
+                                <div class="col-md-12 mt-2">
+                                    <label class="form-label">Portofolio (link, pisah koma)</label>
+                                    <input type="text" name="portfolio_links" class="form-control" value="{{ old('portfolio_links') }}">
+                                </div>
                                         <label class="form-check-label" for="health_{{ $k }}">{{ $label }}</label>
                                     </div>
                                 </div>

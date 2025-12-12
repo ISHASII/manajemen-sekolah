@@ -223,6 +223,11 @@
                         @error('parent_email') <div class="text-danger small">{{ $message }}</div> @enderror
                     </div>
                     <div class="col-md-6">
+                        <label class="form-label">Minat Kerja</label>
+                        <input type="text" name="job_interest" class="form-control" value="{{ old('job_interest', $student->job_interest) }}">
+                        @error('job_interest') <div class="text-danger small">{{ $message }}</div> @enderror
+                    </div>
+                    <div class="col-md-6">
                         <label class="form-label">Pekerjaan Orang Tua</label>
                         <input type="text" name="parent_job" class="form-control" value="{{ old('parent_job', $student->parent_job) }}">
                         @error('parent_job') <div class="text-danger small">{{ $message }}</div> @enderror
@@ -308,5 +313,146 @@
                 </div>
             </form>
         </div>
+
+        <!-- Riwayat Kelas -->
+        <div class="card mt-4 p-4">
+            <h5>Riwayat Kelas</h5>
+            @if($student->gradeHistory->count() > 0)
+                <div class="table-responsive mt-3">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Kelas</th>
+                                <th>Tahun Ajaran</th>
+                                <th>Semester</th>
+                                <th>Rata-rata Nilai</th>
+                                <th>Status</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($student->gradeHistory as $history)
+                                <tr>
+                                    <td>{{ $history->class_name }}</td>
+                                    <td>{{ $history->academic_year }}</td>
+                                    <td>{{ $history->semester }}</td>
+                                    <td>{{ number_format($history->average_grade, 2) }}</td>
+                                    <td>
+                                        <span class="badge bg-{{ $history->status == 'passed' ? 'success' : 'danger' }}">
+                                            {{ $history->status == 'passed' ? 'Lulus' : 'Tidak Lulus' }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-info" onclick="showGrades({{ $history->id }})">
+                                            Lihat Nilai
+                                        </button>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @else
+                <p class="text-muted mt-3">Belum ada riwayat kelas untuk siswa ini.</p>
+            @endif
+        </div>
+
+        <!-- Modal untuk menampilkan detail nilai -->
+        <div class="modal fade" id="gradesModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Detail Nilai Mata Pelajaran</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div id="gradesContent">
+                            <!-- Content will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 @endsection
+
+<script>
+function showGrades(historyId) {
+    $.ajax({
+        url: '/admin/students/grade-history/' + historyId,
+        type: 'GET',
+        success: function(response) {
+            if (response.success) {
+                let content = `
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Kelas:</strong> ${response.class_name}
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Tahun Ajaran:</strong> ${response.academic_year}
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Semester:</strong> ${response.semester}
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Rata-rata Nilai:</strong> ${parseFloat(response.average_grade).toFixed(2)}
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Status:</strong>
+                            <span class="badge bg-${response.status == 'passed' ? 'success' : 'danger'}">
+                                ${response.status == 'passed' ? 'Lulus' : 'Tidak Lulus'}
+                            </span>
+                        </div>
+                    </div>`;
+
+                if (response.notes) {
+                    content += `<div class="row mb-3">
+                        <div class="col-12">
+                            <strong>Catatan:</strong> ${response.notes}
+                        </div>
+                    </div>`;
+                }
+
+                content += `<h6 class="mt-4">Nilai Mata Pelajaran:</h6>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Mata Pelajaran</th>
+                                    <th>Nilai</th>
+                                    <th>Catatan</th>
+                                </tr>
+                            </thead>
+                            <tbody>`;
+
+                if (response.subjects_grades && response.subjects_grades.length > 0) {
+                    response.subjects_grades.forEach(function(grade) {
+                        content += `
+                            <tr>
+                                <td>${grade.subject || '-'}</td>
+                                <td>${grade.score || '-'}</td>
+                                <td>${grade.notes || '-'}</td>
+                            </tr>`;
+                    });
+                } else {
+                    content += `<tr><td colspan="3" class="text-center">Tidak ada data nilai</td></tr>`;
+                }
+
+                content += `</tbody></table></div>`;
+
+                $('#gradesContent').html(content);
+                $('#gradesModal').modal('show');
+            } else {
+                alert('Gagal mengambil data nilai');
+            }
+        },
+        error: function() {
+            alert('Terjadi kesalahan saat mengambil data');
+        }
+    });
+}
+</script>

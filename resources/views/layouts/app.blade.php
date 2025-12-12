@@ -340,95 +340,156 @@
         <!-- Navigation -->
         <nav class="navbar navbar-expand-lg">
             <div class="container">
-                <a class="navbar-brand" href="{{ route('home') }}">
-                    <i class="bi bi-mortarboard-fill me-2"></i>
-                    SLB Harapan Bangsa
-                </a>
-
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-
-                <div class="collapse navbar-collapse" id="navbarNav">
-                    <ul class="navbar-nav me-auto">
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('home') || request()->routeIs('welcome') ? 'active' : '' }}"
-                                aria-current="{{ request()->routeIs('home') || request()->routeIs('welcome') ? 'page' : '' }}"
-                                href="{{ route('home') }}">Beranda</a>
-                        </li>
-                        @unless(Auth::check() && (Auth::user()->isAdmin() || Auth::user()->isTeacher() || Auth::user()->isStudent()))
-                            <li class="nav-item">
-                                <a class="nav-link {{ request()->routeIs('about') ? 'active' : '' }}"
-                                    aria-current="{{ request()->routeIs('about') ? 'page' : '' }}"
-                                    href="{{ route('about') }}">Tentang</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link {{ request()->routeIs('programs') ? 'active' : '' }}"
-                                    aria-current="{{ request()->routeIs('programs') ? 'page' : '' }}"
-                                    href="{{ route('programs') }}">Program</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link {{ request()->routeIs('teachers') ? 'active' : '' }}"
-                                    aria-current="{{ request()->routeIs('teachers') ? 'page' : '' }}"
-                                    href="{{ route('teachers') }}">Tenaga Pendidik</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link {{ request()->routeIs('facilities') ? 'active' : '' }}"
-                                    aria-current="{{ request()->routeIs('facilities') ? 'page' : '' }}"
-                                    href="{{ route('facilities') }}">Fasilitas</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link {{ request()->routeIs('contact') ? 'active' : '' }}"
-                                    aria-current="{{ request()->routeIs('contact') ? 'page' : '' }}"
-                                    href="{{ route('contact') }}">Kontak</a>
-                            </li>
-                        @endunless
-                    </ul>
-
-                    <ul class="navbar-nav">
-                        @guest
-                            <li class="nav-item me-2">
-                                <a class="btn btn-outline-light {{ request()->routeIs('application.status') ? 'active' : '' }}"
-                                    href="{{ route('application.status') }}">
-                                    <i class="bi bi-search me-1"></i>Cek Status
-                                </a>
-                            </li>
-                            <li class="nav-item me-2">
-                                <a class="btn btn-outline-light" href="{{ route('login') }}">
-                                    <i class="bi bi-box-arrow-in-right me-1"></i>Masuk
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="btn btn-primary" href="{{ route('student.register') }}">
-                                    <i class="bi bi-person-plus-fill me-1"></i>Daftar Sekarang
-                                </a>
-                            </li>
-                        @else
-                            <li class="nav-item dropdown">
-                                <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button"
-                                    data-bs-toggle="dropdown">
-                                    <i class="bi bi-person-circle me-1"></i>
-                                    {{ Auth::user()->name }}
-                                </a>
-
-                                <div class="dropdown-menu dropdown-menu-end">
-                                    <a class="dropdown-item" href="{{ route('home') }}">
-                                        <i class="bi bi-speedometer2 me-2"></i>Dashboard
+                @if(Auth::check())
+                    @if(Auth::user()->isAdmin())
+                        <a class="navbar-brand" href="{{ route('admin.dashboard') }}">
+                    @elseif(Auth::user()->isTeacher())
+                            <a class="navbar-brand" href="{{ route('teacher.dashboard') }}">
+                        @elseif(Auth::user()->isKejuruan())
+                                <a class="navbar-brand" href="{{ route('kejuruan.dashboard') }}">
+                            @elseif(Auth::user()->isStudent())
+                                    <a class="navbar-brand" href="{{ route('student.dashboard') }}">
+                                @else
+                                        <a class="navbar-brand" href="{{ route('home') }}">
+                                    @endif
+                                        <i class="bi bi-mortarboard-fill me-2"></i>
+                                        SLB Harapan Bangsa
                                     </a>
-                                    <div class="dropdown-divider"></div>
-                                    <a class="dropdown-item" href="{{ route('logout') }}"
-                                        onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                                        <i class="bi bi-box-arrow-right me-2"></i>Keluar
+                @else
+                                    <a class="navbar-brand" href="{{ route('home') }}">
+                                        <i class="bi bi-mortarboard-fill me-2"></i>
+                                        SLB Harapan Bangsa
                                     </a>
+                                @endif
 
-                                    <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
-                                        @csrf
-                                    </form>
+                                <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                                    data-bs-target="#navbarNav">
+                                    <span class="navbar-toggler-icon"></span>
+                                </button>
+
+                                <div class="collapse navbar-collapse" id="navbarNav">
+                                    <ul class="navbar-nav me-auto">
+                                        <li class="nav-item">
+                                            @if(Auth::check())
+                                                @if(Auth::user()->isAdmin())
+                                                    <a class="nav-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}"
+                                                        aria-current="{{ request()->routeIs('admin.dashboard') ? 'page' : '' }}"
+                                                        href="{{ route('admin.dashboard') }}">Beranda</a>
+                                                @elseif(Auth::user()->isTeacher())
+                                                    <a class="nav-link {{ request()->routeIs('teacher.dashboard') ? 'active' : '' }}"
+                                                        aria-current="{{ request()->routeIs('teacher.dashboard') ? 'page' : '' }}"
+                                                        href="{{ route('teacher.dashboard') }}">Beranda</a>
+                                                @elseif(Auth::user()->isKejuruan())
+                                                    <a class="nav-link {{ request()->routeIs('kejuruan.dashboard') ? 'active' : '' }}"
+                                                        aria-current="{{ request()->routeIs('kejuruan.dashboard') ? 'page' : '' }}"
+                                                        href="{{ route('kejuruan.dashboard') }}">Beranda</a>
+                                                @elseif(Auth::user()->isStudent())
+                                                    <a class="nav-link {{ request()->routeIs('student.dashboard') ? 'active' : '' }}"
+                                                        aria-current="{{ request()->routeIs('student.dashboard') ? 'page' : '' }}"
+                                                        href="{{ route('student.dashboard') }}">Beranda</a>
+                                                @else
+                                                    <a class="nav-link {{ request()->routeIs('home') || request()->routeIs('welcome') ? 'active' : '' }}"
+                                                        aria-current="{{ request()->routeIs('home') || request()->routeIs('welcome') ? 'page' : '' }}"
+                                                        href="{{ route('home') }}">Beranda</a>
+                                                @endif
+                                            @else
+                                                <a class="nav-link {{ request()->routeIs('home') || request()->routeIs('welcome') ? 'active' : '' }}"
+                                                    aria-current="{{ request()->routeIs('home') || request()->routeIs('welcome') ? 'page' : '' }}"
+                                                    href="{{ route('home') }}">Beranda</a>
+                                            @endif
+                                        </li>
+                                        @unless(Auth::check() && (Auth::user()->isAdmin() || Auth::user()->isTeacher() || Auth::user()->isStudent()))
+                                            <li class="nav-item">
+                                                <a class="nav-link {{ request()->routeIs('about') ? 'active' : '' }}"
+                                                    aria-current="{{ request()->routeIs('about') ? 'page' : '' }}"
+                                                    href="{{ route('about') }}">Tentang</a>
+                                            </li>
+                                            <li class="nav-item">
+                                                <a class="nav-link {{ request()->routeIs('programs') ? 'active' : '' }}"
+                                                    aria-current="{{ request()->routeIs('programs') ? 'page' : '' }}"
+                                                    href="{{ route('programs') }}">Program</a>
+                                            </li>
+                                            <li class="nav-item">
+                                                <a class="nav-link {{ request()->routeIs('teachers') ? 'active' : '' }}"
+                                                    aria-current="{{ request()->routeIs('teachers') ? 'page' : '' }}"
+                                                    href="{{ route('teachers') }}">Tenaga Pendidik</a>
+                                            </li>
+                                            <li class="nav-item">
+                                                <a class="nav-link {{ request()->routeIs('facilities') ? 'active' : '' }}"
+                                                    aria-current="{{ request()->routeIs('facilities') ? 'page' : '' }}"
+                                                    href="{{ route('facilities') }}">Fasilitas</a>
+                                            </li>
+                                            <li class="nav-item">
+                                                <a class="nav-link {{ request()->routeIs('contact') ? 'active' : '' }}"
+                                                    aria-current="{{ request()->routeIs('contact') ? 'page' : '' }}"
+                                                    href="{{ route('contact') }}">Kontak</a>
+                                            </li>
+                                        @endunless
+                                    </ul>
+
+                                    <ul class="navbar-nav">
+                                        @guest
+                                            <li class="nav-item me-2">
+                                                <a class="btn btn-outline-light {{ request()->routeIs('application.status') ? 'active' : '' }}"
+                                                    href="{{ route('application.status') }}">
+                                                    <i class="bi bi-search me-1"></i>Cek Status
+                                                </a>
+                                            </li>
+                                            <li class="nav-item me-2">
+                                                <a class="btn btn-outline-light" href="{{ route('login') }}">
+                                                    <i class="bi bi-box-arrow-in-right me-1"></i>Masuk
+                                                </a>
+                                            </li>
+                                            <li class="nav-item">
+                                                <a class="btn btn-primary" href="{{ route('student.register') }}">
+                                                    <i class="bi bi-person-plus-fill me-1"></i>Daftar Sekarang
+                                                </a>
+                                            </li>
+                                        @else
+                                            <li class="nav-item dropdown">
+                                                <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#"
+                                                    role="button" data-bs-toggle="dropdown">
+                                                    <i class="bi bi-person-circle me-1"></i>
+                                                    {{ Auth::user()->name }}
+                                                </a>
+
+                                                <div class="dropdown-menu dropdown-menu-end">
+                                                    @if(Auth::user()->role === 'admin')
+                                                        <a class="dropdown-item" href="{{ route('admin.dashboard') }}">
+                                                            <i class="bi bi-speedometer2 me-2"></i>Dashboard
+                                                        </a>
+                                                    @elseif(Auth::user()->role === 'teacher')
+                                                        <a class="dropdown-item" href="{{ route('teacher.dashboard') }}">
+                                                            <i class="bi bi-speedometer2 me-2"></i>Dashboard
+                                                        </a>
+                                                    @elseif(Auth::user()->role === 'kejuruan')
+                                                        <a class="dropdown-item" href="{{ route('kejuruan.dashboard') }}">
+                                                            <i class="bi bi-speedometer2 me-2"></i>Dashboard
+                                                        </a>
+                                                    @elseif(Auth::user()->role === 'student')
+                                                        <a class="dropdown-item" href="{{ route('student.dashboard') }}">
+                                                            <i class="bi bi-speedometer2 me-2"></i>Dashboard
+                                                        </a>
+                                                    @else
+                                                        <a class="dropdown-item" href="{{ route('home') }}">
+                                                            <i class="bi bi-speedometer2 me-2"></i>Dashboard
+                                                        </a>
+                                                    @endif
+                                                    <div class="dropdown-divider"></div>
+                                                    <a class="dropdown-item" href="{{ route('logout') }}"
+                                                        onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                                                        <i class="bi bi-box-arrow-right me-2"></i>Keluar
+                                                    </a>
+
+                                                    <form id="logout-form" action="{{ route('logout') }}" method="POST"
+                                                        class="d-none">
+                                                        @csrf
+                                                    </form>
+                                                </div>
+                                            </li>
+                                        @endguest
+                                    </ul>
                                 </div>
-                            </li>
-                        @endguest
-                    </ul>
-                </div>
             </div>
         </nav>
 
@@ -555,45 +616,7 @@
             }
         });
     </script>
-
-    <script>
-        // Modal fallback initializer:
-        // Some environments (ESM bundling / missing global) may prevent Bootstrap's
-        // automatic data-api from opening modals. This small listener guarantees
-        // modal buttons will open their target when clicked.
-        (function () {
-            function handleModalTriggerClick(e) {
-                var btn = e.target.closest('[data-bs-toggle="modal"]');
-                if (!btn) return;
-                // Prevent double handling (native/data-api may already open it)
-                e.preventDefault();
-
-                var target = btn.getAttribute('data-bs-target') || btn.dataset.bsTarget;
-                if (!target) return;
-
-                try {
-                    var modalEl = document.querySelector(target);
-                    if (!modalEl) return;
-                    // If Bootstrap is available, use its Modal API. Otherwise do nothing.
-                    if (window.bootstrap && window.bootstrap.Modal) {
-                        var m = new window.bootstrap.Modal(modalEl);
-                        m.show();
-                    } else {
-                        // If bootstrap not present yet, attempt to dispatch a click after a tick
-                        setTimeout(function () {
-                            if (window.bootstrap && window.bootstrap.Modal) {
-                                try { new window.bootstrap.Modal(modalEl).show(); } catch (err) { console.warn(err); }
-                            }
-                        }, 50);
-                    }
-                } catch (err) {
-                    console.warn('modal fallback error', err);
-                }
-            }
-
-            document.addEventListener('click', handleModalTriggerClick, true);
-        })();
-    </script>
+    @yield('scripts')
 </body>
 
 </html>

@@ -36,6 +36,8 @@
                                             @if(optional($st->student)->id)
                                                 <a href="{{ route('admin.students.edit', $st->student->id) }}"
                                                     class="btn btn-sm btn-outline-primary btn-detail">Detail</a>
+                                                <a href="{{ route('admin.students.education-history', $st->student->id) }}"
+                                                    class="btn btn-sm btn-outline-info">Riwayat Pendidikan</a>
                                             @else
                                                 <a href="{{ route('admin.students.create', ['user_id' => $st->id]) }}"
                                                     class="btn btn-sm btn-outline-primary btn-detail">Buat Profil</a>

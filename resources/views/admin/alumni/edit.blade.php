@@ -27,7 +27,8 @@
                 <div class="mb-3">
                     <label class="form-label">Siswa</label>
                     @if(isset($students) && count($students) > 0)
-                        <select name="student_id" class="form-select" required>
+                        <select name="student_id" class="form-select" id="student_select" required>
+                            <option value="">Pilih Siswa</option>
                             @foreach($students as $s)
                                 <option value="{{ $s->id }}" {{ old('student_id', $alumni->student_id) == $s->id ? 'selected' : '' }}>
                                     {{ optional($s->user)->name ?? 'ID-' . $s->id }}
@@ -65,9 +66,10 @@
                         value="{{ old('linkedin_profile', $alumni->linkedin_profile) }}">
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">Skills (pisahkan dengan koma)</label>
-                    <input type="text" name="skills" class="form-control"
-                        value="{{ old('skills', is_array($alumni->skills) ? implode(',', $alumni->skills) : $alumni->skills) }}">
+                    <label class="form-label">Skills (diisi otomatis dari data siswa)</label>
+                    <input type="text" name="skills" id="skills_input" class="form-control" readonly
+                        value="{{ old('skills', is_array($alumni->skills) ? implode(', ', $alumni->skills) : $alumni->skills) }}">
+                    <small class="form-text text-muted">Skills akan terisi otomatis ketika siswa dipilih</small>
                 </div>
                 <div class="d-grid gap-2">
                     <button class="btn btn-primary">Simpan Perubahan</button>
@@ -75,4 +77,32 @@
             </form>
         </div>
     </div>
+@endsection
+
+@section('scripts')
+    <script>
+        $(document).ready(function () {
+            // Auto-fill skills when student is selected
+            $('#student_select').change(function () {
+                var studentId = $(this).val();
+                if (studentId) {
+                    $.ajax({
+                        url: '/admin/alumni/get-student-skills/' + studentId,
+                        type: 'GET',
+                        success: function (data) {
+                            $('#skills_input').val(data.skills);
+                        },
+                        error: function () {
+                            $('#skills_input').val('');
+                        }
+                    });
+                } else {
+                    $('#skills_input').val('');
+                }
+            });
+
+            // Trigger change on page load if student is already selected
+            $('#student_select').trigger('change');
+        });
+    </script>
 @endsection

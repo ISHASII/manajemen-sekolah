@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\StudentApplication;
+use App\Models\TrainingClass;
 use App\Models\Student;
 use App\Models\Teacher;
 use App\Models\ClassRoom;
@@ -122,36 +123,6 @@ class AdminController extends Controller
         return view('admin.users.index', compact('users'));
     }
 
-    public function createUserForm()
-    {
-        return view('admin.users.create');
-    }
-
-    public function storeUser(Request $request)
-    {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
-            'role' => 'required|in:admin,teacher,student',
-            'is_active' => 'nullable|boolean',
-        ]);
-
-        try {
-            $user = User::create([
-                'name' => $request->name,
-                'email' => $request->email,
-                'password' => \Illuminate\Support\Facades\Hash::make('password'),
-                'role' => $request->role,
-                'is_active' => $request->boolean('is_active', true),
-            ]);
-        } catch (\Exception $e) {
-            \Log::error('Failed to create user', ['error' => $e->getMessage(), 'input' => $request->all()]);
-            return redirect()->back()->withInput()->with('error', 'Gagal membuat pengguna: ' . $e->getMessage());
-        }
-
-        return redirect()->route('admin.users.index')->with('success', 'Pengguna berhasil dibuat.');
-    }
-
     public function editUser($id)
     {
         $user = User::findOrFail($id);
@@ -164,9 +135,14 @@ class AdminController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $user->id,
-            'role' => 'required|in:admin,teacher,student',
+            'role' => 'required|in:admin,teacher,student,kejuruan',
             'is_active' => 'nullable|boolean',
         ]);
+
+        // Final verification to prevent case-insensitive 'kejuruan' values
+        if (strtolower($request->input('grade_level', '')) === 'kejuruan') {
+            return redirect()->back()->withInput()->with('error', 'Pembuatan kelas kejuruan harus dilakukan melalui menu Kelola Pelatihan.');
+        }
 
         try {
             $user->update([
@@ -209,20 +185,42 @@ class AdminController extends Controller
     {
         $application = StudentApplication::findOrFail($id);
 
-        $request->validate([
-            'class_id' => 'required|exists:classes,id',
-        ]);
+        // Validate class selection - if desired_class is kejuruan, require training_class_id
+        if ($application->desired_class === 'kejuruan') {
+            $request->validate([
+                'training_class_id' => 'required|exists:training_classes,id'
+            ]);
+        } else {
+            $request->validate([
+                'class_id' => 'required|exists:classes,id'
+            ]);
+        }
 
-        // Ensure selected class matches the desired grade level
-        $class = ClassRoom::findOrFail($request->class_id);
-        if ($application->desired_class && $class->grade_level !== $application->desired_class) {
-            return back()->with('error', 'Kelas yang dipilih tidak sesuai dengan tingkat yang diinginkan oleh pendaftar.');
+        // Handle both ClassRoom and TrainingClass selection depending on desired class
+        $class = null;
+        $trainingClass = null;
+        if ($application->desired_class === 'kejuruan') {
+            $trainingClass = TrainingClass::findOrFail($request->training_class_id);
+            if (!$trainingClass->is_active || !$trainingClass->open_to_kejuruan) {
+                return back()->with('error', 'Kelas pelatihan yang dipilih tidak tersedia untuk pendaftar kejuruan.');
+            }
+        } else {
+            $class = ClassRoom::findOrFail($request->class_id);
+            if ($application->desired_class && $class->grade_level !== $application->desired_class) {
+                return back()->with('error', 'Kelas yang dipilih tidak sesuai dengan tingkat yang diinginkan oleh pendaftar.');
+            }
         }
 
         // Wrap operations in a transaction to avoid partial updates
+        // Final verification to disallow updating to 'kejuruan' unless current class is kejuruan
+        if ($class->grade_level !== 'kejuruan' && strtolower($request->input('grade_level', '')) === 'kejuruan') {
+            return redirect()->back()->withInput()->with('error', 'Perubahan ke tingkat kejuruan harus dilakukan melalui menu Kelola Pelatihan.');
+        }
+
         try {
-            DB::transaction(function () use ($application, $request, $class) {
+            DB::transaction(function () use ($application, $request, $class, $trainingClass) {
             // Create or find user account for this applicant
+            $targetRole = $application->desired_class === 'kejuruan' ? 'kejuruan' : 'student';
             $user = User::where('email', $application->email)->first();
                 if ($user) {
                 // If this user already has a student profile, stop
@@ -230,10 +228,10 @@ class AdminController extends Controller
                     throw new \Exception('User dengan email ini sudah memiliki profil siswa.');
                 }
 
-                // Update user's role and contact info to ensure they can act as a student
+                // Update user's role and contact info
                 $user->update([
                     'name' => $application->student_name,
-                    'role' => 'student',
+                    'role' => $targetRole,
                     'phone' => $application->phone,
                     'address' => $application->address,
                     'birth_date' => $application->birth_date,
@@ -247,7 +245,7 @@ class AdminController extends Controller
                     'name' => $application->student_name,
                     'email' => $application->email,
                     'password' => $userPassword,
-                    'role' => 'student',
+                    'role' => $targetRole,
                     'phone' => $application->phone,
                     'address' => $application->address,
                     'birth_date' => $application->birth_date,
@@ -324,6 +322,17 @@ class AdminController extends Controller
             // increment class's current_students if class exists
             if ($class) {
                 $class->increment('current_students');
+            }
+            // if training class selected, attach student to training_class pivot
+            if ($trainingClass) {
+                // ensure capacity not exceeded if defined
+                if ($trainingClass->capacity && $trainingClass->students()->count() >= $trainingClass->capacity) {
+                    throw new \Exception('Kelas pelatihan penuh. Pilih kelas lain atau tingkatkan kapasitas.');
+                }
+                // Use syncWithoutDetaching to avoid duplicate pivot insertion and preserve existing enrollments
+                $student->trainingClasses()->syncWithoutDetaching([
+                    $trainingClass->id => ['enrolled_at' => now(), 'status' => 'enrolled']
+                ]);
             }
 
             if (!$student) {
@@ -405,6 +414,9 @@ class AdminController extends Controller
             'disability_info.*' => 'nullable|string|max:255',
             'education_history.previous_school' => 'nullable|string|max:255',
             'education_history.graduation_year' => 'nullable|integer',
+            'job_interest' => 'nullable|string|max:255',
+            'cv_link' => 'nullable|url|max:2048',
+            'portfolio_links' => 'nullable|string',
             'orphan_status' => 'nullable|in:none,yatim,piatu,yatim_piatu',
             'birth_certificate' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
             'kk' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
@@ -485,6 +497,17 @@ class AdminController extends Controller
                 'status' => $request->status ?? 'active',
                 'is_orphan' => ($request->input('orphan_status') ?? 'none') !== 'none'
             ]);
+                // Add job/cv/portfolio optional fields
+                if ($request->filled('job_interest')) {
+                    $student->job_interest = $request->job_interest;
+                }
+                if ($request->filled('cv_link')) {
+                    $student->cv_link = $request->cv_link;
+                }
+                if ($request->filled('portfolio_links')) {
+                    $student->portfolio_links = array_map('trim', explode(',', $request->portfolio_links));
+                }
+                $student->save();
 
             if ($student->class_id) {
                 $class = ClassRoom::find($student->class_id);
@@ -522,9 +545,34 @@ class AdminController extends Controller
 
     public function editStudent($id)
     {
-        $student = Student::findOrFail($id);
+        $student = Student::with(['gradeHistory', 'classRoom'])->findOrFail($id);
         $classes = ClassRoom::all();
         return view('admin.students.edit', compact('student', 'classes'));
+    }
+
+    public function educationHistory($id)
+    {
+        $student = Student::with(['gradeHistory', 'user'])->findOrFail($id);
+
+        // Group grade history by education level (SD, SMP, SMA)
+        $educationLevels = [
+            'SD' => [],
+            'SMP' => [],
+            'SMA' => []
+        ];
+
+        foreach ($student->gradeHistory as $history) {
+            $className = $history->class_name;
+            if (str_contains($className, 'SD')) {
+                $educationLevels['SD'][] = $history;
+            } elseif (str_contains($className, 'SMP')) {
+                $educationLevels['SMP'][] = $history;
+            } elseif (str_contains($className, 'SMA')) {
+                $educationLevels['SMA'][] = $history;
+            }
+        }
+
+        return view('admin.students.education-history', compact('student', 'educationLevels'));
     }
 
     public function updateStudent(Request $request, $id)
@@ -603,6 +651,15 @@ class AdminController extends Controller
                 'status' => $request->status ?? $student->status,
                 'is_orphan' => ($request->input('orphan_status') ?? $student->orphan_status) !== 'none'
             ]);
+            // Update job/cv/portfolio fields
+            if ($request->filled('job_interest')) {
+                $student->job_interest = $request->job_interest;
+            }
+            $student->cv_link = $request->cv_link ?? $student->cv_link;
+            if ($request->filled('portfolio_links')) {
+                $student->portfolio_links = array_map('trim', explode(',', $request->portfolio_links));
+            }
+            $student->save();
 
             if ($oldClass != $request->class_id) {
                 if ($oldClass) {
@@ -917,10 +974,18 @@ class AdminController extends Controller
             'teacher_id' => 'required|exists:users,id',
             'day_of_week' => 'required|in:monday,tuesday,wednesday,thursday,friday,saturday,sunday',
             'start_time' => 'required|date_format:H:i',
-            'end_time' => 'required|date_format:H:i|after:start_time',
+            'end_time' => 'required|date_format:H:i',
             'room' => 'nullable|string|max:100',
             'is_active' => 'nullable|boolean',
         ]);
+
+        // Custom validation for time comparison
+        $startTime = \Carbon\Carbon::createFromFormat('H:i', $request->start_time);
+        $endTime = \Carbon\Carbon::createFromFormat('H:i', $request->end_time);
+
+        if ($endTime->lte($startTime)) {
+            return redirect()->back()->withInput()->withErrors(['end_time' => 'The end time field must be a date after start time.']);
+        }
 
         try {
             $schedule = Schedule::create([
@@ -964,10 +1029,18 @@ class AdminController extends Controller
             'teacher_id' => 'required|exists:users,id',
             'day_of_week' => 'required|in:monday,tuesday,wednesday,thursday,friday,saturday,sunday',
             'start_time' => 'required|date_format:H:i',
-            'end_time' => 'required|date_format:H:i|after:start_time',
+            'end_time' => 'required|date_format:H:i',
             'room' => 'nullable|string|max:100',
             'is_active' => 'nullable|boolean',
         ]);
+
+        // Custom validation for time comparison
+        $startTime = \Carbon\Carbon::createFromFormat('H:i', $request->start_time);
+        $endTime = \Carbon\Carbon::createFromFormat('H:i', $request->end_time);
+
+        if ($endTime->lte($startTime)) {
+            return redirect()->back()->withInput()->withErrors(['end_time' => 'The end time field must be a date after start time.']);
+        }
 
         $schedule->update([
             'class_id' => $request->class_id,
@@ -1008,20 +1081,30 @@ class AdminController extends Controller
 
     public function alumni()
     {
-        // Return alumni list if model exists
+        // Return alumni list if model exists - only show alumni from students with 'kejuruan' role
         $alumni = [];
         if (Schema::hasTable('alumni')) {
-            $alumni = \App\Models\Alumni::latest()->paginate(20);
+            $alumni = \App\Models\Alumni::with(['student.user'])
+                ->whereHas('student.user', function($query) {
+                    $query->where('role', 'kejuruan');
+                })
+                ->latest()
+                ->paginate(20);
         }
         return view('admin.alumni.index', compact('alumni'));
     }
 
     public function alumniCreate()
     {
-        // Provide students list for the create form
+        // Provide students list for the create form - students with 'student' role (before graduation)
         $students = [];
         if (Schema::hasTable('students')) {
-            $students = \App\Models\Student::with('user')->orderBy('id', 'desc')->get();
+            $students = \App\Models\Student::with('user')
+                ->whereHas('user', function($query) {
+                    $query->where('role', 'student');
+                })
+                ->orderBy('id', 'desc')
+                ->get();
         }
         return view('admin.alumni.create', compact('students'));
     }
@@ -1038,6 +1121,14 @@ class AdminController extends Controller
         ]);
 
         try {
+            // Get student skills automatically
+            $student = \App\Models\Student::with('skills')->findOrFail($request->student_id);
+            $studentSkills = $student->skills->pluck('skill_name')->toArray();
+
+            // Update student status and user role to kejuruan (alumni)
+            $student->update(['status' => 'graduated']);
+            $student->user->update(['role' => 'kejuruan']);
+
             \App\Models\Alumni::create([
                 'student_id' => $request->student_id,
                 'graduation_date' => $request->graduation_date,
@@ -1045,7 +1136,7 @@ class AdminController extends Controller
                 'current_job' => $request->current_job,
                 'current_company' => $request->current_company,
                 'linkedin_profile' => $request->linkedin_profile,
-                'skills' => $request->skills ? explode(',', $request->skills) : null,
+                'skills' => $studentSkills,
             ]);
         } catch (\Exception $e) {
             \Log::error('Failed to create alumni', ['error' => $e->getMessage(), 'input' => $request->all()]);
@@ -1060,7 +1151,12 @@ class AdminController extends Controller
         $alumni = \App\Models\Alumni::findOrFail($id);
         $students = [];
         if (Schema::hasTable('students')) {
-            $students = \App\Models\Student::with('user')->orderBy('id', 'desc')->get();
+            $students = \App\Models\Student::with('user')
+                ->whereHas('user', function($query) {
+                    $query->whereIn('role', ['student', 'kejuruan']);
+                })
+                ->orderBy('id', 'desc')
+                ->get();
         }
         return view('admin.alumni.edit', compact('alumni', 'students'));
     }
@@ -1078,6 +1174,10 @@ class AdminController extends Controller
         ]);
 
         try {
+            // Get student skills automatically
+            $student = \App\Models\Student::with('skills')->findOrFail($request->student_id);
+            $studentSkills = $student->skills->pluck('skill_name')->toArray();
+
             $alumni->update([
                 'student_id' => $request->student_id,
                 'graduation_date' => $request->graduation_date,
@@ -1085,7 +1185,7 @@ class AdminController extends Controller
                 'current_job' => $request->current_job,
                 'current_company' => $request->current_company,
                 'linkedin_profile' => $request->linkedin_profile,
-                'skills' => $request->skills ? explode(',', $request->skills) : null,
+                'skills' => $studentSkills,
             ]);
         } catch (\Exception $e) {
             \Log::error('Failed to update alumni', ['error' => $e->getMessage(), 'input' => $request->all()]);
@@ -1093,6 +1193,48 @@ class AdminController extends Controller
         }
 
         return redirect()->route('admin.alumni.index')->with('success', 'Alumni berhasil diperbarui.');
+    }
+
+    public function getStudentSkills($studentId)
+    {
+        try {
+            $student = \App\Models\Student::with('skills')->findOrFail($studentId);
+            $skills = $student->skills->pluck('skill_name')->toArray();
+
+            return response()->json([
+                'success' => true,
+                'skills' => $skills
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengambil data skills'
+            ], 500);
+        }
+    }
+
+    public function getStudentGradeHistory($historyId)
+    {
+        try {
+            $history = \App\Models\StudentGradeHistory::findOrFail($historyId);
+            $subjectsGrades = $history->subjects_grades ?? [];
+
+            return response()->json([
+                'success' => true,
+                'class_name' => $history->class_name,
+                'academic_year' => $history->academic_year,
+                'semester' => $history->semester,
+                'average_grade' => $history->average_grade,
+                'status' => $history->status,
+                'subjects_grades' => $subjectsGrades,
+                'notes' => $history->notes
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengambil data riwayat nilai'
+            ], 500);
+        }
     }
 
     public function alumniDestroy($id)
@@ -1121,7 +1263,7 @@ class AdminController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'grade_level' => 'nullable|string|max:50',
+            'grade_level' => 'nullable|string|max:50|not_in:kejuruan',
             'capacity' => 'nullable|integer|min:1',
             'homeroom_teacher_id' => 'nullable|exists:users,id',
             'description' => 'nullable|string',
@@ -1158,14 +1300,21 @@ class AdminController extends Controller
     {
         $class = ClassRoom::findOrFail($id);
 
-        $request->validate([
+        $rules = [
             'name' => 'required|string|max:255',
             'grade_level' => 'nullable|string|max:50',
             'capacity' => 'nullable|integer|min:1',
             'homeroom_teacher_id' => 'nullable|exists:users,id',
             'description' => 'nullable|string',
             'is_active' => 'nullable|boolean',
-        ]);
+        ];
+
+        // If current class is not kejuruan, disallow changing grade_level to 'kejuruan'
+        if ($class->grade_level !== 'kejuruan') {
+            $rules['grade_level'] .= '|not_in:kejuruan';
+        }
+
+        $request->validate($rules);
 
         try {
             $class->update([
@@ -1300,7 +1449,6 @@ class AdminController extends Controller
             'title' => 'required|string|max:255',
             'content' => 'required|string',
             'type' => 'required|in:general,academic,event,urgent',
-            'target_audience' => 'required|in:all,students,teachers,parents',
             'publish_date' => 'required|date',
             'expire_date' => 'nullable|date|after:publish_date',
             'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
@@ -1311,7 +1459,7 @@ class AdminController extends Controller
                 'title' => $request->input('title'),
                 'content' => $request->input('content'),
                 'type' => $request->input('type'),
-                'target_audience' => $request->input('target_audience'),
+                'target_audience' => 'all',
                 'created_by' => auth()->id(),
                 'publish_date' => $request->input('publish_date'),
                 'expire_date' => $request->input('expire_date'),

@@ -20,7 +20,14 @@ class RoleMiddleware
             return redirect()->route('login');
         }
 
-        if (auth()->user()->role !== $role) {
+        $userRole = auth()->user()->role;
+
+        // Special case: Allow 'kejuruan' role to access 'student' routes
+        if ($role === 'student' && $userRole === 'kejuruan') {
+            return $next($request);
+        }
+
+        if ($userRole !== $role) {
             abort(403, 'Access denied. You do not have permission to access this resource.');
         }
 

@@ -44,6 +44,8 @@
                             </option>
                             <option value="student" {{ old('role', $user->role) == 'student' ? 'selected' : '' }}>Siswa
                             </option>
+                            <option value="kejuruan" {{ old('role', $user->role) == 'kejuruan' ? 'selected' : '' }}>Kejuruan
+                            </option>
                         </select>
                         @error('role') <div class="text-danger small">{{ $message }}</div> @enderror
                     </div>

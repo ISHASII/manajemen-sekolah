@@ -32,7 +32,10 @@ class SubjectSeeder extends Seeder
         ];
 
         foreach ($subjects as $subject) {
-            \App\Models\Subject::create($subject);
+            \App\Models\Subject::firstOrCreate(
+                ['code' => $subject['code']],
+                $subject
+            );
         }
     }
 }

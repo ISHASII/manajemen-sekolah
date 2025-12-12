@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\TrainingClass;
 
 class Student extends Model
 {
@@ -24,6 +25,9 @@ class Student extends Model
         'disability_info',
         'education_history',
         'interests_talents',
+        'job_interest',
+        'cv_link',
+        'portfolio_links',
         'status',
         'is_orphan',
         'orphan_status',
@@ -38,6 +42,7 @@ class Student extends Model
         'parent_email' => 'string',
         'medical_info' => 'string',
         'interests_talents' => 'array',
+        'portfolio_links' => 'array',
         'is_orphan' => 'boolean',
         'enrollment_date' => 'date'
     ];
@@ -63,6 +68,13 @@ class Student extends Model
         return $this->hasMany(StudentSkill::class);
     }
 
+    public function trainingClasses()
+    {
+        return $this->belongsToMany(TrainingClass::class, 'student_training_class')
+            ->withTimestamps()
+            ->withPivot(['enrolled_at', 'status']);
+    }
+
     public function alumni()
     {
         return $this->hasOne(Alumni::class);
@@ -71,5 +83,15 @@ class Student extends Model
     public function documents()
     {
         return $this->morphMany(Document::class, 'documentable');
+    }
+
+    public function portfolios()
+    {
+        return $this->hasMany(\App\Models\StudentPortfolio::class);
+    }
+
+    public function gradeHistory()
+    {
+        return $this->hasMany(StudentGradeHistory::class)->orderBy('academic_year', 'desc')->orderBy('semester', 'desc');
     }
 }

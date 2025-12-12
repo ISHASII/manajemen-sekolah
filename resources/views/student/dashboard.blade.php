@@ -5,7 +5,6 @@
 @section('content')
     <div class="container-fluid py-4 student-page-wrapper">
         @php
-            // Ensure variables are always defined for the view, in case controller doesn't pass them
             $todaySchedules = isset($todaySchedules) ? $todaySchedules : collect();
             $recentGrades = isset($recentGrades) ? $recentGrades : collect();
         @endphp
@@ -22,7 +21,8 @@
                                 </h2>
                                 <p class="mb-0 opacity-75">
                                     <i class="bi bi-calendar-check me-2"></i>
-                                    {{ \Carbon\Carbon::now()->format('l, d F Y') }}
+                                    {{ $daysInIndonesian[strtolower(\Carbon\Carbon::now()->format('l'))] ?? \Carbon\Carbon::now()->format('l') }},
+                                    {{ \Carbon\Carbon::now()->format('d F Y') }}
                                 </p>
                             </div>
                             <div class="col-md-4 text-end">
@@ -117,60 +117,10 @@
         </div>
 
         <div class="row">
-            <!-- Jadwal Hari Ini -->
-            <div class="col-lg-8 mb-4">
-                <div class="card border-0 shadow-sm">
-                    <div class="card-header border-bottom" style="background-color: orange;">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0 text-white">
-                                <i class="bi bi-calendar-day me-2"></i>
-                                Jadwal Hari Ini
-                            </h5>
-                            <span class="badge bg-primary">{{ \Carbon\Carbon::now()->format('d/m/Y') }}</span>
-                        </div>
-                    </div>
-
-                    <div class="card-body">
-                        @if($todaySchedules && $todaySchedules->count() > 0)
-                            <div class="timeline">
-                                @foreach($todaySchedules as $schedule)
-                                    <div class="timeline-item">
-                                        <div class="timeline-marker bg-primary"></div>
-                                        <div class="timeline-content">
-                                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                                <div>
-                                                    <h6 class="mb-1">{{ $schedule->subject->name }}</h6>
-                                                    <p class="text-muted small mb-1">
-                                                        <i class="bi bi-person me-1"></i>
-                                                        {{ $schedule->teacher->user->name }}
-                                                    </p>
-                                                </div>
-                                                <span class="badge bg-light text-dark">
-                                                    {{ $schedule->start_time }} - {{ $schedule->end_time }}
-                                                </span>
-                                            </div>
-                                            @if($schedule->description)
-                                                <p class="small mb-0 text-muted">{{ $schedule->description }}</p>
-                                            @endif
-                                        </div>
-                                    </div>
-                                @endforeach
-                            </div>
-                        @else
-                            <div class="text-center py-4">
-                                <i class="bi bi-calendar-x text-muted" style="font-size: 3rem;"></i>
-                                <p class="text-muted mt-2">Tidak ada jadwal untuk hari ini</p>
-                            </div>
-                        @endif
-                    </div>
-                </div>
-            </div>
-
-            <!-- Pengumuman & Quick Actions -->
-            <div class="col-lg-4">
-                <!-- Quick Actions -->
+            <!-- KIRI -->
+            <div class="col-lg-6">
                 <div class="card border-0 shadow-sm mb-4">
-                    <div class="card-header border-bottom " style="background-color: orange;">
+                    <div class="card-header border-bottom" style="background-color: orange;">
                         <h5 class="mb-0">
                             <i class="bi bi-lightning-fill me-2 text-warning"></i>
                             Aksi Cepat
@@ -181,23 +131,30 @@
                             <a href="{{ route('student.schedules') }}" class="btn btn-outline-primary btn-sm">
                                 <i class="bi bi-calendar-week me-2"></i>Lihat Jadwal Lengkap
                             </a>
-                            <a href="{{ route('student.grades') }}" class="btn btn-outline-success btn-sm">
-                                <i class="bi bi-bar-chart me-2"></i>Lihat Nilai
-                            </a>
                             <a href="{{ route('student.profile') }}" class="btn btn-outline-info btn-sm">
                                 <i class="bi bi-person-gear me-2"></i>Edit Profil
                             </a>
                             <a href="{{ route('student.materials') }}" class="btn btn-outline-primary btn-sm">
                                 <i class="bi bi-folder-symlink me-2"></i>Materi Kelas
                             </a>
+                            @if(optional($student->classRoom)->grade_level === 'kejuruan')
+                                <a href="{{ route('student.training-classes.index') }}" class="btn btn-outline-primary btn-sm">
+                                    <i class="bi bi-briefcase me-2"></i>Pelatihan Kejuruan
+                                </a>
+                            @endif
                             <a href="{{ route('student.grades') }}" class="btn btn-outline-secondary btn-sm">
-                                <i class="bi bi-award me-2"></i>Keterampilan Saya
+                                <i class="bi bi-award me-2"></i>Nilai & Keterampilan Saya
+                            </a>
+                            <a href="{{ route('student.grade-history') }}" class="btn btn-outline-success btn-sm">
+                                <i class="bi bi-clock-history me-2"></i>Riwayat Nilai Lengkap
                             </a>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- Pengumuman Terbaru (Carousel) -->
+            <!-- KANAN -->
+            <div class="col-lg-6">
                 <div class="card border-0 shadow-sm">
                     <div class="card-header border-bottom" style="background-color: orange;">
                         <h5 class="mb-0">
@@ -212,15 +169,17 @@
                                 <div class="carousel-indicators">
                                     @foreach($announcements->take(10) as $idx => $announcement)
                                         <button type="button" data-bs-target="#{{ $carouselId }}" data-bs-slide-to="{{ $idx }}"
-                                            class="{{ $idx === 0 ? 'active' : '' }}" aria-current="true"
-                                            aria-label="Slide {{ $idx + 1 }}"></button>
+                                            class="{{ $idx === 0 ? 'active' : '' }}">
+                                        </button>
                                     @endforeach
                                 </div>
+
                                 <div class="carousel-inner">
                                     @foreach($announcements->take(10) as $idx => $announcement)
                                         <div class="carousel-item {{ $idx === 0 ? 'active' : '' }}">
                                             <a href="{{ route('announcements.show', $announcement->id) }}"
                                                 class="d-block text-decoration-none text-reset">
+
                                                 @if($announcement->image && Storage::disk('public')->exists($announcement->image))
                                                     <img src="{{ Storage::url($announcement->image) }}" class="d-block w-100"
                                                         alt="{{ $announcement->title }}" style="height: 140px; object-fit: cover;">
@@ -230,32 +189,33 @@
                                                         <i class="bi bi-megaphone text-muted fs-2"></i>
                                                     </div>
                                                 @endif
+
                                                 <div class="carousel-caption d-none d-md-block text-start"
-                                                    style="background: rgba(0,0,0,0.35); left:0; right:0; padding: .5rem;">
+                                                    style="background: rgba(0,0,0,0.35); left:0; right:0; padding:.5rem;">
                                                     <h6 class="mb-0">{{ $announcement->title }}</h6>
                                                 </div>
                                             </a>
                                         </div>
                                     @endforeach
                                 </div>
+
                                 <button class="carousel-control-prev" type="button" data-bs-target="#{{ $carouselId }}"
                                     data-bs-slide="prev">
                                     <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                                    <span class="visually-hidden">Previous</span>
                                 </button>
                                 <button class="carousel-control-next" type="button" data-bs-target="#{{ $carouselId }}"
                                     data-bs-slide="next">
                                     <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                                    <span class="visually-hidden">Next</span>
                                 </button>
                             </div>
+
                             <div class="text-center mt-3">
                                 <a href="{{ route('student.announcements') }}" class="btn btn-outline-primary btn-sm">Lihat
                                     Semua Pengumuman</a>
                             </div>
                         @else
                             <div class="text-center py-3">
-                                <i class="bi bi-megaphone text-muted" style="font-size: 2rem;"></i>
+                                <i class="bi bi-megaphone text-muted fs-2"></i>
                                 <p class="text-muted mt-2 small">Belum ada pengumuman</p>
                             </div>
                         @endif
@@ -299,22 +259,34 @@
                                                     <strong>{{ $grade->subject->name }}</strong>
                                                 </td>
                                                 <td>
-                                                    <span
-                                                        class="badge bg-{{ $grade->type === 'UTS' ? 'warning' : ($grade->type === 'UAS' ? 'danger' : 'info') }}">
-                                                        {{ $grade->type }}
+                                                    @php
+                                                        // Flexible access for both fresh and older schemas
+                                                        $rawType = data_get($grade, 'assessment_type') ?? data_get($grade, 'type') ?? '';
+                                                        $jenisLabel = $rawType === 'midterm' ? 'UTS' : ($rawType === 'final' ? 'UAS' : ($rawType === 'daily' ? 'Harian' : ($rawType === 'project' ? 'Proyek' : ucfirst($rawType))));
+                                                        $jenisBg = $rawType === 'midterm' ? 'warning' : ($rawType === 'final' ? 'danger' : 'info');
+                                                        $jenisText = $jenisBg === 'warning' ? 'text-dark' : 'text-white';
+                                                    @endphp
+                                                    <span class="badge bg-{{ $jenisBg }} {{ $jenisText }}">
+                                                        {{ $jenisLabel ?: '-' }}
                                                     </span>
                                                 </td>
                                                 <td>
-                                                    <span
-                                                        class="badge bg-{{ $grade->value >= 80 ? 'success' : ($grade->value >= 70 ? 'warning' : 'danger') }} fs-6">
-                                                        {{ $grade->value }}
+                                                    @php
+                                                        $score = data_get($grade, 'score') ?? data_get($grade, 'value') ?? null;
+                                                        $valBg = ($score !== null && $score >= 80) ? 'success' : (($score !== null && $score >= 70) ? 'warning' : 'danger');
+                                                        $valText = $valBg === 'warning' ? 'text-dark' : 'text-white';
+                                                    @endphp
+                                                    <span class="badge bg-{{ $valBg }} {{ $valText }} fs-6">
+                                                        {{ $score ?? '-' }}
                                                     </span>
                                                 </td>
                                                 <td>
-                                                    <small class="text-muted">{{ $grade->date->format('d/m/Y') }}</small>
+                                                    <small
+                                                        class="text-dark opacity-75">{{ $grade->assessment_date ? $grade->assessment_date->format('d/m/Y') : '-' }}</small>
                                                 </td>
                                                 <td>
-                                                    <small class="text-muted">{{ $grade->description ?? '-' }}</small>
+                                                    <small
+                                                        class="text-dark opacity-75">{{ data_get($grade, 'notes') ?? data_get($grade, 'description') ?? '-' }}</small>
                                                 </td>
                                             </tr>
                                         @endforeach

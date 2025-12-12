@@ -177,31 +177,73 @@
                                         @csrf
                                         <div class="mb-3">
                                             @php
-                                                $availableClasses = App\Models\ClassRoom::where('is_active', true)
-                                                    ->where('grade_level', $application->desired_class)
-                                                    ->get();
+                                                // Ensure both collections exist so the view won't error during variable access
+                                                $availableTrainingClasses = collect();
+                                                $availableClasses = collect();
+                                                $approvalDisabled = true;
+
+                                                if ($application->desired_class === 'kejuruan') {
+                                                    $availableTrainingClasses = App\Models\TrainingClass::where('is_active', true)
+                                                        ->where('open_to_kejuruan', true)
+                                                        ->withCount('students')
+                                                        ->get();
+                                                    $approvalDisabled = $availableTrainingClasses->count() == 0;
+                                                } else {
+                                                    $availableClasses = App\Models\ClassRoom::where('is_active', true)
+                                                        ->where('grade_level', $application->desired_class)
+                                                        ->get();
+                                                    $approvalDisabled = $availableClasses->count() == 0;
+                                                }
                                             @endphp
-                                            <label for="class_id" class="form-label">Pilih Kelas</label>
-                                            <select name="class_id" id="class_id" class="form-control" required {{ $availableClasses->count() == 0 ? 'disabled' : '' }}>
-                                                @if($availableClasses->count() > 0)
-                                                    <option value="">-- Pilih Kelas --</option>
-                                                    @foreach($availableClasses as $class)
-                                                        <option value="{{ $class->id }}">{{ $class->name }}
-                                                            ({{ $class->current_students }}/{{ $class->capacity }})</option>
-                                                    @endforeach
-                                                @else
-                                                    <option value="" disabled>Tidak ada kelas tersedia untuk tingkat ini</option>
-                                                @endif
-                                            </select>
-                                            @if($availableClasses->count() == 0)
-                                                <div
-                                                    class="form-text text-muted mt-2 d-flex align-items-center justify-content-between">
-                                                    <div>Tidak ada kelas aktif yang cocok dengan tingkat tujuan
-                                                        ({{ $application->desired_class }}). Silakan buat/aktifkan kelas lebih dulu.
+                                            @if ($application->desired_class === 'kejuruan')
+                                                <label for="training_class_id" class="form-label">Pilih Kelas Pelatihan
+                                                    (Kejuruan)</label>
+                                                <select name="training_class_id" id="training_class_id" class="form-control"
+                                                    required {{ $availableTrainingClasses->count() == 0 ? 'disabled' : '' }}>
+                                                    @if($availableTrainingClasses->count() > 0)
+                                                        <option value="">-- Pilih Kelas Pelatihan --</option>
+                                                        @foreach($availableTrainingClasses as $tc)
+                                                            <option value="{{ $tc->id }}">{{ $tc->title }}
+                                                                ({{ $tc->students()->count() }}/{{ $tc->capacity }})</option>
+                                                        @endforeach
+                                                    @else
+                                                        <option value="" disabled>Tidak ada kelas pelatihan tersedia</option>
+                                                    @endif
+                                                </select>
+                                                @if($availableTrainingClasses->count() == 0)
+                                                    <div
+                                                        class="form-text text-muted mt-2 d-flex align-items-center justify-content-between">
+                                                        <div>Tidak ada kelas pelatihan aktif yang tersedia untuk tujuan
+                                                            ({{ $application->desired_class }}). Silakan buat kelas pelatihan terlebih
+                                                            dahulu.
+                                                        </div>
+                                                        <div><a href="{{ route('admin.training-classes.create') }}"
+                                                                class="btn btn-sm btn-primary">Buat Kelas Pelatihan</a></div>
                                                     </div>
-                                                    <div><a href="{{ route('admin.classes.create') }}"
-                                                            class="btn btn-sm btn-primary">Buat Kelas</a></div>
-                                                </div>
+                                                @endif
+                                            @else
+                                                <label for="class_id" class="form-label">Pilih Kelas</label>
+                                                <select name="class_id" id="class_id" class="form-control" required {{ $availableClasses->count() == 0 ? 'disabled' : '' }}>
+                                                    @if($availableClasses->count() > 0)
+                                                        <option value="">-- Pilih Kelas --</option>
+                                                        @foreach($availableClasses as $class)
+                                                            <option value="{{ $class->id }}">{{ $class->name }}
+                                                                ({{ $class->current_students }}/{{ $class->capacity }})</option>
+                                                        @endforeach
+                                                    @else
+                                                        <option value="" disabled>Tidak ada kelas tersedia untuk tingkat ini</option>
+                                                    @endif
+                                                </select>
+                                                @if($availableClasses->count() == 0)
+                                                    <div
+                                                        class="form-text text-muted mt-2 d-flex align-items-center justify-content-between">
+                                                        <div>Tidak ada kelas aktif yang cocok dengan tingkat tujuan
+                                                            ({{ $application->desired_class }}). Silakan buat/aktifkan kelas lebih dulu.
+                                                        </div>
+                                                        <div><a href="{{ route('admin.classes.create') }}"
+                                                                class="btn btn-sm btn-primary">Buat Kelas</a></div>
+                                                    </div>
+                                                @endif
                                             @endif
                                         </div>
                                         <div class="mb-3">
@@ -209,7 +251,7 @@
                                             <textarea name="notes" id="notes" class="form-control" rows="3"></textarea>
                                         </div>
                                         <button type="submit" class="btn btn-success"
-                                            onclick="return confirm('Yakin ingin menyetujui aplikasi ini?')" {{ $availableClasses->count() == 0 ? 'disabled' : '' }}>
+                                            onclick="return confirm('Yakin ingin menyetujui aplikasi ini?')" {{ $approvalDisabled ? 'disabled' : '' }}>
                                             <i class="fas fa-check me-1"></i>Setujui Aplikasi
                                         </button>
                                     </form>

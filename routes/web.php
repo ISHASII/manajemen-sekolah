@@ -7,6 +7,7 @@ use App\Http\Controllers\StudentController;
 use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\StudentApplicationController;
 use App\Http\Controllers\AlumniController;
+use App\Http\Controllers\KejuruanController;
 
 // Public Routes (Landing Page)
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -38,6 +39,8 @@ Route::middleware('auth')->group(function () {
             return redirect()->route('admin.dashboard');
         } elseif ($user->role === 'teacher') {
             return redirect()->route('teacher.dashboard');
+        } elseif ($user->role === 'kejuruan') {
+            return redirect()->route('kejuruan.dashboard');
         } elseif ($user->role === 'student') {
             return redirect()->route('student.dashboard');
         }
@@ -56,6 +59,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/students/create', [AdminController::class, 'createStudentForm'])->name('students.create');
         Route::post('/students', [AdminController::class, 'storeStudent'])->name('students.store');
         Route::get('/students/{id}/edit', [AdminController::class, 'editStudent'])->name('students.edit');
+        Route::get('/students/{id}/education-history', [AdminController::class, 'educationHistory'])->name('students.education-history');
         Route::put('/students/{id}', [AdminController::class, 'updateStudent'])->name('students.update');
         Route::delete('/students/{id}', [AdminController::class, 'destroyStudent'])->name('students.destroy');
         Route::get('/teachers', [AdminController::class, 'teachers'])->name('teachers.index');
@@ -85,8 +89,6 @@ Route::middleware('auth')->group(function () {
         Route::delete('/classes/{id}', [AdminController::class, 'destroyClass'])->name('classes.destroy');
         Route::patch('/classes/{id}/toggle', [AdminController::class, 'toggleClass'])->name('classes.toggle');
         Route::get('/users', [AdminController::class, 'users'])->name('users.index');
-        Route::get('/users/create', [AdminController::class, 'createUserForm'])->name('users.create');
-        Route::post('/users', [AdminController::class, 'storeUser'])->name('users.store');
         Route::get('/users/{id}/edit', [AdminController::class, 'editUser'])->name('users.edit');
         Route::put('/users/{id}', [AdminController::class, 'updateUser'])->name('users.update');
         Route::delete('/users/{id}', [AdminController::class, 'destroyUser'])->name('users.destroy');
@@ -104,6 +106,22 @@ Route::middleware('auth')->group(function () {
         Route::get('/alumni/{id}/edit', [AdminController::class, 'alumniEdit'])->name('alumni.edit');
         Route::put('/alumni/{id}', [AdminController::class, 'alumniUpdate'])->name('alumni.update');
         Route::delete('/alumni/{id}', [AdminController::class, 'alumniDestroy'])->name('alumni.destroy');
+        // AJAX route for getting student skills
+        Route::get('/students/{studentId}/skills', [AdminController::class, 'getStudentSkills'])->name('students.skills');
+        // AJAX route for getting student grade history
+        Route::get('/students/grade-history/{historyId}', [AdminController::class, 'getStudentGradeHistory'])->name('students.grade-history');
+        // Training classes for kejuruan students
+        Route::get('/training-classes', [\App\Http\Controllers\Admin\TrainingClassController::class, 'index'])->name('training-classes.index');
+        Route::get('/training-classes/create', [\App\Http\Controllers\Admin\TrainingClassController::class, 'create'])->name('training-classes.create');
+        Route::post('/training-classes', [\App\Http\Controllers\Admin\TrainingClassController::class, 'store'])->name('training-classes.store');
+        Route::get('/training-classes/{trainingClass}/edit', [\App\Http\Controllers\Admin\TrainingClassController::class, 'edit'])->name('training-classes.edit');
+        Route::put('/training-classes/{trainingClass}', [\App\Http\Controllers\Admin\TrainingClassController::class, 'update'])->name('training-classes.update');
+        Route::delete('/training-classes/{trainingClass}', [\App\Http\Controllers\Admin\TrainingClassController::class, 'destroy'])->name('training-classes.destroy');
+        Route::get('/training-classes/{trainingClass}', [\App\Http\Controllers\Admin\TrainingClassController::class, 'show'])->name('training-classes.show');
+        Route::post('/training-classes/{trainingClass}/add-participant', [\App\Http\Controllers\Admin\TrainingClassController::class, 'addParticipant'])->name('training-classes.add-participant');
+        // Handle accidental GET to add-participant gracefully
+        Route::get('/training-classes/{trainingClass}/add-participant', [\App\Http\Controllers\Admin\TrainingClassController::class, 'addParticipantRedirect']);
+        Route::delete('/training-classes/{trainingClass}/remove-participant', [\App\Http\Controllers\Admin\TrainingClassController::class, 'removeParticipant'])->name('training-classes.remove-participant');
         // School Info Management
         Route::get('/school/edit', [AdminController::class, 'editSchool'])->name('school.edit');
         Route::put('/school', [AdminController::class, 'updateSchool'])->name('school.update');
@@ -121,9 +139,21 @@ Route::middleware('auth')->group(function () {
         Route::put('/profile', [StudentController::class, 'updateProfile'])->name('profile.update');
         Route::get('/schedules', [StudentController::class, 'schedules'])->name('schedules');
         Route::get('/grades', [StudentController::class, 'grades'])->name('grades');
+        Route::get('/grade-history', [StudentController::class, 'gradeHistory'])->name('grade-history');
         // Announcements accessible by students
         Route::get('/announcements', [StudentController::class, 'announcements'])->name('announcements');
         Route::get('/materials', [StudentController::class, 'materials'])->name('materials');
+        // Student submissions for materials
+        Route::post('/materials/{material}/submissions', [\App\Http\Controllers\StudentSubmissionController::class, 'store'])->name('materials.submissions.store');
+        Route::patch('/materials/{material}/submissions/{submission}', [\App\Http\Controllers\StudentSubmissionController::class, 'update'])->name('materials.submissions.update');
+        // Training classes for students
+        Route::get('/training-classes', [StudentController::class, 'trainingIndex'])->name('training-classes.index');
+        Route::get('/training-classes/{id}', [StudentController::class, 'trainingShow'])->name('training-classes.show');
+        Route::post('/training-classes/{id}/enroll', [StudentController::class, 'enrollTraining'])->name('training-classes.enroll');
+        Route::delete('/training-classes/{id}/unenroll', [StudentController::class, 'unenrollTraining'])->name('training-classes.unenroll');
+        // Student portfolios (for kejuruan students)
+        Route::post('/portfolio', [\App\Http\Controllers\Student\PortfolioController::class, 'store'])->name('portfolio.store');
+        Route::delete('/portfolio/{id}', [\App\Http\Controllers\Student\PortfolioController::class, 'destroy'])->name('portfolio.destroy');
     });
 
     // Teacher Routes
@@ -145,25 +175,49 @@ Route::middleware('auth')->group(function () {
         Route::get('/profile', [TeacherController::class, 'profile'])->name('profile');
         Route::get('/profile/edit', [TeacherController::class, 'editProfile'])->name('profile.edit');
         Route::put('/profile', [TeacherController::class, 'updateProfile'])->name('profile.update');
-        // Teacher announcement creation
-        Route::get('/announcements/create', [TeacherController::class, 'createAnnouncementForm'])->name('announcements.create');
-        Route::post('/announcements', [TeacherController::class, 'createAnnouncement'])->name('announcements.store');
         Route::get('/schedules', [TeacherController::class, 'schedules'])->name('schedules');
         // Teacher materials
+        Route::get('/class/{classId}/materials', [App\Http\Controllers\TeacherMaterialsController::class, 'classMaterials'])->name('class.materials');
+        Route::get('/training-class/{trainingClassId}/materials', [App\Http\Controllers\TeacherMaterialsController::class, 'trainingMaterials'])->name('training-class.materials');
+        Route::get('/training-classes/{id}', [TeacherController::class, 'trainingClassDetail'])->name('training-class.detail');
         Route::get('/materials', [App\Http\Controllers\TeacherMaterialsController::class, 'index'])->name('materials.index');
         Route::get('/materials/create', [App\Http\Controllers\TeacherMaterialsController::class, 'create'])->name('materials.create');
         Route::post('/materials', [App\Http\Controllers\TeacherMaterialsController::class, 'store'])->name('materials.store');
         Route::get('/materials/{id}/edit', [App\Http\Controllers\TeacherMaterialsController::class, 'edit'])->name('materials.edit');
         Route::put('/materials/{id}', [App\Http\Controllers\TeacherMaterialsController::class, 'update'])->name('materials.update');
         Route::delete('/materials/{id}', [App\Http\Controllers\TeacherMaterialsController::class, 'destroy'])->name('materials.destroy');
+        // View student submissions for a specific material
+        Route::get('/materials/{material}/submissions', [\App\Http\Controllers\StudentSubmissionController::class, 'index'])->name('materials.submissions.index');
+        // Graduation management
+        Route::get('/graduation', [TeacherController::class, 'graduationManagement'])->name('graduation');
+        Route::post('/graduation/{studentId}', [TeacherController::class, 'processGraduation'])->name('graduation.process');
     });
 
-    // Alumni Routes
-    Route::middleware('role:student')->prefix('alumni')->name('alumni.')->group(function () {
-        Route::get('/dashboard', [AlumniController::class, 'dashboard'])->name('dashboard');
-        Route::get('/profile', [AlumniController::class, 'profile'])->name('profile');
-        Route::put('/profile', [AlumniController::class, 'updateProfile'])->name('profile.update');
-        Route::get('/training', [AlumniController::class, 'training'])->name('training');
+    // Kejuruan Routes (Alumni yang sudah lulus)
+    Route::middleware('kejuruan')->prefix('kejuruan')->name('kejuruan.')->group(function () {
+        Route::get('/dashboard', [KejuruanController::class, 'dashboard'])->name('dashboard');
+        Route::get('/profile', [KejuruanController::class, 'profile'])->name('profile');
+        Route::put('/profile', [KejuruanController::class, 'updateProfile'])->name('profile.update');
+        Route::get('/schedules', [KejuruanController::class, 'schedules'])->name('schedules');
+        Route::get('/grades', [KejuruanController::class, 'grades'])->name('grades');
+        Route::get('/grade-history', [KejuruanController::class, 'gradeHistory'])->name('grade-history');
+        Route::get('/announcements', [KejuruanController::class, 'announcements'])->name('announcements');
+        Route::get('/materials', [KejuruanController::class, 'materials'])->name('materials');
+        Route::post('/materials/{material}/submissions', [\App\Http\Controllers\StudentSubmissionController::class, 'store'])->name('materials.submissions.store');
+        Route::patch('/materials/{material}/submissions/{submission}', [\App\Http\Controllers\StudentSubmissionController::class, 'update'])->name('materials.submissions.update');
+        // Training classes only for kejuruan
+        Route::get('/training-classes', [KejuruanController::class, 'trainingIndex'])->name('training-classes.index');
+        Route::get('/training-classes/{id}', [KejuruanController::class, 'trainingShow'])->name('training-classes.show');
+        Route::post('/training-classes/{id}/enroll', [KejuruanController::class, 'enrollTraining'])->name('training-classes.enroll');
+        Route::delete('/training-classes/{id}/unenroll', [KejuruanController::class, 'unenrollTraining'])->name('training-classes.unenroll');
+        Route::post('/portfolio', [\App\Http\Controllers\Student\PortfolioController::class, 'store'])->name('portfolio.store');
+        Route::delete('/portfolio/{id}', [\App\Http\Controllers\Student\PortfolioController::class, 'destroy'])->name('portfolio.destroy');
+
+        // CV Builder
+        Route::get('/cv-builder', [\App\Http\Controllers\CVBuilderController::class, 'index'])->name('cv.index');
+        Route::post('/cv-builder/preview', [\App\Http\Controllers\CVBuilderController::class, 'preview'])->name('cv.preview');
+        Route::post('/cv-builder/generate', [\App\Http\Controllers\CVBuilderController::class, 'generate'])->name('cv.generate');
+        Route::post('/cv-builder/print', [\App\Http\Controllers\CVBuilderController::class, 'print'])->name('cv.print');
     });
 });
 

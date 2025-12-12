@@ -39,7 +39,7 @@
                                         <td>{{ optional($schedule->classRoom)->name ?? '-' }}</td>
                                         <td>{{ optional($schedule->subject)->name ?? '-' }}</td>
                                         <td>{{ optional($schedule->teacher)->name ?? '-' }}</td>
-                                        <td>{{ ucfirst($schedule->day_of_week) }}</td>
+                                        <td>{{ $daysInIndonesian[$schedule->day_of_week] ?? ucfirst($schedule->day_of_week) }}</td>
                                         <td>{{ \Carbon\Carbon::parse($schedule->start_time)->format('H:i') }} -
                                             {{ \Carbon\Carbon::parse($schedule->end_time)->format('H:i') }}</td>
                                         <td>{{ $schedule->room ?? '-' }}</td>

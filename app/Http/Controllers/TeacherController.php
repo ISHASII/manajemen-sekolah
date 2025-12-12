@@ -11,6 +11,7 @@ use App\Models\Schedule;
 use App\Models\StudentSkill;
 use App\Models\ClassRoom;
 use App\Models\Subject;
+use App\Models\TrainingClass;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
@@ -36,10 +37,9 @@ class TeacherController extends Controller
             ->orderBy('start_time')
             ->get();
 
-        // Calculate today's schedules based on day name
-        $today = strtolower(\Carbon\Carbon::now()->format('l'));
-        $todaySchedules = $schedules->where('day_of_week', $today);
-        $todaySchedulesCount = $todaySchedules->count();
+        // Get all schedules for the teacher (no day filter)
+        $allSchedules = $schedules;
+        $allSchedulesCount = $allSchedules->count();
 
         $scheduleClassIds = Schedule::where('teacher_id', $user->id)
             ->pluck('class_id')
@@ -122,7 +122,18 @@ class TeacherController extends Controller
             }
         }
 
-        return view('teacher.dashboard', compact('teacher', 'schedules', 'classes', 'totalStudents', 'recentGrades', 'todaySchedules', 'todaySchedulesCount', 'lowGradesStudents'))
+        // Fetch training classes where this teacher is trainer (support legacy where trainer_id might be set to user id)
+        $trainingClasses = collect();
+        if ($teacher) {
+            $trainingClasses = TrainingClass::where('is_active', true)
+                ->where(function ($q) use ($teacher, $user) {
+                    $q->where('trainer_id', $teacher->id)->orWhere('trainer_id', $user->id);
+                })
+                ->withCount('students')
+                ->get();
+        }
+
+        return view('teacher.dashboard', compact('teacher', 'schedules', 'classes', 'totalStudents', 'recentGrades', 'allSchedules', 'allSchedulesCount', 'lowGradesStudents', 'trainingClasses'))
             ->with('recentActivities', $recentActivities)
             ->with('announcements', $announcements);
     }
@@ -169,15 +180,37 @@ class TeacherController extends Controller
             ->exists();
 
         // As a final fallback, allow access if the teacher is explicitly assigned via the teacher profile (teacher->user_id),
-        // supporting cases where schedule might be missing but teacher still owns the class content.
+        // or the teacher is a trainer for any training class that the student is enrolled in.
         $teacherModel = Teacher::where('user_id', Auth::id())->first();
         $isAssignedViaTeacherModel = false;
         if ($teacherModel) {
-            // If Teacher profile has subjects or classes metadata, we could check, but for now, allow if this teacher is homeroom or schedule-based only
+            // No direct mapping required; leave default false
             $isAssignedViaTeacherModel = false;
         }
 
-        if (!$hasAccess && !$isHomeroom && !$isAssignedViaTeacherModel) {
+        // Also allow trainer access: if the teacher is trainer for any of the training classes the student is enrolled in
+        $isTrainerOfStudent = false;
+        if ($teacherModel) {
+            $trainingIds = $student->trainingClasses()->pluck('training_classes.id');
+            if ($trainingIds && $trainingIds->count() > 0) {
+                $isTrainerOfStudent = TrainingClass::whereIn('id', $trainingIds)
+                    ->where(function ($q) use ($teacherModel) {
+                        $q->where('trainer_id', $teacherModel->id);
+                    })->exists();
+            }
+        }
+        // Support legacy trainer id being user id
+        if (!$isTrainerOfStudent) {
+            $trainingIds = $student->trainingClasses()->pluck('training_classes.id');
+            if ($trainingIds && $trainingIds->count() > 0) {
+                $isTrainerOfStudent = TrainingClass::whereIn('id', $trainingIds)
+                    ->where(function ($q) {
+                        $q->where('trainer_id', Auth::id());
+                    })->exists();
+            }
+        }
+
+        if (!$hasAccess && !$isHomeroom && !$isAssignedViaTeacherModel && !$isTrainerOfStudent) {
             abort(403, 'Anda tidak memiliki akses ke data siswa ini.');
         }
 
@@ -212,11 +245,60 @@ class TeacherController extends Controller
         return view('teacher.classes.detail', compact('classRoom', 'students', 'schedules'));
     }
 
+    /**
+     * Show a training-class detail page for trainers.
+     */
+    public function trainingClassDetail($id)
+    {
+        $user = Auth::user();
+        $teacherModel = Teacher::where('user_id', $user->id)->first();
+
+        $trainingClass = TrainingClass::with(['students.user', 'trainer'])->findOrFail($id);
+
+        // check if the current user is the trainer for this training class
+        $isTrainer = false;
+        if ($trainingClass->trainer_id && $teacherModel && $trainingClass->trainer_id === $teacherModel->id) {
+            $isTrainer = true;
+        }
+        // Support legacy case where trainer_id might reference user id directly
+        if (!$isTrainer && $trainingClass->trainer_id === $user->id) {
+            $isTrainer = true;
+        }
+
+        if (!$isTrainer) {
+            abort(403, 'Anda tidak memiliki akses ke data pelatihan ini.');
+        }
+
+        $students = $trainingClass->students()->with('user')->get();
+
+        // Get subjects for this training class from teaching materials
+        $trainingSubjects = \App\Models\Subject::whereHas('teachingMaterials', function($query) use ($id) {
+            $query->where('training_class_id', $id);
+        })->where('is_active', true)->get();
+
+        // If no specific training subjects, suggest a relevant subject based on training class title
+        $suggestedSubject = null;
+        if ($trainingSubjects->isEmpty()) {
+            $title = strtolower($trainingClass->title);
+            if (str_contains($title, 'komputer') || str_contains($title, 'tik') || str_contains($title, 'teknologi')) {
+                $suggestedSubject = \App\Models\Subject::where('is_active', true)
+                    ->where(function($query) {
+                        $query->where('name', 'like', '%TIK%')
+                              ->orWhere('name', 'like', '%Komputer%')
+                              ->orWhere('name', 'like', '%Teknologi%');
+                    })->first();
+            }
+        }
+
+        return view('teacher.training-classes.detail', compact('trainingClass', 'students', 'trainingSubjects', 'suggestedSubject'));
+    }
+
     public function addGrade(Request $request)
     {
         $request->validate([
             'student_id' => 'required|exists:students,id',
             'subject_id' => 'required|exists:subjects,id',
+            'training_class_id' => 'nullable|exists:training_classes,id',
             'score' => 'required|numeric|min:0|max:100',
             'assessment_type' => 'required|in:daily,midterm,final,project',
             'semester' => 'required|string',
@@ -227,6 +309,7 @@ class TeacherController extends Controller
         $grade = Grade::create([
             'student_id' => $request->student_id,
             'subject_id' => $request->subject_id,
+            'training_class_id' => $request->training_class_id,
             'teacher_id' => Auth::id(),
             'score' => $request->score,
             'grade' => $this->calculateGrade($request->score),
@@ -244,6 +327,12 @@ class TeacherController extends Controller
         $grade = Grade::findOrFail($id);
         if ($grade->teacher_id !== Auth::id()) {
             abort(403, 'Unauthorized');
+        }
+
+        // prevent editing grades for kejuruan students in teacher UI
+        $student = $grade->student;
+        if ($student && optional($student->classRoom)->grade_level === 'kejuruan') {
+            return back()->with('error', 'Tidak dapat mengubah nilai siswa kejuruan melalui halaman ini.');
         }
 
         $request->validate([
@@ -273,6 +362,10 @@ class TeacherController extends Controller
         $grade = Grade::findOrFail($id);
         if ($grade->teacher_id !== Auth::id()) {
             abort(403, 'Unauthorized');
+        }
+        $student = $grade->student;
+        if ($student && optional($student->classRoom)->grade_level === 'kejuruan') {
+            return back()->with('error', 'Tidak dapat menghapus nilai siswa kejuruan melalui halaman ini.');
         }
         $grade->delete();
         return back()->with('success', 'Nilai berhasil dihapus!');
@@ -352,8 +445,23 @@ class TeacherController extends Controller
             ->orderBy('start_time')
             ->get()
             ->groupBy('day_of_week');
+        // load materials for classes the teacher manages, grouped by class_id
+        $classIds = $schedules->flatten()->pluck('class_id')->unique()->filter()->values()->all();
+        $materialsByClass = [];
+        if (!empty($classIds)) {
+            $materials = \App\Models\TeachingMaterial::where('teacher_id', Auth::id())
+                ->where(function($q) use ($classIds){
+                    $q->whereNull('class_id')
+                      ->orWhereIn('class_id', $classIds);
+                })
+                ->where('is_visible', true)
+                ->orderBy('created_at', 'desc')
+                ->get()
+                ->groupBy('class_id');
+            $materialsByClass = $materials;
+        }
 
-        return view('teacher.schedules', compact('schedules'));
+        return view('teacher.schedules', compact('schedules', 'materialsByClass'));
     }
 
     /**
@@ -566,14 +674,64 @@ class TeacherController extends Controller
         }
         $subjects = $subjectQuery->pluck('name', 'id')->toArray();
 
-        $selectedClass = $request->query('class_id');
-        $selectedSubject = $request->query('subject_id');
-        $students = collect();
-        if ($selectedClass) {
-            $students = Student::where('class_id', $selectedClass)->with('user')->get();
+        // Load training classes where teacher acts as trainer
+        $trainingClasses = collect();
+        if ($teacher) {
+            $trainingClasses = TrainingClass::where('is_active', true)
+                ->where(function ($q) use ($teacher, $user) {
+                    $q->where('trainer_id', $teacher->id)->orWhere('trainer_id', $user->id);
+                })
+                ->withCount('students')
+                ->get();
         }
 
-        return view('teacher.grades.manage', compact('teacher', 'classes', 'subjects', 'students', 'selectedClass', 'selectedSubject'));
+        $selectedClass = $request->query('class_id');
+        $selectedTraining = $request->query('training_class_id');
+        $selectedSubject = $request->query('subject_id');
+        $students = collect();
+        $existingGrades = collect();
+        if ($selectedClass) {
+            $students = Student::where('class_id', $selectedClass)->with('user')->get();
+            if ($selectedSubject && $request->get('assessment_type') && $request->get('semester') && $request->get('assessment_date')) {
+                $gradeQuery = Grade::whereIn('student_id', $students->pluck('id')->toArray())
+                    ->where('subject_id', $selectedSubject)
+                    ->where('assessment_type', $request->get('assessment_type'))
+                    ->where('semester', $request->get('semester'))
+                    ->where('assessment_date', $request->get('assessment_date'));
+                $existingGrades = $gradeQuery->get()->keyBy('student_id');
+            }
+        } elseif ($selectedTraining) {
+            // Load students from training class if provided and ensure teacher is trainer
+            $training = TrainingClass::with('students.user')->find($selectedTraining);
+            if ($training) {
+                $teacherModel = Teacher::where('user_id', $user->id)->first();
+                $isTrainer = false;
+                if ($training->trainer_id && $teacherModel && $training->trainer_id === $teacherModel->id) {
+                    $isTrainer = true;
+                }
+                if (!$isTrainer && $training->trainer_id === $user->id) {
+                    $isTrainer = true;
+                }
+                if ($isTrainer) {
+                    $students = $training->students()->with('user')->get();
+                    // preload existing grades for the selected subject/assessment to show in inputs
+                    if ($selectedSubject && $request->get('assessment_type') && $request->get('semester') && $request->get('assessment_date')) {
+                        $gradeQuery = Grade::whereIn('student_id', $students->pluck('id')->toArray())
+                            ->where('subject_id', $selectedSubject)
+                            ->where('assessment_type', $request->get('assessment_type'))
+                            ->where('semester', $request->get('semester'))
+                            ->where('assessment_date', $request->get('assessment_date'));
+                        $existingGrades = $gradeQuery->get()->keyBy('student_id');
+                    } else {
+                        $existingGrades = collect();
+                    }
+                } else {
+                    return back()->with('error', 'Anda tidak memiliki akses untuk mengelola nilai pelatihan ini.');
+                }
+            }
+        }
+
+        return view('teacher.grades.manage', compact('teacher', 'classes', 'subjects', 'students', 'selectedClass', 'selectedSubject', 'trainingClasses', 'selectedTraining', 'existingGrades'));
     }
 
     /**
@@ -582,7 +740,8 @@ class TeacherController extends Controller
     public function storeBulkGrades(Request $request)
     {
         $request->validate([
-            'class_id' => 'required|exists:classes,id',
+            'class_id' => 'nullable|exists:classes,id|required_without:training_class_id',
+            'training_class_id' => 'nullable|exists:training_classes,id|required_without:class_id',
             'subject_id' => 'required|exists:subjects,id',
             'assessment_type' => 'required|in:daily,midterm,final,project',
             'semester' => 'required|string',
@@ -593,82 +752,253 @@ class TeacherController extends Controller
 
         $userId = Auth::id();
         $classId = $request->class_id;
+        $trainingClassId = $request->training_class_id;
         $subjectId = $request->subject_id;
 
-        // Ensure the teacher actually teaches this class
-        $teachesClass = Schedule::where('teacher_id', $userId)->where('class_id', $classId)->exists();
-        if (!$teachesClass) {
-            return back()->with('error', 'Anda tidak mengajar Kelas yg dipilih.');
+        // Ensure teacher has rights: for class check schedule or homeroom; for training, teacher must be trainer
+        if ($trainingClassId) {
+            $training = TrainingClass::find($trainingClassId);
+            if (!$training) return back()->with('error', 'Pelatihan tidak ditemukan.');
+            $teacherModel = Teacher::where('user_id', $userId)->first();
+            $isTrainer = false;
+            if ($training->trainer_id && $teacherModel && $training->trainer_id === $teacherModel->id) {
+                $isTrainer = true;
+            }
+            if (!$isTrainer && $training->trainer_id === $userId) {
+                $isTrainer = true;
+            }
+            if (!$isTrainer) {
+                return back()->with('error', 'Anda tidak memiliki akses untuk mengelola nilai pelatihan ini.');
+            }
+        } else {
+            // Ensure the teacher actually teaches this class
+            $teachesClass = Schedule::where('teacher_id', $userId)->where('class_id', $classId)->exists();
+            if (!$teachesClass) {
+                return back()->with('error', 'Anda tidak mengajar Kelas yg dipilih.');
+            }
         }
 
         $created = 0;
-        foreach ($request->scores as $studentId => $score) {
-            if ($score === null || $score === '') continue;
-            Grade::create([
-                'student_id' => $studentId,
-                'subject_id' => $subjectId,
-                'teacher_id' => $userId,
-                'score' => $score,
-                'grade' => $this->calculateGrade($score),
-                'assessment_type' => $request->assessment_type,
-                'semester' => $request->semester,
-                'notes' => $request->notes[$studentId] ?? null,
-                'assessment_date' => $request->assessment_date,
-            ]);
-            $created++;
-        }
-
-        return redirect()->route('teacher.grades.manage', ['class_id' => $classId, 'subject_id' => $subjectId])
-            ->with('success', "Berhasil menyimpan $created nilai.");
-    }
-
-    /**
-     * Show teacher announcement create form
-     */
-    public function createAnnouncementForm()
-    {
-        return view('teacher.announcements.create');
-    }
-
-    /**
-     * Store teacher announcement
-     */
-    public function createAnnouncement(Request $request)
-    {
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'content' => 'required|string',
-            'type' => 'required|in:general,academic,event,urgent',
-            'target_audience' => 'required|in:all,students,teachers,parents',
-            'publish_date' => 'required|date',
-            'expire_date' => 'nullable|date|after:publish_date',
-            'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-        ]);
-
+        $updated = 0;
+        DB::beginTransaction();
         try {
-                $announcementData = [
-                'title' => $request->input('title'),
-                'content' => $request->input('content'),
-                'type' => $request->input('type'),
-                'target_audience' => $request->input('target_audience'),
-                'created_by' => Auth::id(),
-                'publish_date' => $request->input('publish_date'),
-                'expire_date' => $request->input('expire_date'),
-                ];
-
-                if ($request->hasFile('image')) {
-                    $file = $request->file('image');
-                    $filename = 'announcement_' . time() . '.' . $file->getClientOriginalExtension();
-                    $path = $file->storeAs('announcement-images', $filename, 'public');
-                    $announcementData['image'] = $path;
+            foreach ($request->scores as $studentId => $score) {
+                if ($score === null || $score === '') continue;
+                // Prevent grading kejuruan students via teacher manage UI (training/class)
+                $student = Student::find($studentId);
+                if ($student && optional($student->classRoom)->grade_level === 'kejuruan') {
+                    // skip silently; or you may choose to collect and return messages
+                    continue;
                 }
 
-                Announcement::create($announcementData);
+                $criteria = [
+                    'student_id' => $studentId,
+                    'subject_id' => $subjectId,
+                    'assessment_type' => $request->assessment_type,
+                    'semester' => $request->semester,
+                    'assessment_date' => $request->assessment_date,
+                ];
+                if ($trainingClassId) {
+                    $criteria['training_class_id'] = $trainingClassId;
+                }
+
+                $values = [
+                    'teacher_id' => $userId,
+                    'score' => $score,
+                    'grade' => $this->calculateGrade($score),
+                    'notes' => $request->notes[$studentId] ?? null,
+                ];
+                if ($trainingClassId) {
+                    $values['training_class_id'] = $trainingClassId;
+                }
+
+                $gradeModel = Grade::where($criteria)->first();
+                if ($gradeModel) {
+                    $gradeModel->update($values);
+                    $updated++;
+                } else {
+                    Grade::create(array_merge($criteria, $values));
+                    $created++;
+                }
+            }
+            DB::commit();
         } catch (\Exception $e) {
-                \Log::error('Failed to create teacher announcement', ['error' => $e->getMessage()]);
-            return back()->withInput()->with('error', 'Gagal membuat pengumuman: ' . $e->getMessage());
+            DB::rollBack();
+            return back()->with('error', 'Gagal menyimpan nilai: ' . $e->getMessage());
         }
 
-        return redirect()->route('teacher.dashboard')->with('success', 'Pengumuman berhasil dibuat!');
+        $routeParams = ['subject_id' => $subjectId];
+        if ($trainingClassId) $routeParams['training_class_id'] = $trainingClassId; else $routeParams['class_id'] = $classId;
+        $msg = "Berhasil menyimpan $created nilai.";
+        if ($updated) $msg .= ", $updated nilai diperbarui.";
+        return redirect()->route('teacher.grades.manage', $routeParams)
+            ->with('success', $msg);
+    }
+
+    public function graduationManagement()
+    {
+        $user = Auth::user();
+
+        // Get all classes where teacher is homeroom teacher
+        $classes = ClassRoom::where('homeroom_teacher_id', $user->id)
+            ->with(['students.user', 'students.grades'])
+            ->get();
+
+        // Also include training classes where teacher is trainer, with students
+        $teacherModel = Teacher::where('user_id', $user->id)->first();
+        $trainingClasses = collect();
+        if ($teacherModel) {
+            $trainingClasses = TrainingClass::where('is_active', true)
+                ->where(function ($q) use ($teacherModel, $user) {
+                    $q->where('trainer_id', $teacherModel->id)->orWhere('trainer_id', $user->id);
+                })
+                ->with(['students.user', 'students.grades'])
+                ->get();
+        }
+
+        return view('teacher.graduation', compact('classes', 'trainingClasses'));
+    }
+
+    public function processGraduation(Request $request, $studentId)
+    {
+        $request->validate([
+            'status' => 'required|in:passed,failed',
+            'academic_year' => 'required|numeric',
+            'semester' => 'required|in:1,2',
+            'notes' => 'nullable|string'
+        ]);
+
+        $student = Student::with(['classRoom', 'grades', 'user', 'trainingClasses'])->findOrFail($studentId);
+
+        // Check for training class context from request
+        $trainingClassId = $request->input('training_class_id');
+        $currentClass = null;
+        $currentClassName = null;
+        $historyClassId = null;
+        if ($trainingClassId) {
+            $trainingClass = TrainingClass::find($trainingClassId);
+            if ($trainingClass) {
+                $currentClass = $trainingClass; // keep model for checking
+                $currentClassName = $trainingClass->title;
+                $historyClassId = null; // no class_id for training class in history
+            } else {
+                return back()->with('error', 'Kelas pelatihan tidak ditemukan.');
+            }
+        } else {
+            $currentClass = $student->classRoom;
+            $currentClassName = optional($currentClass)->name ?? null;
+            $historyClassId = optional($currentClass)->id ?? null;
+        }
+
+        if (!$currentClass) {
+            return back()->with('error', 'Siswa tidak memiliki kelas.');
+        }
+
+        // Calculate average grade
+        $averageGrade = $student->grades()
+            ->where('academic_year', $request->academic_year)
+            ->where('semester', $request->semester)
+            ->avg('score');
+
+        // Get all grades for this period
+        $subjectsGrades = $student->grades()
+            ->where('academic_year', $request->academic_year)
+            ->where('semester', $request->semester)
+            ->with('subject')
+            ->get()
+            ->map(function ($grade) {
+                return [
+                    'subject' => $grade->subject->name,
+                    'score' => $grade->score,
+                    'notes' => $grade->notes
+                ];
+            });
+
+        DB::beginTransaction();
+        try {
+            // Save grade history
+            \App\Models\StudentGradeHistory::create([
+                'student_id' => $student->id,
+                'class_id' => $historyClassId,
+                'class_name' => $currentClassName,
+                'academic_year' => $request->academic_year,
+                'semester' => $request->semester,
+                'average_grade' => $averageGrade,
+                'subjects_grades' => $subjectsGrades->toArray(),
+                'status' => $request->status,
+                'notes' => $request->notes,
+                'completed_at' => now()
+            ]);
+
+            if ($request->status == 'passed') {
+                // For training class students, treat graduation as final (become Kejuruan/Alumni)
+                if (isset($trainingClassId) && $trainingClassId) {
+                    $nextClass = 'graduated';
+                } else {
+                    $nextClass = $this->determineNextClass(optional($currentClass)->name);
+                }
+
+                if ($nextClass === 'graduated') {
+                    // Student becomes Kejuruan (alumni)
+                    $student->user->update(['role' => 'kejuruan']);
+                    $student->update(['status' => 'graduated']);
+
+                    // Create alumni record
+                    \App\Models\Alumni::create([
+                        'student_id' => $student->id,
+                        'graduation_year' => $request->academic_year,
+                        'final_grade' => $averageGrade,
+                        'notes' => 'Lulus dari ' . $currentClass->name
+                    ]);
+                } else {
+                    // Find or create next class
+                    $newClass = ClassRoom::firstOrCreate(
+                        ['name' => $nextClass],
+                        ['capacity' => 30]
+                    );
+
+                    $student->update(['class_id' => $newClass->id]);
+                }
+            } else {
+                // Failed - stays in same class
+                $student->update(['status' => 'active']);
+            }
+
+            DB::commit();
+            return back()->with('success', 'Status kelulusan berhasil diproses.');
+        } catch (\Exception $e) {
+            DB::rollback();
+            return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+        }
+    }
+
+    private function determineNextClass($currentClassName)
+    {
+        // Parse class name (e.g., "1 SD", "2 SMP", "3 SMA")
+        preg_match('/(\d+)\s+(SD|SMP|SMA)/', $currentClassName, $matches);
+
+        if (empty($matches)) {
+            return $currentClassName; // If can't parse, stay in same class
+        }
+
+        $grade = (int)$matches[1];
+        $level = $matches[2];
+
+        // Graduation rules
+        if ($level === 'SMA' && $grade === 3) {
+            return 'graduated'; // 3 SMA graduates
+        } elseif ($level === 'SMA') {
+            return ($grade + 1) . ' SMA';
+        } elseif ($level === 'SMP' && $grade === 3) {
+            return '1 SMA'; // 3 SMP -> 1 SMA
+        } elseif ($level === 'SMP') {
+            return ($grade + 1) . ' SMP';
+        } elseif ($level === 'SD' && $grade === 6) {
+            return '1 SMP'; // 6 SD -> 1 SMP
+        } elseif ($level === 'SD') {
+            return ($grade + 1) . ' SD';
+        }
+
+        return $currentClassName;
     }
 }

@@ -14,56 +14,58 @@
                         <input type="text" name="title" class="form-control" value="{{ old('title') }}" required>
                         @error('title')<div class="text-danger small">{{ $message }}</div>@enderror
                     </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Kelas</label>
-                        <select name="class_id" class="form-select" required>
-                            @if(isset($classes) && (is_array($classes) || $classes instanceof \Illuminate\Support\Collection) && count($classes) > 0)
+                    @if(isset($classes) && $classes instanceof \Illuminate\Support\Collection && $classes->count() > 0)
+                        <div class="col-md-6">
+                            <label class="form-label">Kelas</label>
+                            <select name="class_id" class="form-select">
                                 @foreach($classes as $c)
-                                    <option value="{{ $c->id }}" {{ old('class_id') == $c->id ? 'selected' : '' }}>{{ $c->name }}
+                                    <option value="{{ $c->id }}" {{ (string) (old('class_id', request('class_id'))) === (string) $c->id ? 'selected' : '' }}>{{ $c->name }}
                                     </option>
                                 @endforeach
-                            @else
-                                <option value="" disabled>Tidak ada kelas yang diampu</option>
-                                <script>
-                                    document.addEventListener('DOMContentLoaded', function () {
-                                        const btn = document.querySelector('button[type=submit]');
-                                        if (btn) btn.disabled = true;
-                                    });
-                                </script>
-                            @endif
-                        </select>
-                        @error('class_id')<div class="text-danger small">{{ $message }}</div>@enderror
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Mata Pelajaran</label>
-                        <select name="subject_id" class="form-select" required>
-                            <option value="">-- Pilih Mata Pelajaran --</option>
-                            @if(isset($subjects) && (is_array($subjects) || $subjects instanceof \Illuminate\Support\Collection) && count($subjects) > 0)
-                                @foreach($subjects as $s)
-                                    <option value="{{ $s->id }}" {{ old('subject_id') == $s->id ? 'selected' : '' }}>{{ $s->name }}
-                                    </option>
-                                @endforeach
-                            @else
-                                <option value="" disabled>Tidak ada mata pelajaran yang diajarkan</option>
-                                <script>
-                                    document.addEventListener('DOMContentLoaded', function () {
-                                        const btn = document.querySelector('button[type=submit]');
-                                        if (btn) btn.disabled = true;
-                                    });
-                                </script>
-                            @endif
-                        </select>
-                        @error('subject_id')<div class="text-danger small">{{ $message }}</div>@enderror
-                    </div>
+                            </select>
+                            @error('class_id')<div class="text-danger small">{{ $message }}</div>@enderror
+                        </div>
+                    @endif
+                    @if(request()->query('training_class_id'))
+                        <input type="hidden" name="training_class_id" value="{{ request('training_class_id') }}" />
+                    @endif
+                    @unless(request()->query('training_class_id'))
+                        <div class="col-md-6">
+                            <label class="form-label">Mata Pelajaran</label>
+                            <select name="subject_id" class="form-select" required>
+                                <option value="">-- Pilih Mata Pelajaran --</option>
+                                @if(isset($subjects) && (is_array($subjects) || $subjects instanceof \Illuminate\Support\Collection) && count($subjects) > 0)
+                                    @foreach($subjects as $s)
+                                        <option value="{{ $s->id }}" {{ (string) (old('subject_id', request('subject_id'))) === (string) $s->id ? 'selected' : '' }}>{{ $s->name }}
+                                        </option>
+                                    @endforeach
+                                @else
+                                    <option value="" disabled>Tidak ada mata pelajaran yang diajarkan</option>
+                                    <script>
+                                        document.addEventListener('DOMContentLoaded', function () {
+                                            const btn = document.querySelector('button[type=submit]');
+                                            if (btn) btn.disabled = true;
+                                        });
+                                    </script>
+                                @endif
+                            </select>
+                            @error('subject_id')<div class="text-danger small">{{ $message }}</div>@enderror
+                        </div>
+                    @endunless
                     <div class="col-12">
                         <label class="form-label">Deskripsi</label>
                         <textarea name="description" class="form-control" rows="3">{{ old('description') }}</textarea>
                         @error('description')<div class="text-danger small">{{ $message }}</div>@enderror
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">File (pdf/doc/video/image) — Maks 20MB</label>
-                        <input type="file" name="file" class="form-control" required>
+                        <label class="form-label">File (pdf/doc/video/image) — Maks 50MB</label>
+                        <input type="file" name="file" class="form-control">
                         @error('file')<div class="text-danger small">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Atau Link Materi (opsional)</label>
+                        <input type="url" name="link" class="form-control" placeholder="https://example.com/contoh-materi">
+                        @error('link')<div class="text-danger small">{{ $message }}</div>@enderror
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Tampilkan</label>
@@ -74,7 +76,12 @@
                     </div>
                 </div>
                 <div class="mt-4 text-end">
-                    <a href="{{ route('teacher.materials.index') }}" class="btn btn-outline-secondary">Batal</a>
+                    @if(request()->query('training_class_id'))
+                        <a href="{{ route('teacher.training-class.materials', request()->query('training_class_id')) }}"
+                            class="btn btn-outline-secondary">Batal</a>
+                    @else
+                        <a href="{{ route('teacher.materials.index') }}" class="btn btn-outline-secondary">Batal</a>
+                    @endif
                     <button class="btn btn-primary">Simpan</button>
                 </div>
             </form>
@@ -89,9 +96,10 @@
             var classSel = document.querySelector('select[name=class_id]');
             var subjectSel = document.querySelector('select[name=subject_id]');
             var submitBtn = document.querySelector('button[type=submit]');
-            if (submitBtn && (!hasValidOption(classSel) || !hasValidOption(subjectSel))) {
+            if (submitBtn && ((!hasValidOption(classSel) && !hasValidOption(trainingSel)) || (subjectSel && !hasValidOption(subjectSel)))) {
                 submitBtn.disabled = true;
             }
+            // No training select here; if classSel is missing or not selected, ensure submission is blocked
         });
     </script>
 @endsection

@@ -25,12 +25,10 @@
                                     SD</option>
                                 <option value="SMP" {{ (old('grade_level', $class->grade_level) === 'SMP') ? 'selected' : '' }}>SMP</option>
                                 <option value="SMA" {{ (old('grade_level', $class->grade_level) === 'SMA') ? 'selected' : '' }}>SMA</option>
-                                <option value="kejuruan" {{ (old('grade_level', $class->grade_level) === 'kejuruan') ? 'selected' : '' }}>kejuruan</option>
-                                <option value="other" {{ in_array(old('grade_level', $class->grade_level), ['SD', 'SMP', 'SMA', 'kejuruan']) ? '' : 'selected' }}>Lainnya...</option>
+                                <option value="other" {{ in_array(old('grade_level', $class->grade_level), ['SD', 'SMP', 'SMA']) ? '' : 'selected' }}>Lainnya...</option>
                             </select>
                             <input type="text" id="grade_level_input" name="grade_level" class="form-control"
-                                value="{{ old('grade_level', $class->grade_level) }}"
-                                placeholder="Contoh: X, XI, Kejuruan, etc.">
+                                value="{{ old('grade_level', $class->grade_level) }}" placeholder="Contoh: X, XI, dll.">
                         </div>
                         @error('grade_level') <div class="text-danger small">{{ $message }}</div> @enderror
                     </div>
@@ -85,6 +83,22 @@
                     return;
                 }
                 input.value = v;
+            });
+        })();
+
+        // Prevent updating grade to 'kejuruan' from this form for non-kejuruan classes
+        (function () {
+            var form = document.querySelector('form[action="{{ route('admin.classes.update', $class->id) }}"]');
+            var input = document.getElementById('grade_level_input');
+            form && form.addEventListener('submit', function (e) {
+                if (!input) return;
+                var v = (input.value || '').trim().toLowerCase();
+                var currentIsKejuruan = '{{ $class->grade_level }}' === 'kejuruan';
+                if (v === 'kejuruan' && !currentIsKejuruan) {
+                    e.preventDefault();
+                    alert('Mengubah kelas menjadi kejuruan harus dilakukan melalui menu Kelola Pelatihan.');
+                    input.focus();
+                }
             });
         })();
     </script>

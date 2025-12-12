@@ -4,10 +4,11 @@
 
 @section('content')
     <div class="teacher-page-wrapper">
+        @php use Illuminate\Support\Str; @endphp
         <div class="container-fluid py-4">
             @php
-                $todaySchedules = isset($todaySchedules) ? $todaySchedules : collect();
-                $todaySchedulesCount = isset($todaySchedulesCount) ? $todaySchedulesCount : 0;
+                $allSchedules = isset($allSchedules) ? $allSchedules : collect();
+                $allSchedulesCount = isset($allSchedulesCount) ? $allSchedulesCount : 0;
             @endphp
             <!-- Header Dashboard -->
             <div class="row mb-4">
@@ -23,7 +24,8 @@
                                     </h2>
                                     <p class="mb-0 opacity-75">
                                         <i class="bi bi-calendar-check me-2"></i>
-                                        {{ \Carbon\Carbon::now()->format('l, d F Y') }}
+                                        {{ $daysInIndonesian[strtolower(\Carbon\Carbon::now()->format('l'))] ?? \Carbon\Carbon::now()->format('l') }},
+                                        {{ \Carbon\Carbon::now()->format('d F Y') }}
                                     </p>
                                 </div>
                                 <div class="col-md-4 text-end">
@@ -84,8 +86,8 @@
                         <div class="card-body">
                             <div class="row align-items-center">
                                 <div class="col">
-                                    <p class="text-muted small mb-1">Jadwal Hari Ini</p>
-                                    <h3 class="text-warning mb-0">{{ $todaySchedulesCount ?? 0 }}</h3>
+                                    <p class="text-muted small mb-1">Total Jadwal</p>
+                                    <h3 class="text-warning mb-0">{{ $allSchedulesCount ?? 0 }}</h3>
                                 </div>
                                 <div class="col-auto">
                                     <div class="icon icon-shape bg-warning text-white rounded-circle">
@@ -123,41 +125,66 @@
                         <div class="card-header bg-white border-bottom">
                             <div class="d-flex justify-content-between align-items-center">
                                 <h5 class="mb-0">
-                                    <i class="bi bi-calendar-day me-2 text-success"></i>
-                                    Jadwal Mengajar Hari Ini
+                                    <i class="bi bi-calendar-week me-2 text-success"></i>
+                                    Jadwal Mengajar
                                 </h5>
-                                <span class="badge bg-success">{{ \Carbon\Carbon::now()->format('d/m/Y') }}</span>
+                                <span class="badge bg-success">{{ $allSchedulesCount }} Jadwal</span>
                             </div>
                         </div>
                         <div class="card-body">
-                            @if($todaySchedules && $todaySchedules->count() > 0)
+                            @if($allSchedules && $allSchedules->count() > 0)
                                 <div class="timeline">
-                                    @foreach($todaySchedules as $schedule)
+                                    @foreach($allSchedules as $schedule)
                                         <div class="timeline-item">
                                             <div class="timeline-marker bg-success"></div>
                                             <div class="timeline-content">
                                                 <div class="d-flex justify-content-between align-items-start mb-2">
-                                                    <div>
-                                                        <h6 class="mb-1">{{ $schedule->subject->name }}</h6>
-                                                        <p class="text-muted small mb-1">
-                                                            <i class="bi bi-people me-1"></i>
-                                                            Kelas: {{ optional($schedule->classRoom)->name }}
-                                                        </p>
+                                                    <div class="grow">
+                                                        <h6 class="mb-1" style="color: black;">{{ $schedule->subject->name }}</h6>
+                                                        <div class="row g-2">
+                                                            <div class="col-md-6">
+                                                                <p class="text-dark small mb-1">
+                                                                    <i class="bi bi-calendar-week me-1"></i>
+                                                                    Hari:
+                                                                    {{ $daysInIndonesian[$schedule->day_of_week] ?? ucfirst($schedule->day_of_week) }}
+                                                                </p>
+                                                                <p class="text-dark small mb-1">
+                                                                    <i class="bi bi-people me-1"></i>
+                                                                    Kelas: {{ optional($schedule->classRoom)->name }}
+                                                                </p>
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <p class="text-dark small mb-1 text-end">
+                                                                    <i class="bi bi-clock me-1"></i>
+                                                                    <span class="text-nowrap">
+                                                                        Waktu:
+                                                                        {{ \Carbon\Carbon::parse($schedule->start_time)->format('H:i') }}
+                                                                        -
+                                                                        {{ \Carbon\Carbon::parse($schedule->end_time)->format('H:i') }}
+                                                                    </span>
+                                                                </p>
+                                                                <p class="text-dark small mb-1">
+                                                                    <i class="bi bi-geo-alt me-1"></i>
+                                                                    Ruang: {{ $schedule->room ?? 'Tidak ditentukan' }}
+                                                                </p>
+                                                            </div>
+                                                        </div>
                                                     </div>
-                                                    <span class="badge bg-light text-dark">
-                                                        {{ $schedule->start_time }} - {{ $schedule->end_time }}
-                                                    </span>
+                                                    <div class="ms-3">
+                                                        <span class="badge bg-primary text-dark">
+                                                            <i class="bi bi-clock me-1"></i>
+                                                            {{ \Carbon\Carbon::parse($schedule->start_time)->format('H:i') }}
+                                                        </span>
+                                                    </div>
                                                 </div>
                                                 @if($schedule->description)
-                                                    <p class="small mb-0 text-muted">{{ $schedule->description }}</p>
+                                                    <p class="small mb-0 text-dark">{{ $schedule->description }}</p>
                                                 @endif
                                                 <div class="mt-2">
-                                                    <a href="{{ route('teacher.schedules') }}"
-                                                        class="btn btn-sm btn-outline-primary me-2">
-                                                        <i class="bi bi-check2-square me-1"></i>Absensi
+                                                    <a href="{{ route('teacher.schedules') }}" class="btn btn-sm btn-primary me-2">
+                                                        <i class="bi bi-check2-square me-1"></i>Info Kelas
                                                     </a>
-                                                    <a href="{{ route('teacher.students') }}"
-                                                        class="btn btn-sm btn-outline-success">
+                                                    <a href="{{ route('teacher.students') }}" class="btn btn-sm btn-success">
                                                         <i class="bi bi-plus-circle me-1"></i>Input Nilai
                                                     </a>
                                                 </div>
@@ -168,7 +195,7 @@
                             @else
                                 <div class="text-center py-4">
                                     <i class="bi bi-calendar-x text-muted" style="font-size: 3rem;"></i>
-                                    <p class="text-muted mt-2">Tidak ada jadwal mengajar untuk hari ini</p>
+                                    <p class="text-dark mt-2">Tidak ada jadwal mengajar</p>
                                 </div>
                             @endif
                         </div>
@@ -193,18 +220,11 @@
                                 <a href="{{ route('teacher.students') }}" class="btn btn-outline-info btn-sm">
                                     <i class="bi bi-people me-2"></i>Daftar Siswa
                                 </a>
-                                <a href="{{ route('teacher.grades.manage') }}" class="btn btn-outline-success btn-sm">
-                                    <i class="bi bi-bar-chart me-2"></i>Kelola Nilai
-                                </a>
-                                <a href="{{ route('teacher.announcements.create') }}"
-                                    class="btn btn-outline-warning btn-sm">
-                                    <i class="bi bi-megaphone me-2"></i>Buat Pengumuman
-                                </a>
                                 <a href="{{ route('teacher.profile') }}" class="btn btn-outline-secondary btn-sm">
                                     <i class="bi bi-person-gear me-2"></i>Edit Profil
                                 </a>
-                                <a href="{{ route('teacher.materials.index') }}" class="btn btn-outline-primary btn-sm">
-                                    <i class="bi bi-folder-symlink me-2"></i>Materi Saya
+                                <a href="{{ route('teacher.graduation') }}" class="btn btn-outline-warning btn-sm">
+                                    <i class="bi bi-mortarboard me-2"></i>Kelulusan Siswa
                                 </a>
                             </div>
                         </div>
@@ -225,13 +245,13 @@
                                     @foreach($classes as $class)
                                         <div class="list-group-item border-0 d-flex justify-content-between align-items-center"
                                             style="
-                                                                    padding: 14px;
-                                                                    margin-bottom: 8px;
-                                                                    border-radius: 10px;
-                                                                    background: white;
-                                                                    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-                                                                    transition: 0.2s;
-                                                                "
+                                                                                                                                                                                                                                                                                                                                                                                                                                padding: 14px;
+                                                                                                                                                                                                                                                                                                                                                                                                                                margin-bottom: 8px;
+                                                                                                                                                                                                                                                                                                                                                                                                                                border-radius: 10px;
+                                                                                                                                                                                                                                                                                                                                                                                                                                background: white;
+                                                                                                                                                                                                                                                                                                                                                                                                                                box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+                                                                                                                                                                                                                                                                                                                                                                                                                                transition: 0.2s;
+                                                                                                                                                                                                                                                                                                                                                                                                                            "
                                             onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.15)'"
                                             onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 6px rgba(0,0,0,0.08)'">
                                             <div>
@@ -242,13 +262,46 @@
                                                 </small>
                                             </div>
 
-                                            <a href="{{ route('teacher.class.detail', $class->id) }}" class="btn btn-sm bg-warning"
-                                                style="border-radius: 20px; padding: 4px 14px; font-size: 0.85rem;">
-                                                <i class="bi bi-eye me-1"></i> Lihat
-                                            </a>
+                                            <div class="d-flex gap-2">
+                                                <a href="{{ route('teacher.class.detail', $class->id) }}"
+                                                    class="btn btn-sm bg-warning"
+                                                    style="border-radius: 20px; padding: 4px 14px; font-size: 0.85rem;">
+                                                    <i></i> Lihat
+                                                </a>
+                                                <a href="{{ route('teacher.class.materials', $class->id) }}"
+                                                    class="btn btn-sm bg-warning"
+                                                    style="border-radius: 20px; padding: 4px 14px; font-size: 0.85rem;">
+                                                    <i class=""></i> Kelola Materi
+                                                </a>
+                                            </div>
                                         </div>
                                     @endforeach
                                 </div>
+                                @if(isset($trainingClasses) && $trainingClasses->count() > 0)
+                                    <hr class="my-3" />
+                                    <h6 class="mb-2">Kelas Pelatihan yang Anda Latih</h6>
+                                    <div class="list-group list-group-flush">
+                                        @foreach($trainingClasses as $tc)
+                                            <div class="list-group-item border-0 d-flex justify-content-between align-items-center"
+                                                style="padding: 14px; margin-bottom: 8px; border-radius: 10px; background: white; box-shadow: 0 2px 6px rgba(0,0,0,0.08);">
+                                                <div>
+                                                    <h6 class="mb-1" style="font-weight: 600; color:#222;">{{ $tc->title }}</h6>
+                                                    <small class="text-muted" style="font-size: 0.85rem;">{{ $tc->students_count ?? 0 }}
+                                                        peserta</small>
+                                                </div>
+                                                <div class="d-flex gap-2">
+                                                    <a href="{{ route('teacher.training-class.detail', $tc->id) }}"
+                                                        class="btn btn-sm bg-warning"
+                                                        style="border-radius: 20px; padding: 4px 14px; font-size: 0.85rem;">Lihat</a>
+                                                    <a href="{{ route('teacher.training-class.materials', $tc->id) }}"
+                                                        class="btn btn-sm bg-warning"
+                                                        style="border-radius: 20px; padding: 4px 14px; font-size: 0.85rem;">Kelola
+                                                        Materi</a>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                @endif
                             @else
                                 <div class="text-center py-3">
                                     <i class="bi bi-collection text-muted" style="font-size: 2rem;"></i>
@@ -319,92 +372,6 @@
                                 <div class="text-center py-3">
                                     <i class="bi bi-megaphone text-muted" style="font-size: 2rem;"></i>
                                     <p class="text-muted mt-2 small">Belum ada pengumuman</p>
-                                </div>
-                            @endif
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Statistik Nilai dan Kehadiran -->
-            <div class="row mt-4">
-                <!-- Grafik Nilai -->
-                <div class="col-lg-6 mb-4">
-                    <div class="card border-0 shadow-sm">
-                        <div class="card-header bg-white border-bottom">
-                            <h5 class="mb-0">
-                                <i class="bi bi-graph-up me-2 text-info"></i>
-                                Statistik Nilai Siswa
-                            </h5>
-                        </div>
-                        <div class="card-body">
-                            <canvas id="gradesChart" width="400" height="200"></canvas>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Daftar Siswa dengan Nilai Rendah -->
-                <div class="col-lg-6 mb-4">
-                    <div class="card border-0 shadow-sm">
-                        <div class="card-header bg-white border-bottom">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <h5 class="mb-0">
-                                    <i class="bi bi-exclamation-triangle me-2 text-warning"></i>
-                                    Perhatian Khusus
-                                </h5>
-                                <span class="badge bg-warning text-dark">{{ $lowGradesStudents->count() ?? 0 }}</span>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            @if($lowGradesStudents && $lowGradesStudents->count() > 0)
-                                <div class="table-responsive">
-                                    <table class="table table-hover">
-                                        <thead class="table-light">
-                                            <tr>
-                                                <th>Nama Siswa</th>
-                                                <th>Kelas</th>
-                                                <th>Rata-rata</th>
-                                                <th>Aksi</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @foreach($lowGradesStudents->take(5) as $student)
-                                                <tr>
-                                                    <td>
-                                                        <div class="d-flex align-items-center">
-                                                            <div
-                                                                class="avatar-sm bg-warning rounded-circle me-2 d-flex align-items-center justify-content-center">
-                                                                <i class="bi bi-person text-white"></i>
-                                                            </div>
-                                                            <strong>{{ $student->user->name }}</strong>
-                                                        </div>
-                                                    </td>
-                                                    <td>{{ optional($student->classRoom)->name }}</td>
-                                                    <td>
-                                                        <span class="badge bg-danger">
-                                                            {{ number_format($student->average_grade, 1) }}
-                                                        </span>
-                                                    </td>
-                                                    <td>
-                                                        <a href="{{ route('teacher.students.detail', $student->id) }}"
-                                                            class="btn btn-sm btn-outline-light">
-                                                            <i class="bi bi-eye text-white"></i>
-                                                        </a>
-                                                    </td>
-                                                </tr>
-                                            @endforeach
-                                        </tbody>
-                                    </table>
-                                </div>
-                                <div class="text-center mt-3">
-                                    <a href="{{ route('teacher.students.low-grades') }}" class="btn btn-outline-warning btn-sm">
-                                        Lihat Semua
-                                    </a>
-                                </div>
-                            @else
-                                <div class="text-center py-4">
-                                    <i class="bi bi-check-circle text-success" style="font-size: 3rem;"></i>
-                                    <p class="text-success mt-2">Semua siswa memiliki nilai yang baik!</p>
                                 </div>
                             @endif
                         </div>
@@ -499,8 +466,8 @@
         }
 
         /* Make the header of each card orange inside teacher pages without changing card body colors
-                                                                                                                               -- also override any Bootstrap `bg-white` utility class using `!important` to ensure this
-                                                                                                                               styling applies when markup uses `bg-white` on the header. */
+                                                                                                                                                                                                                                                   -- also override any Bootstrap `bg-white` utility class using `!important` to ensure this
+                                                                                                                                                                                                                                                   styling applies when markup uses `bg-white` on the header. */
         .teacher-page-wrapper .card-header,
         .teacher-page-wrapper .card-header.bg-white {
             background-color: #fd7e14 !important;
@@ -580,10 +547,10 @@
                     labels: ['A (90-100)', 'B (80-89)', 'C (70-79)', 'D (60-69)', 'E (<60)'],
                     datasets: [{
                         data: [
-                                                                                                                                                                {{ $gradeDistribution['A'] ?? 0 }},
-                                                                                                                                                                {{ $gradeDistribution['B'] ?? 0 }},
-                                                                                                                                                                {{ $gradeDistribution['C'] ?? 0 }},
-                                                                                                                                                                {{ $gradeDistribution['D'] ?? 0 }},
+                                                                                                                                                                                                                                                                                    {{ $gradeDistribution['A'] ?? 0 }},
+                                                                                                                                                                                                                                                                                    {{ $gradeDistribution['B'] ?? 0 }},
+                                                                                                                                                                                                                                                                                    {{ $gradeDistribution['C'] ?? 0 }},
+                                                                                                                                                                                                                                                                                    {{ $gradeDistribution['D'] ?? 0 }},
                             {{ $gradeDistribution['E'] ?? 0 }}
                         ],
                         backgroundColor: [

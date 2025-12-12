@@ -4,18 +4,33 @@
             <form method="POST" action="{{ route('teacher.grades.store') }}">
                 @csrf
                 <input type="hidden" name="student_id" value="{{ $student->id }}">
+                @if(isset($trainingClass))
+                    <input type="hidden" name="training_class_id" value="{{ $trainingClass->id }}">
+                @endif
                 <div class="modal-header">
                     <h5 class="modal-title">Tambah Nilai - {{ $student->user->name }}</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label for="subject_id{{ $student->id }}" class="form-label">Mata Pelajaran</label>
+                        <label for="subject_id{{ $student->id }}" class="form-label">Kelas</label>
                         <select name="subject_id" id="subject_id{{ $student->id }}" class="form-control" required>
-                            <option value="">-- Pilih Mata Pelajaran --</option>
-                            @foreach(App\Models\Subject::where('is_active', true)->get() as $subject)
-                                <option value="{{ $subject->id }}">{{ $subject->name }}</option>
-                            @endforeach
+                            @if(isset($trainingSubjects) && $trainingSubjects->count() > 0)
+                                {{-- Use training class specific subjects and auto-select the first one --}}
+                                @foreach($trainingSubjects as $subject)
+                                    <option value="{{ $subject->id }}" @if($loop->first) selected @endif>
+                                        {{ $subject->name }}
+                                    </option>
+                                @endforeach
+                            @else
+                                <option value="">-- Pilih Mata Pelajaran --</option>
+                                {{-- Fallback to all active subjects with suggested subject pre-selected --}}
+                                @foreach(App\Models\Subject::where('is_active', true)->get() as $subject)
+                                    <option value="{{ $subject->id }}" @if(isset($suggestedSubject) && $suggestedSubject && $suggestedSubject->id === $subject->id) selected @endif>
+                                        {{ $subject->name }}
+                                    </option>
+                                @endforeach
+                            @endif
                         </select>
                     </div>
                     <div class="row">

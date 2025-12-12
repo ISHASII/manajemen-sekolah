@@ -103,11 +103,12 @@
                                             <input type="text" name="interests_talents[]" class="form-control"
                                                 placeholder="Minat/Bakat">
                                             <button type="button" class="btn btn-outline-danger"
-                                                onclick="removeInterest(this)"><i class="fas fa-minus"></i></button>
+                                                onclick="removeInterest(this)" aria-label="Hapus minat"><span
+                                                    class="fw-bold text-dark" aria-hidden="true">×</span></button>
                                         </div>
                                     </div>
-                                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="addInterest()"><i
-                                            class="fas fa-plus"></i> Tambah</button>
+                                    <button type="button" class="btn btn-sm btn-outline-primary"
+                                        onclick="addInterest()"><span class="fw-bold">+</span> Tambah</button>
                                 </div>
                         </div>
                         <div class="d-flex justify-content-end">
@@ -127,9 +128,9 @@
             const div = document.createElement('div');
             div.className = 'input-group mb-2';
             div.innerHTML = `
-                                        <input type="text" name="interests_talents[]" class="form-control" placeholder="Minat/Bakat">
-                                        <button type="button" class="btn btn-outline-danger" onclick="removeInterest(this)"><i class="fas fa-minus"></i></button>
-                                    `;
+                                                            <input type="text" name="interests_talents[]" class="form-control" placeholder="Minat/Bakat">
+                                                                <button type="button" class="btn btn-outline-danger" onclick="removeInterest(this)" aria-label="Hapus minat"><span class="fw-bold text-dark" aria-hidden="true">×</span></button>
+                                                        `;
             container.appendChild(div);
         }
 

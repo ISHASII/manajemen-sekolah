@@ -36,18 +36,6 @@
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Publik untuk</label>
-                        <select name="target_audience" class="form-select">
-                            <option value="all" {{ old('target_audience') == 'all' ? 'selected' : '' }}>Semua</option>
-                            <option value="students" {{ old('target_audience') == 'students' ? 'selected' : '' }}>Siswa
-                            </option>
-                            <option value="teachers" {{ old('target_audience') == 'teachers' ? 'selected' : '' }}>Guru
-                            </option>
-                            <option value="parents" {{ old('target_audience') == 'parents' ? 'selected' : '' }}>Orang Tua
-                            </option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
                         <label class="form-label">Tanggal Publish</label>
                         <input type="date" name="publish_date" class="form-control"
                             value="{{ old('publish_date', now()->toDateString()) }}" required>

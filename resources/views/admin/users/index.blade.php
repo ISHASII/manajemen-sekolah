@@ -6,9 +6,6 @@
     <div class="container py-4">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h3 class="mb-0">Semua Pengguna</h3>
-            <div>
-                <a href="{{ route('admin.users.create') }}" class="btn btn-primary">Buat Pengguna</a>
-            </div>
         </div>
         <div class="card">
             <div class="card-body">
@@ -28,7 +25,19 @@
                                 <tr>
                                     <td>{{ $user->name }}</td>
                                     <td>{{ $user->email }}</td>
-                                    <td>{{ $user->role }}</td>
+                                    <td>
+                                        @if($user->role == 'admin')
+                                            <span class="badge bg-primary">Admin</span>
+                                        @elseif($user->role == 'teacher')
+                                            <span class="badge bg-success">Guru</span>
+                                        @elseif($user->role == 'student')
+                                            <span class="badge bg-info">Siswa</span>
+                                        @elseif($user->role == 'kejuruan')
+                                            <span class="badge bg-warning">Kejuruan</span>
+                                        @else
+                                            <span class="badge bg-secondary">{{ ucfirst($user->role) }}</span>
+                                        @endif
+                                    </td>
                                     <td>{{ $user->is_active ? 'Aktif' : 'Non-aktif' }}</td>
                                     <td>
                                         <a href="{{ route('admin.users.edit', $user->id) }}"

@@ -29,96 +29,92 @@
                                     <div class="modal fade" id="updateProfileModal" tabindex="-1">
                                         <div class="modal-dialog modal-lg">
                                             <div class="modal-content">
-                                                <form method="POST" action="{{ route('student.profile.update') }}"
-                                                    enctype="multipart/form-data">
+                                                <form method="POST" action="{{ route('student.profile.update') }}" enctype="multipart/form-data">
                                                     @csrf
                                                     @method('PUT')
                                                     <div class="modal-header">
                                                         <h5 class="modal-title">Edit Profil Siswa</h5>
-                                                        <button type="button" class="btn-close"
-                                                            data-bs-dismiss="modal"></button>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                                     </div>
                                                     <div class="modal-body">
                                                         <div class="row">
                                                             <div class="col-md-6 mb-3">
                                                                 <label class="form-label">NISN</label>
-                                                                <input type="text" name="nisn" class="form-control"
-                                                                    value="{{ old('nisn', $student->nisn) }}">
+                                                                <input type="text" name="nisn" class="form-control" value="{{ old('nisn', $student->nisn) }}">
+                                                                @error('nisn')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
                                                             </div>
                                                             <div class="col-md-6 mb-3">
                                                                 <label class="form-label">Email</label>
-                                                                <input type="email" name="email" class="form-control"
-                                                                    value="{{ old('email', $student->user->email) }}">
+                                                                <input type="email" name="email" class="form-control" value="{{ old('email', $student->user->email) }}">
+                                                                @error('email')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
                                                             </div>
                                                             <div class="col-md-6 mb-3">
-                                                                <label class="form-label">Password Baru</label>
-                                                                <input type="password" name="password" class="form-control @error('password') is-invalid @enderror"
-                                                                    placeholder="Kosongkan jika tidak ingin merubah password">
-                                                                @error('password')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                                                <label class="form-label">Password Baru (opsional)</label>
+                                                                <input type="password" name="password" class="form-control" autocomplete="new-password">
+                                                                @error('password')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
                                                             </div>
                                                             <div class="col-md-6 mb-3">
                                                                 <label class="form-label">Konfirmasi Password</label>
-                                                                <input type="password" name="password_confirmation" class="form-control @error('password_confirmation') is-invalid @enderror"
-                                                                    placeholder="Ulangi password baru">
-                                                                @error('password_confirmation')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                                                <input type="password" name="password_confirmation" class="form-control" autocomplete="new-password">
+                                                                @error('password_confirmation')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
                                                             </div>
                                                             <div class="col-md-6 mb-3">
                                                                 <label class="form-label">Tempat Lahir</label>
-                                                                <input type="text" name="place_of_birth" class="form-control"
-                                                                    value="{{ old('place_of_birth', $student->place_of_birth) }}">
+                                                                <input type="text" name="place_of_birth" class="form-control" value="{{ old('place_of_birth', $student->place_of_birth) }}">
                                                             </div>
                                                             <div class="col-md-6 mb-3">
                                                                 <label class="form-label">Tanggal Lahir</label>
-                                                                <input type="date" name="birth_date" class="form-control"
-                                                                    value="{{ old('birth_date', optional($student->birth_date)->format('Y-m-d')) }}">
+                                                                <input type="date" name="birth_date" class="form-control" value="{{ old('birth_date', optional($student->birth_date)->format('Y-m-d')) }}">
                                                             </div>
                                                             <div class="col-md-6 mb-3">
                                                                 <label class="form-label">Agama</label>
                                                                 <select name="religion" class="form-select">
                                                                     <option value="">Pilih Agama</option>
-                                                                    <option value="islam" {{ old('religion', $student->religion) === 'islam' ? 'selected' : '' }}>Islam
-                                                                    </option>
-                                                                    <option value="kristen" {{ old('religion', $student->religion) === 'kristen' ? 'selected' : '' }}>
-                                                                        Kristen</option>
-                                                                    <option value="katolik" {{ old('religion', $student->religion) === 'katolik' ? 'selected' : '' }}>
-                                                                        Katolik</option>
-                                                                    <option value="hindu" {{ old('religion', $student->religion) === 'hindu' ? 'selected' : '' }}>Hindu
-                                                                    </option>
-                                                                    <option value="budha" {{ old('religion', $student->religion) === 'budha' ? 'selected' : '' }}>Budha
-                                                                    </option>
-                                                                    <option value="khonghucu" {{ old('religion', $student->religion) === 'khonghucu' ? 'selected' : '' }}>
-                                                                        Khonghucu</option>
+                                                                    <option value="islam" {{ old('religion', $student->religion) === 'islam' ? 'selected' : '' }}>Islam</option>
+                                                                    <option value="kristen" {{ old('religion', $student->religion) === 'kristen' ? 'selected' : '' }}>Kristen</option>
+                                                                    <option value="katolik" {{ old('religion', $student->religion) === 'katolik' ? 'selected' : '' }}>Katolik</option>
+                                                                    <option value="hindu" {{ old('religion', $student->religion) === 'hindu' ? 'selected' : '' }}>Hindu</option>
+                                                                    <option value="budha" {{ old('religion', $student->religion) === 'budha' ? 'selected' : '' }}>Budha</option>
+                                                                    <option value="khonghucu" {{ old('religion', $student->religion) === 'khonghucu' ? 'selected' : '' }}>Khonghucu</option>
                                                                 </select>
                                                             </div>
                                                             <div class="col-md-12 mb-3">
                                                                 <label class="form-label">Alamat</label>
-                                                                <textarea name="address"
-                                                                    class="form-control">{{ old('address', $student->address) }}</textarea>
+                                                                <textarea name="address" class="form-control">{{ old('address', $student->address) }}</textarea>
                                                             </div>
                                                             <div class="col-md-6 mb-3">
                                                                 <label class="form-label">Nama Orang Tua / Wali</label>
-                                                                <input type="text" name="parent_name" class="form-control"
-                                                                    value="{{ old('parent_name', $student->parent_name) }}">
+                                                                <input type="text" name="parent_name" class="form-control" value="{{ old('parent_name', $student->parent_name) }}">
                                                             </div>
                                                             <div class="col-md-6 mb-3">
                                                                 <label class="form-label">Telepon Orang Tua</label>
-                                                                <input type="text" name="parent_phone" class="form-control"
-                                                                    value="{{ old('parent_phone', $student->parent_phone) }}">
+                                                                <input type="text" name="parent_phone" class="form-control" value="{{ old('parent_phone', $student->parent_phone) }}">
                                                             </div>
                                                             <div class="col-md-6 mb-3">
                                                                 <label class="form-label">Telepon</label>
-                                                                <input type="text" name="phone" class="form-control"
-                                                                    value="{{ old('phone', $student->user->phone) }}">
+                                                                <input type="text" name="phone" class="form-control" value="{{ old('phone', $student->user->phone) }}">
+                                                            </div>
+                                                            @if($student->classRoom && $student->classRoom->grade_level === 'kejuruan')
+                                                            <div class="col-md-6 mb-3">
+                                                                <label class="form-label">Minat Kerja</label>
+                                                                <input type="text" name="job_interest" class="form-control" value="{{ old('job_interest', $student->job_interest) }}">
                                                             </div>
                                                             <div class="col-md-12 mb-3">
+                                                                <label class="form-label">CV / LinkedIn (URL)</label>
+                                                                <input type="text" name="cv_link" class="form-control" value="{{ old('cv_link', $student->cv_link) }}" placeholder="https://linkedin.com/in/your-profile atau link CV">
+                                                            </div>
+                                                            <div class="col-md-12 mb-3">
+                                                                <label class="form-label">Portofolio (link, pisah koma)</label>
+                                                                <textarea name="portfolio_links" class="form-control">{{ old('portfolio_links', is_array($student->portfolio_links) ? implode(', ', $student->portfolio_links) : ($student->portfolio_links ?? '') ) }}</textarea>
+                                                            </div>
+                                                            @endif
+                                                            <div class="col-md-12 mb-3">
                                                                 <label class="form-label">Alamat Orang Tua</label>
-                                                                <textarea name="parent_address"
-                                                                    class="form-control">{{ old('parent_address', $student->parent_address) }}</textarea>
+                                                                <textarea name="parent_address" class="form-control">{{ old('parent_address', $student->parent_address) }}</textarea>
                                                             </div>
                                                             <div class="col-md-12 mb-3">
                                                                 <label class="form-label">Pekerjaan Orang Tua</label>
-                                                                <input type="text" name="parent_job" class="form-control"
-                                                                    value="{{ old('parent_job', $student->parent_job) }}">
+                                                                <input type="text" name="parent_job" class="form-control" value="{{ old('parent_job', $student->parent_job) }}">
                                                             </div>
                                                             <div class="col-md-12 mb-3">
                                                                 <label class="form-label">Foto Profil (opsional)</label>
@@ -127,8 +123,7 @@
                                                         </div>
                                                     </div>
                                                     <div class="modal-footer">
-                                                        <button type="button" class="btn btn-secondary"
-                                                            data-bs-dismiss="modal">Batal</button>
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
                                                         <button type="submit" class="btn btn-primary">Simpan</button>
                                                     </div>
                                                 </form>
@@ -158,6 +153,20 @@
                                 <p><i class="fas fa-envelope text-primary me-2"></i>{{ $student->user->email }}</p>
                                 <p><i class="fas fa-phone text-primary me-2"></i>{{ $student->user->phone }}</p>
                                 <p><i class="fas fa-map-marker-alt text-primary me-2"></i>{{ $student->user->address }}</p>
+                                @if($student->job_interest)
+                                    <p><i class="fas fa-briefcase text-primary me-2"></i>{{ $student->job_interest }}</p>
+                                @endif
+                                @if($student->cv_link)
+                                    <p><i class="fas fa-link text-primary me-2"></i><a href="{{ $student->cv_link }}" target="_blank">CV / LinkedIn</a></p>
+                                @endif
+                                @if($student->portfolio_links && is_array($student->portfolio_links) && count($student->portfolio_links) > 0)
+                                    <p class="mt-1"><strong>Portofolio:</strong></p>
+                                    <ul class="mb-0">
+                                        @foreach($student->portfolio_links as $pl)
+                                            <li><a href="{{ $pl }}" target="_blank">{{ $pl }}</a></li>
+                                        @endforeach
+                                    </ul>
+                                @endif
                             </div>
                         </div>
                     </div>
@@ -186,7 +195,7 @@
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label fw-bold">Tanggal Lahir</label>
-                                    <p>{{ $student->user->birth_date ? $student->user->birth_date->format('d M Y') : '-' }}
+                                    <p>{{ $student->user->birth_date ? \Carbon\Carbon::parse($student->user->birth_date)->format('d M Y') : '-' }}
                                     </p>
                                 </div>
                                 <div class="col-md-6 mb-3">
@@ -412,8 +421,8 @@
                                             <div class="input-group mb-2">
                                                 <input type="text" name="interests_talents[]" class="form-control"
                                                     value="{{ $interest }}" placeholder="Minat/Bakat">
-                                                <button type="button" class="btn btn-outline-danger" onclick="removeInterest(this)">
-                                                    <i class="fas fa-minus"></i>
+                                                <button type="button" class="btn btn-outline-danger" onclick="removeInterest(this)" aria-label="Hapus minat">
+                                                    <span class="fw-bold text-dark" aria-hidden="true">×</span>
                                                 </button>
                                             </div>
                                         @endforeach
@@ -421,14 +430,14 @@
                                         <div class="input-group mb-2">
                                             <input type="text" name="interests_talents[]" class="form-control"
                                                 placeholder="Minat/Bakat">
-                                            <button type="button" class="btn btn-outline-danger" onclick="removeInterest(this)">
-                                                <i class="fas fa-minus"></i>
-                                            </button>
+                                            <button type="button" class="btn btn-outline-danger" onclick="removeInterest(this)" aria-label="Hapus minat">
+                                                    <span class="fw-bold text-dark" aria-hidden="true">×</span>
+                                                </button>
                                         </div>
                                     @endif
                                 </div>
                                 <button type="button" class="btn btn-sm btn-outline-primary" onclick="addInterest()">
-                                    <i class="fas fa-plus"></i> Tambah
+                                    <span class="fw-bold">+</span> Tambah
                                 </button>
                             </div>
                         </div>
@@ -448,8 +457,8 @@
                 div.className = 'input-group mb-2';
                 div.innerHTML = `
                                                                         <input type="text" name="interests_talents[]" class="form-control" placeholder="Minat/Bakat">
-                                                                        <button type="button" class="btn btn-outline-danger" onclick="removeInterest(this)">
-                                                                            <i class="fas fa-minus"></i>
+                                                                        <button type="button" class="btn btn-outline-danger" onclick="removeInterest(this)" aria-label="Hapus minat">
+                                                                            <span class="fw-bold text-dark" aria-hidden="true">×</span>
                                                                         </button>
                                                                     `;
                 container.appendChild(div);
@@ -459,6 +468,80 @@
                 button.parentElement.remove();
             }
         </script>
+    @endif
+
+    @if($student && $student->classRoom && $student->classRoom->grade_level === 'kejuruan')
+        <div class="card border-0 shadow-sm mt-3">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Portofolio</h5>
+                <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addPortfolioModal">Tambah Portofolio</button>
+            </div>
+            <div class="card-body">
+                @if(isset($portfolios) && $portfolios->count() > 0)
+                    <div class="row">
+                        @foreach($portfolios as $pf)
+                            <div class="col-md-4 mb-3">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <h6>{{ $pf->title }}</h6>
+                                        <p class="text-muted small">{{ Str::limit($pf->description, 120) }}</p>
+                                        @if($pf->link)
+                                            <a href="{{ $pf->link }}" target="_blank" class="btn btn-sm btn-outline-primary">Lihat</a>
+                                        @endif
+                                        @if($pf->file_path)
+                                            <a href="{{ Storage::url($pf->file_path) }}" target="_blank" class="btn btn-sm btn-outline-secondary">File</a>
+                                        @endif
+                                        <form method="POST" action="{{ route('student.portfolio.destroy', $pf->id) }}" class="d-inline">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button class="btn btn-sm btn-danger" onclick="return confirm('Hapus portofolio ini?')">Hapus</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <div class="text-muted">Belum ada portofolio. Tambahkan portofolio untuk melengkapi profil kejuruan Anda.</div>
+                @endif
+            </div>
+        </div>
+        <!-- Add Portfolio Modal -->
+        <div class="modal fade" id="addPortfolioModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <form method="POST" action="{{ route('student.portfolio.store') }}" enctype="multipart/form-data">
+                        @csrf
+                        <div class="modal-header">
+                            <h5 class="modal-title">Tambah Portofolio</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label class="form-label">Judul</label>
+                                <input type="text" name="title" class="form-control" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Deskripsi</label>
+                                <textarea name="description" class="form-control"></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Link (opsional)</label>
+                                <input type="url" name="link" class="form-control">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">File (opsional)</label>
+                                <input type="file" name="file" accept=".pdf,.jpg,.jpeg,.png" class="form-control">
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                            <button type="submit" class="btn btn-primary">Simpan</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     @endif
 @endsection
 

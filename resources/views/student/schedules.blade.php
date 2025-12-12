@@ -72,9 +72,9 @@
                                                                 <div class="fw-bold text-primary">{{ $currentSchedule->subject->name }}
                                                                 </div>
                                                                 <small
-                                                                    class="text-muted d-block">{{ $currentSchedule->teacher->name }}</small>
+                                                                    class="text-dark d-block">{{ $currentSchedule->teacher->name }}</small>
                                                                 @if($currentSchedule->room)
-                                                                    <small class="text-muted d-block">
+                                                                    <small class="text-dark d-block">
                                                                         <i class="fas fa-map-marker-alt me-1"></i>{{ $currentSchedule->room }}
                                                                     </small>
                                                                 @endif

@@ -15,7 +15,9 @@ class Alumni extends Model
     protected $fillable = [
         'student_id',
         'graduation_date',
+        'graduation_year',
         'graduation_class',
+        'final_grade',
         'skills',
         'portfolio',
         'work_interests',
@@ -24,7 +26,8 @@ class Alumni extends Model
         'cv_online',
         'linkedin_profile',
         'achievements',
-        'training_history'
+        'training_history',
+        'notes'
     ];
 
     protected $casts = [
@@ -33,7 +36,8 @@ class Alumni extends Model
         'portfolio' => 'array',
         'work_interests' => 'array',
         'achievements' => 'array',
-        'training_history' => 'array'
+        'training_history' => 'array',
+        'final_grade' => 'decimal:2'
     ];
 
     // Relationships
