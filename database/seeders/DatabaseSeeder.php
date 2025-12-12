@@ -28,7 +28,6 @@ class DatabaseSeeder extends Seeder
             StudentSkillSeeder::class,
             TeachingMaterialSeeder::class,
             DocumentSeeder::class,
-            AlumniSeeder::class,
         ]);
     }
 }
