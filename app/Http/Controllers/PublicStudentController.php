@@ -19,8 +19,8 @@ class PublicStudentController extends Controller
     {
         $request = request();
         $student = Student::with(['user','classRoom'])->findOrFail($id);
-        // only show sensitive contact info if accessed via a valid signed URL or an authenticated user
-        $isValid = $request->hasValidSignature() || auth()->check();
+        // Public page: always show profile details without requiring login
+        $isValid = true; // show all info for public profile
         return view('students.public', compact('student', 'isValid'));
     }
 

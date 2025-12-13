@@ -4,16 +4,21 @@
 
 @push('styles')
     <style>
+        /* Hide global navigation on public student page */
+        .navbar {
+            display: none !important;
+        }
+
         .student-public-profile {
             max-width: 800px;
             margin: 0 auto;
         }
 
         .profile-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--bs-warning, #ffc107);
             border-radius: 16px 16px 0 0;
             padding: 30px;
-            color: white;
+            color: #000;
             text-align: center;
         }
 

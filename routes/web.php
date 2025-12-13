@@ -29,6 +29,10 @@ Route::get('/application-success', [StudentApplicationController::class, 'applic
 Route::get('/check-application-status', [StudentApplicationController::class, 'showStatusForm'])->name('application.status');
 Route::post('/check-application-status', [StudentApplicationController::class, 'checkStatus'])->name('application.check-status');
 
+// Public student profile (for QR scans)
+Route::get('/students/public/{id}', [\App\Http\Controllers\PublicStudentController::class, 'show'])->name('students.public');
+Route::get('/students/public/{id}/qrcode', [\App\Http\Controllers\PublicStudentController::class, 'qrcode'])->name('students.public.qrcode');
+
 Auth::routes();
 
 // Authenticated Routes
@@ -158,9 +162,6 @@ Route::middleware('auth')->group(function () {
         Route::delete('/portfolio/{id}', [\App\Http\Controllers\Student\PortfolioController::class, 'destroy'])->name('portfolio.destroy');
     });
 
-// Public student profile (for QR scans)
-Route::get('/students/public/{id}', [\App\Http\Controllers\PublicStudentController::class, 'show'])->name('students.public');
-Route::get('/students/public/{id}/qrcode', [\App\Http\Controllers\PublicStudentController::class, 'qrcode'])->name('students.public.qrcode');
 
     // Teacher Routes
     Route::middleware('role:teacher')->prefix('teacher')->name('teacher.')->group(function () {
