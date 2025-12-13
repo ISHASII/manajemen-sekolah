@@ -136,6 +136,11 @@
                                 @if($student->classRoom)
                                     <span class="badge bg-primary">{{ $student->classRoom->name }}</span>
                                 @endif
+                                <div class="mt-2 d-flex gap-2 justify-content-center">
+                                    <button class="btn btn-sm btn-secondary" data-bs-toggle="modal" data-bs-target="#idCardModal">
+                                        <i class="fas fa-id-card"></i> Generate ID Card
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
@@ -217,6 +222,66 @@
                                     </p>
                                 </div>
                             </div>
+
+                                @push('scripts')
+                                <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+                                <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+                                <script>
+                                    document.addEventListener('DOMContentLoaded', function () {
+                                        const downloadBtn = document.getElementById('downloadIdCardBtn');
+                                        const printBtn = document.getElementById('printIdCardBtn');
+                                        const targetEl = document.getElementById('studentIdCard');
+                                        if (downloadBtn) {
+                                            downloadBtn.addEventListener('click', function () {
+                                                html2canvas(targetEl).then(function (canvas) {
+                                                    const dataUrl = canvas.toDataURL('image/png');
+                                                    const link = document.createElement('a');
+                                                    link.href = dataUrl;
+                                                    link.download = 'student-id-{{ $student->student_id }}.png';
+                                                    document.body.appendChild(link);
+                                                    link.click();
+                                                    document.body.removeChild(link);
+                                                });
+                                            });
+                                        }
+                                        if (printBtn) {
+                                            printBtn.addEventListener('click', function () {
+                                                html2canvas(targetEl).then(function (canvas) {
+                                                    const dataUrl = canvas.toDataURL('image/png');
+                                                    const w = window.open('', '_blank');
+                                                    w.document.write('<html><head><title>ID Card</title></head><body style="margin:0; padding:20px; display:flex; justify-content:center;">');
+                                                    w.document.write('<img src="' + dataUrl + '" style="max-width:100%;">');
+                                                    w.document.write('</body></html>');
+                                                    w.document.close();
+                                                    w.focus();
+                                                    setTimeout(function(){ w.print(); w.close(); }, 500);
+                                                });
+                                            });
+                                        }
+
+                                        // Generate QR code when modal opens using QRCode.js library
+                                        const idCardModal = document.getElementById('idCardModal');
+                                        const qrContainer = document.getElementById('studentCardQr');
+                                        if (idCardModal && qrContainer) {
+                                            idCardModal.addEventListener('shown.bs.modal', function () {
+                                                // Clear previous QR code
+                                                qrContainer.innerHTML = '';
+                                                // Generate new QR code
+                                                const publicUrl = '{{ url('/students/public/'.$student->id) }}';
+                                                new QRCode(qrContainer, {
+                                                    text: publicUrl,
+                                                    width: 100,
+                                                    height: 100,
+                                                    colorDark: '#000000',
+                                                    colorLight: '#ffffff',
+                                                    correctLevel: QRCode.CorrectLevel.H
+                                                });
+                                                console.log('QR code generated for:', publicUrl);
+                                            });
+                                        }
+                                    });
+                                </script>
+                                @endpush
                         </div>
                     </div>
 
@@ -313,6 +378,52 @@
                             </div>
                         </div>
                     @endif
+
+                    <!-- ID Card Modal -->
+                    <div class="modal fade" id="idCardModal" tabindex="-1">
+                        <div class="modal-dialog modal-dialog-centered modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">ID Card Siswa</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body d-flex justify-content-center">
+                                    <div id="studentIdCard" style="width:360px; padding:16px; border-radius:8px; background:#fff; box-shadow:0 2px 8px rgba(0,0,0,0.08); font-family:Arial, sans-serif; color:#111;">
+                                        <div style="display:flex; align-items:center; gap:12px;">
+                                            <div style="width:80px; height:80px; border-radius:8px; overflow:hidden; background:#e9ecef; display:flex; align-items:center; justify-content:center;">
+                                                @if($student->user->profile_photo)
+                                                    <img src="{{ Storage::url($student->user->profile_photo) }}" style="width:80px; height:80px; object-fit:cover;">
+                                                @else
+                                                    <i class="fas fa-user fa-2x text-dark"></i>
+                                                @endif
+                                            </div>
+                                            <div style="flex:1;">
+                                                <div style="font-weight:700; font-size:18px;">{{ $student->user->name }}</div>
+                                                <div style="font-size:12px; color:#6b7280;">ID: {{ $student->student_id ?: '-' }}</div>
+                                            </div>
+                                            <div style="width:110px; text-align:center;">
+                                                <div id="studentCardQr" style="width:100px; height:100px;"></div>
+                                            </div>
+                                        </div>
+                                        <hr style="margin:12px 0; border-color:#e5e7eb;">
+                                        <div style="margin-top:12px; font-size:13px; color:#374151;">
+                                            <div style="margin-bottom:6px;"><strong>ID:</strong> {{ $student->student_id ?: '-' }}</div>
+                                            <div style="margin-bottom:6px;"><strong>Nama:</strong> {{ $student->user->name }}</div>
+                                            <div style="margin-bottom:6px;"><strong>Alamat:</strong> {{ $student->address ? $student->address : ($student->user->address ?? '-') }}</div>
+                                            <div style="margin-bottom:6px;"><strong>No Telepon:</strong> {{ $student->user->phone ?: '-' }}</div>
+                                            <div style="margin-bottom:6px;"><strong>Jenis Kelamin:</strong> {{ $student->user->gender === 'male' ? 'Laki-laki' : ($student->user->gender === 'female' ? 'Perempuan' : '-') }}</div>
+                                            <div style="margin-bottom:6px;"><strong>Disabilitas:</strong> {{ ($student->disability_info && is_array($student->disability_info) && count($student->disability_info)) ? implode(', ', $student->disability_info) : 'Tidak ada' }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-outline-secondary" id="downloadIdCardBtn">Download PNG</button>
+                                    <button type="button" class="btn btn-outline-secondary" id="printIdCardBtn">Print</button>
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
                     <div class="card border-0 shadow-sm mt-3">
                         <div class="card-header">
