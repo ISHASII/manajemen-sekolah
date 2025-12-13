@@ -20,7 +20,7 @@
                                 <div>
                                     <h2 class="mb-1">{{ $announcement->title }}</h2>
                                     <small class="text-muted">
-                                        {{ $announcement->publish_date->format('d M Y') }}
+                                        {{ $announcement->publish_date->translatedFormat('d M Y') }}
                                     </small>
                                 </div>
 
@@ -31,7 +31,7 @@
         : ($announcement->type == 'urgent'
             ? 'danger'
             : 'primary')
-                                                    }}">
+                                                        }}">
                                         {{ ucfirst($announcement->type) }}
                                     </span>
                                 </div>

@@ -9,8 +9,8 @@
                 <div class="card-body">
                     <h3>{{ $training->title }}</h3>
                     <p>{{ $training->description }}</p>
-                    <p>Mulai: {{ $training->start_at ? $training->start_at->format('d M Y') : '-' }}</p>
-                    <p>Akhir: {{ $training->end_at ? $training->end_at->format('d M Y') : '-' }}</p>
+                    <p>Mulai: {{ $training->start_at ? $training->start_at->translatedFormat('d M Y') : '-' }}</p>
+                    <p>Akhir: {{ $training->end_at ? $training->end_at->translatedFormat('d M Y') : '-' }}</p>
                     <p>Kuota: {{ $training->capacity ?? 'Unlimited' }} — Peserta:
                         {{ $training->students_count ?? 0 }}@if($training->capacity) — Sisa:
                         {{ max(0, ($training->capacity - ($training->students_count ?? 0))) }}@endif

@@ -24,8 +24,8 @@
                                     </h2>
                                     <p class="mb-0 opacity-75">
                                         <i class="bi bi-calendar-check me-2"></i>
-                                        {{ $daysInIndonesian[strtolower(\Carbon\Carbon::now()->format('l'))] ?? \Carbon\Carbon::now()->format('l') }},
-                                        {{ \Carbon\Carbon::now()->format('d F Y') }}
+                                        {{ \Carbon\Carbon::now()->translatedFormat('l') }},
+                                        {{ \Carbon\Carbon::now()->translatedFormat('d F Y') }}
                                     </p>
                                 </div>
                                 <div class="col-md-4 text-end">
@@ -146,7 +146,7 @@
                                                                 <p class="text-dark small mb-1">
                                                                     <i class="bi bi-calendar-week me-1"></i>
                                                                     Hari:
-                                                                    {{ $daysInIndonesian[$schedule->day_of_week] ?? ucfirst($schedule->day_of_week) }}
+                                                                    {{ \Carbon\Carbon::parse($schedule->day_of_week)->translatedFormat('l') }}
                                                                 </p>
                                                                 <p class="text-dark small mb-1">
                                                                     <i class="bi bi-people me-1"></i>

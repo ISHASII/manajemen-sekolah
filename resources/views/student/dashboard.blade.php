@@ -21,8 +21,8 @@
                                 </h2>
                                 <p class="mb-0 opacity-75">
                                     <i class="bi bi-calendar-check me-2"></i>
-                                    {{ $daysInIndonesian[strtolower(\Carbon\Carbon::now()->format('l'))] ?? \Carbon\Carbon::now()->format('l') }},
-                                    {{ \Carbon\Carbon::now()->format('d F Y') }}
+                                    {{ \Carbon\Carbon::now()->translatedFormat('l') }},
+                                    {{ \Carbon\Carbon::now()->translatedFormat('d F Y') }}
                                 </p>
                             </div>
                             <div class="col-md-4 text-end">
@@ -282,7 +282,7 @@
                                                 </td>
                                                 <td>
                                                     <small
-                                                        class="text-dark opacity-75">{{ $grade->assessment_date ? $grade->assessment_date->format('d/m/Y') : '-' }}</small>
+                                                        class="text-dark opacity-75">{{ $grade->assessment_date ? $grade->assessment_date->translatedFormat('d/m/Y') : '-' }}</small>
                                                 </td>
                                                 <td>
                                                     <small

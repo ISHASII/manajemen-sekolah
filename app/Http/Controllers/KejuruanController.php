@@ -29,16 +29,7 @@ class KejuruanController extends Controller
         $user = Auth::user();
         $student = Student::where('user_id', $user->id)->with(['classRoom', 'skills'])->first();
 
-        // Indonesian day names
-        $daysInIndonesian = [
-            'monday' => 'Senin',
-            'tuesday' => 'Selasa',
-            'wednesday' => 'Rabu',
-            'thursday' => 'Kamis',
-            'friday' => 'Jumat',
-            'saturday' => 'Sabtu',
-            'sunday' => 'Minggu',
-        ];
+
 
         // Get training classes that the student is enrolled in
         $trainingClasses = collect();
@@ -91,7 +82,6 @@ class KejuruanController extends Controller
 
         return view('kejuruan.dashboard', compact(
             'student',
-            'daysInIndonesian',
             'trainingClasses',
             'materialsCount',
             'announcements',

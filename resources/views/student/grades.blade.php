@@ -79,38 +79,38 @@
                                                 <td>
                                                     <span
                                                         class="badge
-                                                                                                                                                                                                                                        @if($grade->assessment_type === 'daily') bg-info
-                                                                                                                                                                                                                                        @elseif($grade->assessment_type === 'midterm') bg-warning
-                                                                                                                                                                                                                                        @elseif($grade->assessment_type === 'final') bg-danger
-                                                                                                                                                                                                                                        @else bg-success
-                                                                                                                                                                                                                                        @endif">
+                                                                                                                                                                                                                                                    @if($grade->assessment_type === 'daily') bg-info
+                                                                                                                                                                                                                                                    @elseif($grade->assessment_type === 'midterm') bg-warning
+                                                                                                                                                                                                                                                    @elseif($grade->assessment_type === 'final') bg-danger
+                                                                                                                                                                                                                                                    @else bg-success
+                                                                                                                                                                                                                                                    @endif">
                                                         {{ ucfirst($grade->assessment_type) }}
                                                     </span>
                                                 </td>
                                                 <td>
                                                     <span
                                                         class="fw-bold
-                                                                                                                                                                                                                                        @if($grade->score >= 90) text-success
-                                                                                                                                                                                                                                        @elseif($grade->score >= 80) text-primary
-                                                                                                                                                                                                                                        @elseif($grade->score >= 70) text-warning
-                                                                                                                                                                                                                                        @else text-danger
-                                                                                                                                                                                                                                        @endif">
+                                                                                                                                                                                                                                                    @if($grade->score >= 90) text-success
+                                                                                                                                                                                                                                                    @elseif($grade->score >= 80) text-primary
+                                                                                                                                                                                                                                                    @elseif($grade->score >= 70) text-warning
+                                                                                                                                                                                                                                                    @else text-danger
+                                                                                                                                                                                                                                                    @endif">
                                                         {{ $grade->score }}
                                                     </span>
                                                 </td>
                                                 <td>
                                                     <span
                                                         class="badge
-                                                                                                                                                                                                                                        @if($grade->grade === 'A') bg-success
-                                                                                                                                                                                                                                        @elseif($grade->grade === 'B') bg-primary
-                                                                                                                                                                                                                                        @elseif($grade->grade === 'C') bg-warning
-                                                                                                                                                                                                                                        @else bg-danger
-                                                                                                                                                                                                                                        @endif">
+                                                                                                                                                                                                                                                    @if($grade->grade === 'A') bg-success
+                                                                                                                                                                                                                                                    @elseif($grade->grade === 'B') bg-primary
+                                                                                                                                                                                                                                                    @elseif($grade->grade === 'C') bg-warning
+                                                                                                                                                                                                                                                    @else bg-danger
+                                                                                                                                                                                                                                                    @endif">
                                                         {{ $grade->grade }}
                                                     </span>
                                                 </td>
                                                 <td>{{ $grade->semester }}</td>
-                                                <td>{{ $grade->assessment_date->format('d M Y') }}</td>
+                                                <td>{{ $grade->assessment_date->translatedFormat('d M Y') }}</td>
                                                 <td>{{ $grade->teacher->name }}</td>
                                             </tr>
                                         @endforeach
@@ -185,11 +185,11 @@
                                     <div class="col-md-6 mb-3">
                                         <div
                                             class="card border-start border-4
-                                                                                                                                                                                                                            @if($skill->proficiency_level === 'expert') border-success
-                                                                                                                                                                                                                            @elseif($skill->proficiency_level === 'advanced') border-primary
-                                                                                                                                                                                                                            @elseif($skill->proficiency_level === 'intermediate') border-warning
-                                                                                                                                                                                                                            @else border-secondary
-                                                                                                                                                                                                                            @endif">
+                                                                                                                                                                                                                                        @if($skill->proficiency_level === 'expert') border-success
+                                                                                                                                                                                                                                        @elseif($skill->proficiency_level === 'advanced') border-primary
+                                                                                                                                                                                                                                        @elseif($skill->proficiency_level === 'intermediate') border-warning
+                                                                                                                                                                                                                                        @else border-secondary
+                                                                                                                                                                                                                                        @endif">
                                             <div class="card-body">
                                                 <div class="d-flex justify-content-between align-items-start">
                                                     <div>
@@ -199,11 +199,11 @@
                                                     </div>
                                                     <span
                                                         class="badge
-                                                                                                                                                                                                                                        @if($skill->proficiency_level === 'expert') bg-success
-                                                                                                                                                                                                                                        @elseif($skill->proficiency_level === 'advanced') bg-primary
-                                                                                                                                                                                                                                        @elseif($skill->proficiency_level === 'intermediate') bg-warning
-                                                                                                                                                                                                                                        @else bg-secondary
-                                                                                                                                                                                                                                        @endif">
+                                                                                                                                                                                                                                                    @if($skill->proficiency_level === 'expert') bg-success
+                                                                                                                                                                                                                                                    @elseif($skill->proficiency_level === 'advanced') bg-primary
+                                                                                                                                                                                                                                                    @elseif($skill->proficiency_level === 'intermediate') bg-warning
+                                                                                                                                                                                                                                                    @else bg-secondary
+                                                                                                                                                                                                                                                    @endif">
                                                         {{ ucfirst($skill->proficiency_level) }}
                                                     </span>
                                                 </div>
@@ -214,7 +214,7 @@
 
                                                 <div class="d-flex justify-content-between align-items-center">
                                                     <small class="text-muted">
-                                                        Dinilai: {{ $skill->assessed_date->format('d M Y') }}
+                                                        Dinilai: {{ $skill->assessed_date->translatedFormat('d M Y') }}
                                                     </small>
                                                     <small class="text-muted">
                                                         Oleh: {{ $skill->assessedBy->name }}
@@ -260,11 +260,11 @@
                                                     <span class="small">{{ ucfirst($level) }}</span>
                                                     <span
                                                         class="badge
-                                                                                                                                                                                                                                        @if($level === 'expert') bg-success
-                                                                                                                                                                                                                                        @elseif($level === 'advanced') bg-primary
-                                                                                                                                                                                                                                        @elseif($level === 'intermediate') bg-warning
-                                                                                                                                                                                                                                        @else bg-secondary
-                                                                                                                                                                                                                                        @endif">{{ $levelSkills->count() }}</span>
+                                                                                                                                                                                                                                                    @if($level === 'expert') bg-success
+                                                                                                                                                                                                                                                    @elseif($level === 'advanced') bg-primary
+                                                                                                                                                                                                                                                    @elseif($level === 'intermediate') bg-warning
+                                                                                                                                                                                                                                                    @else bg-secondary
+                                                                                                                                                                                                                                                    @endif">{{ $levelSkills->count() }}</span>
                                                 </div>
                                             @endforeach
                                         </div>

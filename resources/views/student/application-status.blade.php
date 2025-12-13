@@ -30,7 +30,7 @@
                             <div class="row mb-4">
                                 <div class="col-md-6">
                                     <strong>Tanggal Daftar:</strong><br>
-                                    {{ $application->application_date->format('d M Y') }}
+                                    {{ $application->application_date->translatedFormat('d M Y') }}
                                 </div>
                                 <div class="col-md-6">
                                     <strong>Kelas yang Diinginkan:</strong><br>
@@ -44,12 +44,14 @@
                                     <span class="badge bg-warning fs-6">
                                         <i class="fas fa-clock me-1"></i>Menunggu Review
                                     </span>
-                                    <p class="text-muted mt-2">Aplikasi Anda sedang dalam proses review. Tim admin akan menghubungi Anda segera.</p>
+                                    <p class="text-muted mt-2">Aplikasi Anda sedang dalam proses review. Tim admin akan
+                                        menghubungi Anda segera.</p>
                                 @elseif($application->status === 'approved')
                                     <span class="badge bg-success fs-6">
                                         <i class="fas fa-check me-1"></i>Disetujui
                                     </span>
-                                    <p class="text-success mt-2">Selamat! Aplikasi Anda telah disetujui. Silakan tunggu informasi lebih lanjut.</p>
+                                    <p class="text-success mt-2">Selamat! Aplikasi Anda telah disetujui. Silakan tunggu
+                                        informasi lebih lanjut.</p>
                                 @elseif($application->status === 'rejected')
                                     <span class="badge bg-danger fs-6">
                                         <i class="fas fa-times me-1"></i>Ditolak
@@ -76,7 +78,7 @@
                                     <div class="timeline-content">
                                         <h6 class="timeline-title">Aplikasi Diterima</h6>
                                         <p class="timeline-description">
-                                            {{ $application->application_date->format('d M Y, H:i') }}
+                                            {{ $application->application_date->translatedFormat('d M Y, H:i') }}
                                         </p>
                                     </div>
                                 </div>
@@ -84,15 +86,16 @@
                                 @if($application->status !== 'pending')
                                     <div class="timeline-item">
                                         <div class="timeline-marker
-                                            @if($application->status === 'approved' || $application->status === 'waiting_payment')
-                                                bg-success
-                                            @else
-                                                bg-danger
-                                            @endif">
+                                                    @if($application->status === 'approved' || $application->status === 'waiting_payment')
+                                                        bg-success
+                                                    @else
+                                                        bg-danger
+                                                    @endif">
                                         </div>
                                         <div class="timeline-content">
                                             <h6 class="timeline-title">Status Update</h6>
-                                            <p class="timeline-description">{{ $application->updated_at->format('d M Y, H:i') }}</p>
+                                            <p class="timeline-description">
+                                                {{ $application->updated_at->translatedFormat('d M Y, H:i') }}</p>
                                         </div>
                                     </div>
                                 @endif
@@ -120,6 +123,7 @@
             position: relative;
             padding-left: 30px;
         }
+
         .timeline::before {
             content: '';
             position: absolute;
@@ -129,10 +133,12 @@
             width: 2px;
             background: #dee2e6;
         }
+
         .timeline-item {
             position: relative;
             margin-bottom: 20px;
         }
+
         .timeline-marker {
             position: absolute;
             left: -25px;
@@ -141,13 +147,16 @@
             height: 20px;
             border-radius: 50%;
         }
+
         .timeline-content {
             padding-left: 10px;
         }
+
         .timeline-title {
             margin-bottom: 5px;
             font-weight: 600;
         }
+
         .timeline-description {
             margin-bottom: 0;
             color: #6c757d;

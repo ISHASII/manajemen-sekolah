@@ -42,7 +42,7 @@
                             <p><strong>Kelas Saat Ini:</strong>
                                 {{ $student->classRoom ? $student->classRoom->name : 'Belum ada kelas' }}</p>
                             <p><strong>Tanggal Masuk:</strong>
-                                {{ $student->enrollment_date ? \Carbon\Carbon::parse($student->enrollment_date)->format('d M Y') : '-' }}
+                                {{ $student->enrollment_date ? \Carbon\Carbon::parse($student->enrollment_date)->translatedFormat('d M Y') : '-' }}
                             </p>
                         </div>
                     </div>
@@ -90,7 +90,7 @@
                                                     </span>
                                                 </p>
                                                 <p><strong>Tanggal Selesai:</strong>
-                                                    {{ $history->completed_at ? $history->completed_at->format('d M Y') : '-' }}
+                                                    {{ $history->completed_at ? $history->completed_at->translatedFormat('d M Y') : '-' }}
                                                 </p>
                                             </div>
                                             <div class="col-md-6">
@@ -171,7 +171,7 @@
                                                 </span>
                                             </td>
                                             <td>Semester {{ $grade->semester }}</td>
-                                            <td>{{ $grade->assessment_date ? $grade->assessment_date->format('d M Y') : '-' }}
+                                            <td>{{ $grade->assessment_date ? $grade->assessment_date->translatedFormat('d M Y') : '-' }}
                                             </td>
                                             <td>{{ $grade->notes ?? '-' }}</td>
                                         </tr>
@@ -216,9 +216,9 @@
                                             <td>{{ $index + 1 }}</td>
                                             <td>{{ $training->title }}</td>
                                             <td>{{ Str::limit($training->description, 50) }}</td>
-                                            <td>{{ $training->start_date ? $training->start_date->format('d M Y') : '-' }}
+                                            <td>{{ $training->start_date ? $training->start_date->translatedFormat('d M Y') : '-' }}
                                             </td>
-                                            <td>{{ $training->end_date ? $training->end_date->format('d M Y') : '-' }}</td>
+                                            <td>{{ $training->end_date ? $training->end_date->translatedFormat('d M Y') : '-' }}</td>
                                             <td>
                                                 <span
                                                     class="badge bg-{{ $training->pivot->status == 'completed' ? 'success' : 'info' }}">

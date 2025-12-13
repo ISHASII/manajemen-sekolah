@@ -31,7 +31,7 @@
                                                         {{ Str::limit(strip_tags($announcement->content), 150) }}
                                                     </p>
                                                     <small class="text-muted">
-                                                        {{ $announcement->created_at->format('d M Y') }}
+                                                        {{ $announcement->created_at->translatedFormat('d M Y') }}
                                                     </small>
                                                 </div>
 

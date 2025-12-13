@@ -87,13 +87,12 @@ class AdminController extends Controller
         $activeTeachers = $totalTeachers; // alias for blade
         $totalSubjects = Subject::count();
 
-        // Registration chart: last 6 months
+        // Registration chart: last 6 months (labels localized via Carbon)
         $labels = [];
         $regData = [];
-        $indMonths = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agt','Sep','Okt','Nov','Des'];
         for ($i = 5; $i >= 0; $i--) {
             $dt = now()->subMonths($i);
-            $labels[] = $indMonths[(int)$dt->format('n') - 1];
+            $labels[] = \Carbon\Carbon::createFromDate($dt->year, $dt->month, 1)->translatedFormat('M');
             $regData[] = StudentApplication::whereYear('created_at', $dt->year)
                 ->whereMonth('created_at', $dt->month)
                 ->count();
@@ -845,6 +844,12 @@ class AdminController extends Controller
             return redirect()->back()->withInput()->with('error', 'Gagal memperbarui siswa: ' . $e->getMessage());
         }
 
+        // Redirect back to kejuruan listing if requested
+        $returnTo = $request->input('return_to');
+        if ($returnTo === 'kejuruan') {
+            return redirect()->route('admin.students.kejuruan')->with('success', 'Siswa berhasil diperbarui.');
+        }
+
         return redirect()->route('admin.students.index')->with('success', 'Siswa berhasil diperbarui.');
     }
 
@@ -1020,7 +1025,6 @@ class AdminController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'code' => 'required|string|max:50|unique:subjects,code',
-            'credit_hours' => 'nullable|numeric|min:0',
             'category' => 'nullable|in:academic,vocational,extracurricular',
             'description' => 'nullable|string',
             'is_active' => 'nullable|boolean'
@@ -1029,7 +1033,6 @@ class AdminController extends Controller
         Subject::create([
             'name' => $request->name,
             'code' => $request->code,
-            'credit_hours' => $request->credit_hours ?? 0,
             'category' => $request->category,
             'description' => $request->description,
             'is_active' => $request->boolean('is_active', true)
@@ -1050,7 +1053,6 @@ class AdminController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'code' => 'required|string|max:50|unique:subjects,code,' . $id,
-            'credit_hours' => 'nullable|numeric|min:0',
             'category' => 'nullable|in:academic,vocational,extracurricular',
             'description' => 'nullable|string',
             'is_active' => 'nullable|boolean'
@@ -1059,7 +1061,6 @@ class AdminController extends Controller
         $subject->update([
             'name' => $request->name,
             'code' => $request->code,
-            'credit_hours' => $request->credit_hours ?? 0,
             'category' => $request->category,
             'description' => $request->description,
             'is_active' => $request->boolean('is_active', false)
@@ -1701,10 +1702,11 @@ class AdminController extends Controller
             ->pluck('count', 'month')
             ->toArray();
 
-        // Build labels for 12 months and data array
-        $months = [
-            'Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'
-        ];
+        // Build labels for 12 months and data array (Indonesian) using Carbon
+        $months = [];
+        for ($m = 1; $m <= 12; $m++) {
+            $months[] = \Carbon\Carbon::createFromDate(2000, $m, 1)->translatedFormat('M');
+        }
         $data = [];
         for ($m = 1; $m <= 12; $m++) {
             $data[] = isset($monthly[$m]) ? (int) $monthly[$m] : 0;

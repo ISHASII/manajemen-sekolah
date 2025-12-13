@@ -25,7 +25,6 @@
                                 <tr>
                                     <th>Nama</th>
                                     <th>Kode</th>
-                                    <th>SKS</th>
                                     <th>Kategori</th>
                                     <th>Status</th>
                                     <th>Aksi</th>
@@ -36,7 +35,6 @@
                                     <tr>
                                         <td>{{ $subject->name }}</td>
                                         <td>{{ $subject->code ?? '-' }}</td>
-                                        <td>{{ $subject->credit_hours ?? 0 }}</td>
                                         <td>{{ $subject->category ?? '-' }}</td>
                                         <td>{{ $subject->is_active ? 'Aktif' : 'Nonaktif' }}</td>
                                         <td>

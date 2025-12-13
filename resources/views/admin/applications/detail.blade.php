@@ -57,7 +57,7 @@
                                 <p><strong>NISN:</strong> {{ $application->nisn ?: '-' }}</p>
                                 <p><strong>Tempat Lahir:</strong> {{ $application->place_of_birth }}</p>
                                 <p><strong>Tanggal Lahir:</strong>
-                                    {{ Carbon\Carbon::parse($application->birth_date)->format('d M Y') }}</p>
+                                    {{ Carbon\Carbon::parse($application->birth_date)->translatedFormat('d M Y') }}</p>
                                 <p><strong>Jenis Kelamin:</strong>
                                     {{ $application->gender === 'male' ? 'Laki-laki' : 'Perempuan' }}</p>
                                 <p><strong>Agama:</strong> {{ ucfirst($application->religion) }}</p>
@@ -86,7 +86,8 @@
                                 <strong class="mt-3 d-block">Informasi Lainnya</strong>
                                 <hr>
                                 <p><strong>Kelas yang Diinginkan:</strong> {{ $application->desired_class }}</p>
-                                <p><strong>Tanggal Aplikasi:</strong> {{ $application->application_date->format('d M Y') }}
+                                <p><strong>Tanggal Aplikasi:</strong>
+                                    {{ $application->application_date->translatedFormat('d M Y') }}
                                 </p>
                             </div>
                         </div>

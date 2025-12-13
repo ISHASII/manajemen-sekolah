@@ -44,8 +44,9 @@
                             </div>
                             <div class="col-md-6">
                                 <p><strong>Periode:</strong><br>
-                                    {{ $trainingClass->start_at ? $trainingClass->start_at->format('d M Y') : '-' }} -
-                                    {{ $trainingClass->end_at ? $trainingClass->end_at->format('d M Y') : '-' }}
+                                    {{ $trainingClass->start_at ? $trainingClass->start_at->translatedFormat('d M Y') : '-' }}
+                                    -
+                                    {{ $trainingClass->end_at ? $trainingClass->end_at->translatedFormat('d M Y') : '-' }}
                                 </p>
                                 <p><strong>Kuota:</strong> {{ $trainingClass->capacity ?? 'Tidak terbatas' }}</p>
                                 <p><strong>Peserta Terdaftar:</strong> {{ $trainingClass->students->count() }}</p>
@@ -80,7 +81,7 @@
                                                 <td>
                                                     <span class="badge bg-success">{{ ucfirst($student->pivot->status) }}</span>
                                                 </td>
-                                                <td>{{ $student->pivot->enrolled_at ? \Carbon\Carbon::parse($student->pivot->enrolled_at)->format('d M Y') : '-' }}
+                                                <td>{{ $student->pivot->enrolled_at ? \Carbon\Carbon::parse($student->pivot->enrolled_at)->translatedFormat('d M Y') : '-' }}
                                                 </td>
                                                 <td>
                                                     <form method="POST"

@@ -107,7 +107,7 @@
                                         <td>{{ ucfirst($st->student?->status ?? 'no-profile') }}</td>
                                         <td>
                                             @if(optional($st->student)->id)
-                                                <a href="{{ route('admin.students.edit', $st->student->id) }}"
+                                                <a href="{{ route('admin.students.edit', $st->student->id) }}{{ isset($isKejuruan) && $isKejuruan ? '?return_to=kejuruan' : '' }}"
                                                     class="btn btn-sm btn-outline-primary btn-detail">Detail</a>
                                                 <a href="{{ route('admin.students.education-history', $st->student->id) }}"
                                                     class="btn btn-sm btn-outline-info">Riwayat Pendidikan</a>

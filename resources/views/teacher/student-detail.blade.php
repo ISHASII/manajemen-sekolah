@@ -75,7 +75,7 @@
                             <div class="col-md-6 mb-2">
                                 <strong>Tempat, Tanggal Lahir</strong>
                                 <div class="small">{{ $student->place_of_birth ?? '-' }},
-                                    {{ optional($student->birth_date)->format('d M Y') ?? '-' }}
+                                    {{ optional($student->birth_date)->translatedFormat('d M Y') ?? '-' }}
                                 </div>
                             </div>
                             <div class="col-md-6 mb-2">
@@ -127,7 +127,7 @@
                                                         </form>
                                                     </div>
                                                 </td>
-                                                <td>{{ optional($g->assessment_date)->format('d M Y') ?? '-' }}</td>
+                                                <td>{{ optional($g->assessment_date)->translatedFormat('d M Y') ?? '-' }}</td>
                                             </tr>
                                             @include('teacher.partials.modals.edit-grade', ['grade' => $g])
                                         @endforeach
@@ -155,7 +155,8 @@
                                             </div>
                                         </div>
                                         <div class="d-flex align-items-center">
-                                            <div class="small me-3">{{ optional($sk->assessed_date)->format('d M Y') ?? '' }}</div>
+                                            <div class="small me-3">
+                                                {{ optional($sk->assessed_date)->translatedFormat('d M Y') ?? '' }}</div>
                                             <div class="btn-group">
                                                 <button type="button" aria-label="Edit penilaian keterampilan"
                                                     class="btn btn-sm btn-primary btn-icon" data-bs-toggle="modal"

@@ -24,6 +24,7 @@
             <form action="{{ route('admin.students.update', $student->id) }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
+                <input type="hidden" name="return_to" value="{{ request()->query('return_to') }}">
                 <div class="row g-3">
                     <div class="col-md-6">
                         <label class="form-label">Nama</label>
@@ -308,7 +309,13 @@
                     </div>
                 </div>
                 <div class="mt-4 text-end">
-                    <a href="{{ route('admin.students.index') }}" class="btn btn-outline-secondary">Batal</a>
+                    @php
+                        $cancelRoute = route('admin.students.index');
+                        if (request()->query('return_to') === 'kejuruan') {
+                            $cancelRoute = route('admin.students.kejuruan');
+                        }
+                    @endphp
+                    <a href="{{ $cancelRoute }}" class="btn btn-outline-secondary">Batal</a>
                     <button class="btn btn-primary">Simpan</button>
                 </div>
             </form>

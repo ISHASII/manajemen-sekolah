@@ -104,7 +104,9 @@
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
                                         <div>
                                             <div class="small"><strong>{{ $sched->subject?->name ?? '-' }}</strong></div>
-                                            <div class="small text-muted">{{ ucfirst($sched->day_of_week ?? '') }} —
+                                            <div class="small text-muted">
+                                                {{ $sched->day_of_week ? \Carbon\Carbon::create()->next($sched->day_of_week)->translatedFormat('l') : '' }}
+                                                —
                                                 {{ optional($sched->start_time)->format('H:i') ?? '' }} sampai
                                                 {{ optional($sched->end_time)->format('H:i') ?? '' }}
                                             </div>

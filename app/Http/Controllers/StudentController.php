@@ -76,16 +76,7 @@ class StudentController extends Controller
         $averageGrade = 0;
         $pendingAssignments = 0;
 
-        // Indonesian day names
-        $daysInIndonesian = [
-            'monday' => 'Senin',
-            'tuesday' => 'Selasa',
-            'wednesday' => 'Rabu',
-            'thursday' => 'Kamis',
-            'friday' => 'Jumat',
-            'saturday' => 'Sabtu',
-            'sunday' => 'Minggu',
-        ];
+
 
         if ($student && $student->classRoom) {
             $schedules = Schedule::where('class_id', $student->classRoom->id)
@@ -129,7 +120,7 @@ class StudentController extends Controller
             $attendancePercent = 85;
         }
 
-        return view('student.dashboard', compact('student', 'application', 'announcements', 'schedules', 'grades', 'todaySchedules', 'recentGrades', 'attendancePercent', 'averageGrade', 'pendingAssignments', 'daysInIndonesian'));
+        return view('student.dashboard', compact('student', 'application', 'announcements', 'schedules', 'grades', 'todaySchedules', 'recentGrades', 'attendancePercent', 'averageGrade', 'pendingAssignments'));
     }
 
     public function profile()

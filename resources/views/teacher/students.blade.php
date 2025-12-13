@@ -58,7 +58,7 @@
                                                         <div class="mb-2">
                                                             <small class="text-muted">
                                                                 <i class="fas fa-calendar me-1"></i>
-                                                                Bergabung: {{ $student->enrollment_date->format('M Y') }}
+                                                                Bergabung: {{ $student->enrollment_date->translatedFormat('M Y') }}
                                                             </small>
                                                         </div>
 
@@ -71,9 +71,9 @@
                                                         <div class="d-flex justify-content-between align-items-center mt-3">
                                                             <span
                                                                 class="badge
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                            @if($student->status === 'active') bg-success
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                            @else bg-secondary
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                            @endif">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                @if($student->status === 'active') bg-success
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                @else bg-secondary
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                @endif">
                                                                 {{ ucfirst($student->status) }}
                                                             </span>
 

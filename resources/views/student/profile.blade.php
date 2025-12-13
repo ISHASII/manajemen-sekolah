@@ -195,7 +195,7 @@
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label fw-bold">Tanggal Lahir</label>
-                                    <p>{{ $student->user->birth_date ? \Carbon\Carbon::parse($student->user->birth_date)->format('d M Y') : '-' }}
+                                    <p>{{ $student->user->birth_date ? \Carbon\Carbon::parse($student->user->birth_date)->translatedFormat('d M Y') : '-' }}
                                     </p>
                                 </div>
                                 <div class="col-md-6 mb-3">
@@ -249,7 +249,7 @@
                                         <p><strong>Telepon:</strong> {{ $application->phone }}</p>
                                         <p><strong>NISN:</strong> {{ $application->nisn ?: '-' }}</p>
                                         <p><strong>Tempat Lahir:</strong> {{ $application->place_of_birth }}</p>
-                                        <p><strong>Tanggal Lahir:</strong> {{ \Carbon\Carbon::parse($application->birth_date)->format('d M Y') }}</p>
+                                        <p><strong>Tanggal Lahir:</strong> {{ \Carbon\Carbon::parse($application->birth_date)->translatedFormat('d M Y') }}</p>
                                         <p><strong>Jenis Kelamin:</strong> {{ $application->gender === 'male' ? 'Laki-laki' : 'Perempuan' }}</p>
                                         <p><strong>Agama:</strong> {{ ucfirst($application->religion) }}</p>
                                         <p><strong>Alamat:</strong> {{ $application->address }}</p>
@@ -262,7 +262,7 @@
                                         <p><strong>Pekerjaan:</strong> {{ $application->parent_job ?: '-' }}</p>
                                         <p><strong>Alamat:</strong> {{ $application->parent_address }}</p>
                                         <p><strong>Kelas yang Diinginkan:</strong> {{ $application->desired_class }}</p>
-                                        <p><strong>Tanggal Aplikasi:</strong> {{ $application->application_date ? $application->application_date->format('d M Y') : '-' }}</p>
+                                        <p><strong>Tanggal Aplikasi:</strong> {{ $application->application_date ? $application->application_date->translatedFormat('d M Y') : '-' }}</p>
                                     </div>
                                 </div>
 

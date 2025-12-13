@@ -194,7 +194,7 @@
                                         @else
                                             <span class="badge bg-warning bg-opacity-10 text-warning rounded-pill px-3 py-1">Prestasi</span>
                                         @endif
-                                        <small class="text-muted">{{ $announcement->publish_date->format('d M Y') }}</small>
+                                        <small class="text-muted">{{ $announcement->publish_date->translatedFormat('d M Y') }}</small>
                                     </div>
                                     <h5 class="fw-bold mb-2" style="color: #1e3a5f;">{{ $announcement->title }}</h5>
                                     <p class="text-muted mb-0">{{ Str::limit($announcement->content, 150) }}</p>

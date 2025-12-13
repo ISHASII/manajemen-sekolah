@@ -39,7 +39,7 @@
                                                 <td class="fw-bold">{{ $application->application_number }}</td>
                                                 <td>{{ $application->student_name }}</td>
                                                 <td>{{ $application->email }}</td>
-                                                <td>{{ $application->application_date->format('d M Y') }}</td>
+                                                <td>{{ $application->application_date->translatedFormat('d M Y') }}</td>
                                                 <td>{{ $application->desired_class }}</td>
                                                 <td>
                                                     @if($application->status === 'pending')

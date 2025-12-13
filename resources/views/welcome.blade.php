@@ -238,7 +238,7 @@
                                             @endif
 
                                             <small class="text-muted">
-                                                {{ $announcement->publish_date->format('d M Y') }}
+                                                {{ $announcement->publish_date->translatedFormat('d M Y') }}
                                             </small>
                                         </div>
 

@@ -64,7 +64,7 @@
                                         @endif
                                     </td>
                                     <td>{{ $s->description }}</td>
-                                    <td>{{ $s->created_at->format('d M Y H:i') }}</td>
+                                    <td>{{ $s->created_at->translatedFormat('d M Y H:i') }}</td>
                                 </tr>
                             @endforeach
                         </tbody>

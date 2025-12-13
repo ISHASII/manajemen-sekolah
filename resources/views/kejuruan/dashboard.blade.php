@@ -21,8 +21,8 @@
                                 </h2>
                                 <p class="mb-0 opacity-75">
                                     <i class="bi bi-calendar-check me-2"></i>
-                                    {{ $daysInIndonesian[strtolower(\Carbon\Carbon::now()->format('l'))] ?? \Carbon\Carbon::now()->format('l') }},
-                                    {{ \Carbon\Carbon::now()->format('d F Y') }}
+                                    {{ \Carbon\Carbon::now()->translatedFormat('l') }},
+                                    {{ \Carbon\Carbon::now()->translatedFormat('d F Y') }}
                                 </p>
                             </div>
                             <div class="col-md-4 text-end">
@@ -260,9 +260,9 @@
                                                 <div class="mt-2">
                                                     <small class="text-muted">
                                                         <i class="bi bi-calendar me-1"></i>
-                                                        {{ $training->start_at ? \Carbon\Carbon::parse($training->start_at)->format('d M Y') : '-' }}
+                                                        {{ $training->start_at ? \Carbon\Carbon::parse($training->start_at)->translatedFormat('d M Y') : '-' }}
                                                         @if($training->end_at)
-                                                            - {{ \Carbon\Carbon::parse($training->end_at)->format('d M Y') }}
+                                                            - {{ \Carbon\Carbon::parse($training->end_at)->translatedFormat('d M Y') }}
                                                         @endif
                                                     </small>
                                                 </div>
@@ -356,7 +356,7 @@
                                                 </td>
                                                 <td>
                                                     <small
-                                                        class="text-dark opacity-75">{{ $grade->assessment_date ? $grade->assessment_date->format('d/m/Y') : '-' }}</small>
+                                                        class="text-dark opacity-75">{{ $grade->assessment_date ? $grade->assessment_date->translatedFormat('d/m/Y') : '-' }}</small>
                                                 </td>
                                                 <td>
                                                     <small

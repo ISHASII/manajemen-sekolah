@@ -30,8 +30,8 @@
                                     <tr>
                                         <td>{{ $c->title }}</td>
                                         <td>{{ $c->trainer?->user?->name ?? '-' }}</td>
-                                        <td>{{ $c->start_at ? $c->start_at->format('d M Y') : '-' }}</td>
-                                        <td>{{ $c->end_at ? $c->end_at->format('d M Y') : '-' }}</td>
+                                        <td>{{ $c->start_at ? $c->start_at->translatedFormat('d M Y') : '-' }}</td>
+                                        <td>{{ $c->end_at ? $c->end_at->translatedFormat('d M Y') : '-' }}</td>
                                         <td>{{ $c->capacity ?? '-' }}</td>
                                         <td>{{ $c->students()->count() }}</td>
                                         <td>

@@ -8,8 +8,8 @@
         <div class="d-flex justify-content-between align-items-center mb-3">
             <div>
                 <h3>{{ $trainingClass->title ?? 'Kelas Pelatihan' }}</h3>
-                <div class="small text-muted">{{ $trainingClass->start_at?->format('d F Y') ?? '-' }} —
-                    {{ $trainingClass->end_at?->format('d F Y') ?? '' }}
+                <div class="small text-muted">{{ $trainingClass->start_at?->translatedFormat('d F Y') ?? '-' }} —
+                    {{ $trainingClass->end_at?->translatedFormat('d F Y') ?? '' }}
                 </div>
             </div>
             <div>
@@ -101,8 +101,9 @@
                             <div class="small text-muted">{{ $trainingClass->description ?? '-' }}</div>
                         </div>
                         <div class="mb-2"><strong>Periode</strong>
-                            <div class="small text-muted">{{ $trainingClass->start_at?->format('d F Y') ?? '-' }} —
-                                {{ $trainingClass->end_at?->format('d F Y') ?? '-' }}
+                            <div class="small text-muted">{{ $trainingClass->start_at?->translatedFormat('d F Y') ?? '-' }}
+                                —
+                                {{ $trainingClass->end_at?->translatedFormat('d F Y') ?? '-' }}
                             </div>
                         </div>
                     </div>

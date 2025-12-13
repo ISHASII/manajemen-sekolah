@@ -15,12 +15,13 @@
                         <div class="list-group-item d-flex justify-content-between align-items-start">
                             <div>
                                 <h6 class="mb-1">{{ $ann->title }}</h6>
-                                <small class="text-muted me-2">{{ $ann->created_at->format('d M Y') }}</small>
+                                <small class="text-muted me-2">{{ $ann->created_at->translatedFormat('d M Y') }}</small>
                                 @if(optional($ann->creator)->name)
                                     <small class="text-muted">oleh {{ optional($ann->creator)->name }}</small>
                                 @endif
                                 @if($ann->publish_date)
-                                    <div><small class="text-muted">Publish: {{ $ann->publish_date->format('d M Y') }}</small></div>
+                                    <div><small class="text-muted">Publish:
+                                            {{ $ann->publish_date->translatedFormat('d M Y') }}</small></div>
                                 @endif
                             </div>
                             <div>

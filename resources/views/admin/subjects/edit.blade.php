@@ -33,12 +33,6 @@
                         @error('category') <div class="text-danger small">{{ $message }}</div> @enderror
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label">SKS</label>
-                        <input type="number" name="credit_hours" class="form-control"
-                            value="{{ old('credit_hours', $subject->credit_hours) ?? 0 }}">
-                        @error('credit_hours') <div class="text-danger small">{{ $message }}</div> @enderror
-                    </div>
-                    <div class="col-md-4">
                         <label class="form-label">Status</label>
                         <select name="is_active" class="form-select">
                             <option value="1" {{ old('is_active', $subject->is_active) == 1 ? 'selected' : '' }}>Aktif

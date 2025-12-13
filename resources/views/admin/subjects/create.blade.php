@@ -20,12 +20,6 @@
                         @error('code') <div class="text-danger small">{{ $message }}</div> @enderror
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label">SKS</label>
-                        <input type="number" name="credit_hours" class="form-control"
-                            value="{{ old('credit_hours') ?? 0 }}">
-                        @error('credit_hours') <div class="text-danger small">{{ $message }}</div> @enderror
-                    </div>
-                    <div class="col-md-4">
                         <label class="form-label">Kategori</label>
                         <select name="category" class="form-select">
                             <option value="">- Pilih -</option>

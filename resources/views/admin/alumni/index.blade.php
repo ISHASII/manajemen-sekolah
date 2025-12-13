@@ -30,7 +30,7 @@
                         @foreach($alumni as $al)
                             <tr>
                                 <td>{{ optional(optional($al->student)->user)->name ?? 'N/A' }}</td>
-                                <td>{{ $al->graduation_date ? $al->graduation_date->format('Y') : '-' }}</td>
+                                <td>{{ $al->graduation_date ? $al->graduation_date->translatedFormat('Y') : '-' }}</td>
                                 <td>
                                     <a href="{{ route('admin.alumni.edit', $al->id) }}"
                                         class="btn btn-sm btn-outline-primary">Edit</a>

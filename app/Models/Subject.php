@@ -10,7 +10,6 @@ class Subject extends Model
         'name',
         'code',
         'description',
-        'credit_hours',
         'category',
         'is_active'
     ];

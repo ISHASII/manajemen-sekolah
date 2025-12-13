@@ -5,6 +5,7 @@ namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\View;
 use App\Models\School;
+use Carbon\Carbon;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -21,6 +22,24 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Set Carbon locale to Indonesian
+        try {
+            // Try multiple Indonesian locale options
+            $locales = ['id_ID', 'id', 'Indonesian', 'indonesia'];
+            foreach ($locales as $locale) {
+                if (Carbon::setLocale($locale)) {
+                    break;
+                }
+            }
+
+            // Set system locale as well
+            setlocale(LC_TIME, 'id_ID', 'id', 'Indonesian', 'id_ID.UTF-8', 'C');
+
+        } catch (\Exception $e) {
+            // Fallback if locale setting fails
+            Carbon::setLocale('id');
+        }
+
         // Set default pagination view to Bootstrap 5
         \Illuminate\Pagination\Paginator::defaultView('pagination::bootstrap-5');
         \Illuminate\Pagination\Paginator::defaultSimpleView('pagination::simple-bootstrap-5');
@@ -45,17 +64,5 @@ class AppServiceProvider extends ServiceProvider
         }
 
         View::share('school', $school);
-
-        // Share day name mapping for Indonesian translation
-        $daysInIndonesian = [
-            'monday' => 'Senin',
-            'tuesday' => 'Selasa',
-            'wednesday' => 'Rabu',
-            'thursday' => 'Kamis',
-            'friday' => 'Jumat',
-            'saturday' => 'Sabtu',
-            'sunday' => 'Minggu'
-        ];
-        View::share('daysInIndonesian', $daysInIndonesian);
     }
 }

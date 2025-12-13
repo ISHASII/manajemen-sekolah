@@ -117,8 +117,8 @@
                                 </h2>
                                 <p class="mb-0 opacity-75">
                                     <i class="bi bi-calendar-check me-2"></i>
-                                    {{ $daysInIndonesian[strtolower(\Carbon\Carbon::now()->format('l'))] ?? \Carbon\Carbon::now()->format('l') }},
-                                    {{ \Carbon\Carbon::now()->format('d F Y') }}
+                                    {{ \Carbon\Carbon::now()->translatedFormat('l') }},
+                                    {{ \Carbon\Carbon::now()->translatedFormat('d F Y') }}
                                 </p>
                                 <p class="mb-0 opacity-50 small">
                                     Selamat datang, {{ Auth::user()->name }}
@@ -466,7 +466,7 @@
                                             </td>
                                             <td>
                                                 <small
-                                                    class="text-muted">{{ $application->created_at->format('d/m/Y H:i') }}</small>
+                                                    class="text-muted">{{ $application->created_at->translatedFormat('d/m/Y H:i') }}</small>
                                             </td>
                                             <td>
                                                 <div class="btn-group btn-group-sm" role="group">
@@ -600,13 +600,13 @@
                         @foreach($classDistributionData['labels'] ?? ['Kelas X', 'Kelas XI', 'Kelas XII'] as $label)
                             '{{ $label }}',
                         @endforeach
-                                                                                                                                            ],
+                                                                                                                                                                ],
                     datasets: [{
                         data: [
                             @foreach($classDistributionData['data'] ?? [45, 38, 42] as $data)
                                 {{ $data }},
                             @endforeach
-                                                                                                                                                ],
+                                                                                                                                                                    ],
                         backgroundColor: [
                             '#0d6efd',
                             '#198754',
