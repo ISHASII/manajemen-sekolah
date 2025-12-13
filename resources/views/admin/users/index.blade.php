@@ -9,6 +9,39 @@
         </div>
         <div class="card">
             <div class="card-body">
+                <form method="GET" action="{{ route('admin.users.index') }}" class="mb-3">
+                    <div class="row g-2 align-items-end">
+                        <div class="col-md-4">
+                            <label class="form-label">Cari nama atau email</label>
+                            <input type="text" name="search" value="{{ request('search') }}" class="form-control"
+                                placeholder="Nama atau email...">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Role</label>
+                            <select name="role" class="form-select">
+                                <option value="">Semua</option>
+                                <option value="admin" {{ request('role') === 'admin' ? 'selected' : '' }}>Admin</option>
+                                <option value="teacher" {{ request('role') === 'teacher' ? 'selected' : '' }}>Guru</option>
+                                <option value="student" {{ request('role') === 'student' ? 'selected' : '' }}>Siswa</option>
+                                <option value="kejuruan" {{ request('role') === 'kejuruan' ? 'selected' : '' }}>Kejuruan
+                                </option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Status Aktif</label>
+                            <select name="is_active" class="form-select">
+                                <option value="">Semua</option>
+                                <option value="1" {{ request('is_active') === '1' ? 'selected' : '' }}>Aktif</option>
+                                <option value="0" {{ request('is_active') === '0' ? 'selected' : '' }}>Non-aktif</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-primary">Filter</button>
+                            <a href="{{ route('admin.users.index') }}" class="btn btn-outline-secondary">Reset</a>
+                        </div>
+                    </div>
+                </form>
+
                 @if($users && $users->count())
                     <table class="table table-striped">
                         <thead>

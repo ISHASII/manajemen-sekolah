@@ -36,16 +36,30 @@
                         </div>
 
                         <div class="col-md-3">
-                            <label class="form-label">Pelatihan</label>
-                            <select name="training_class_id" class="form-select">
-                                <option value="">Semua</option>
-                                @if(isset($trainingClasses))
-                                    @foreach($trainingClasses as $tc)
-                                        <option value="{{ $tc->id }}" {{ request('training_class_id') == $tc->id ? 'selected' : '' }}>
-                                            {{ $tc->title }}</option>
-                                    @endforeach
-                                @endif
-                            </select>
+                            @if(isset($isKejuruan) && $isKejuruan)
+                                <label class="form-label">Pelatihan</label>
+                                <select name="training_class_id" class="form-select">
+                                    <option value="">Semua</option>
+                                    @if(isset($trainingClasses))
+                                        @foreach($trainingClasses as $tc)
+                                            <option value="{{ $tc->id }}" {{ request('training_class_id') == $tc->id ? 'selected' : '' }}>
+                                                {{ $tc->title }}
+                                            </option>
+                                        @endforeach
+                                    @endif
+                                </select>
+                            @else
+                                <label class="form-label">Kelas</label>
+                                <select name="class_id" class="form-select">
+                                    <option value="">Semua</option>
+                                    @if(isset($classes))
+                                        @foreach($classes as $c)
+                                            <option value="{{ $c->id }}" {{ request('class_id') == $c->id ? 'selected' : '' }}>
+                                                {{ $c->name }}</option>
+                                        @endforeach
+                                    @endif
+                                </select>
+                            @endif
                         </div>
 
                         <div class="col-md-2">

@@ -13,6 +13,19 @@
 
         <div class="card">
             <div class="card-body">
+                <form method="GET" action="{{ route('admin.teachers.index') }}" class="mb-3">
+                    <div class="row g-2 align-items-end">
+                        <div class="col-md-4">
+                            <label class="form-label">Cari Nama</label>
+                            <input type="text" name="name" value="{{ request('name') }}" class="form-control"
+                                placeholder="Cari nama guru...">
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-primary">Filter</button>
+                            <a href="{{ route('admin.teachers.index') }}" class="btn btn-outline-secondary">Reset</a>
+                        </div>
+                    </div>
+                </form>
                 @if($teachers && $teachers->count() > 0)
                     <div class="table-responsive">
                         <table class="table table-hover">

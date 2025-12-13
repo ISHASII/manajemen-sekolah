@@ -142,9 +142,34 @@ class AdminController extends Controller
         return view('admin.applications.index', compact('applications'));
     }
 
-    public function users()
+    public function users(Request $request)
     {
-        $users = User::latest()->paginate(20);
+        $query = User::query();
+
+        if ($request->filled('search')) {
+            $s = $request->get('search');
+            $query->where(function ($q) use ($s) {
+                $q->where('name', 'like', "%{$s}%")
+                    ->orWhere('email', 'like', "%{$s}%");
+            });
+        }
+
+        if ($request->filled('role')) {
+            $role = $request->get('role');
+            if (in_array($role, ['admin','teacher','student','kejuruan'])) {
+                $query->where('role', $role);
+            }
+        }
+
+        if ($request->filled('is_active')) {
+            $isActive = $request->get('is_active');
+            if ($isActive === '1' || $isActive === '0') {
+                $query->where('is_active', (int)$isActive);
+            }
+        }
+
+        $users = $query->orderBy('created_at', 'desc')->paginate(20)->appends($request->query());
+
         return view('admin.users.index', compact('users'));
     }
 
@@ -864,11 +889,19 @@ class AdminController extends Controller
         return redirect()->route('admin.students.index')->with('success', 'Siswa berhasil dihapus.');
     }
 
-    public function teachers()
+    public function teachers(Request $request)
     {
         // Show all teachers to allow admin reactivation and editing
-        $teachers = Teacher::with('user')
-            ->paginate(20);
+        $query = Teacher::with('user');
+
+        if ($request->filled('name')) {
+            $q = $request->get('name');
+            $query->whereHas('user', function ($qsub) use ($q) {
+                $qsub->where('name', 'like', "%{$q}%");
+            });
+        }
+
+        $teachers = $query->orderBy('created_at', 'desc')->paginate(20)->appends($request->query());
         $subjects = Subject::pluck('name', 'id')->toArray();
 
         return view('admin.teachers.index', compact('teachers', 'subjects'));
