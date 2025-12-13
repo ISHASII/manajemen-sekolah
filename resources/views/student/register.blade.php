@@ -76,26 +76,7 @@
                                 </div>
                             </div>
 
-                            <div class="row g-3 mt-2">
-                                <div class="col-md-6">
-                                    <label for="password" class="form-label fw-semibold required">Password</label>
-                                    <input type="password" class="form-control @error('password') is-invalid @enderror"
-                                        id="password" name="password" required>
-                                    @error('password')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="password_confirmation" class="form-label fw-semibold required">Konfirmasi
-                                        Password</label>
-                                    <input type="password"
-                                        class="form-control @error('password_confirmation') is-invalid @enderror"
-                                        id="password_confirmation" name="password_confirmation" required>
-                                    @error('password_confirmation')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                            </div>
+
 
                             <div class="row g-3 mt-2">
                                 <div class="col-md-6">
@@ -619,10 +600,10 @@
                     }
 
                     alertContainer.innerHTML = `<div class="alert alert-danger alert-dismissible fade show" role="alert">
-                                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                                    <strong>Silakan lengkapi:</strong> ${labelText}.
-                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                                </div>`;
+                                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                        <strong>Silakan lengkapi:</strong> ${labelText}.
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                    </div>`;
 
                     // Add invalid class and focus
                     firstInvalid.classList.add('is-invalid');

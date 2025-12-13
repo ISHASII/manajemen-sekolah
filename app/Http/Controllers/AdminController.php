@@ -264,8 +264,8 @@ class AdminController extends Controller
                     'is_active' => true,
                 ]);
                 } else {
-                // Use password saved in application (already hashed) if present; otherwise create default password
-                $userPassword = $application->password ?? \Illuminate\Support\Facades\Hash::make('password123');
+                // Use default password '12345678' for new student accounts
+                $userPassword = \Illuminate\Support\Facades\Hash::make('12345678');
                 $user = User::create([
                     'name' => $application->student_name,
                     'email' => $application->email,

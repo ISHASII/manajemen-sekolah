@@ -52,7 +52,6 @@ class StudentApplicationController extends Controller
             'medical_certificate' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
             'photo' => 'required|file|mimes:jpg,jpeg,png|max:2048',
             'agreement' => 'accepted',
-            'password' => 'required|string|min:8|confirmed',
         ]);
         // Handle file uploads - required documents
         $documents = [];
@@ -122,7 +121,6 @@ class StudentApplicationController extends Controller
             'documents' => $documents,
             'medical_info' => $request->input('medical_info') ?? null,
             'application_date' => now(),
-            'password' => Hash::make($request->input('password')),
         ]);
 
         return redirect()->route('application.success')
