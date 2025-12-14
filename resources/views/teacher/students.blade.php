@@ -71,9 +71,9 @@
                                                         <div class="d-flex justify-content-between align-items-center mt-3">
                                                             <span
                                                                 class="badge
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                @if($student->status === 'active') bg-success
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                @else bg-secondary
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                @endif">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    @if($student->status === 'active') bg-success
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    @else bg-secondary
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    @endif">
                                                                 {{ ucfirst($student->status) }}
                                                             </span>
 
@@ -90,6 +90,7 @@
                                                                     data-bs-target="#addSkillModal{{ $student->id }}">
                                                                     <i class="bi bi-star"></i> Skill
                                                                 </button>
+
                                                             </div>
                                                         </div>
                                                     </div>
@@ -173,6 +174,7 @@
                                                     </div>
                                                 </div>
                                             </div>
+                                            {{-- per-student attendance modal removed; use class-level bulk modal instead --}}
 
                                             <!-- Add Skill Modal -->
                                             <div class="modal fade" id="addSkillModal{{ $student->id }}" tabindex="-1">

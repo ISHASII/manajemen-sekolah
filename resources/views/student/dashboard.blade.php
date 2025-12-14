@@ -43,25 +43,9 @@
 
         <!-- Quick Stats -->
         <div class="row mb-4">
-            <div class="col-xl-3 col-md-6 mb-3">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body">
-                        <div class="row align-items-center">
-                            <div class="col">
-                                <p class="text-muted small mb-1">Kehadiran Bulan Ini</p>
-                                <h3 class="text-success mb-0">{{ $attendancePercent ?? 0 }}%</h3>
-                            </div>
-                            <div class="col-auto">
-                                <div class="icon icon-shape bg-success text-white rounded-circle">
-                                    <i class="bi bi-calendar-check"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <!-- Kehadiran card removed as requested -->
 
-            <div class="col-xl-3 col-md-6 mb-3">
+            <div class="col-xl-4 col-md-6 mb-3">
                 <div class="card border-0 shadow-sm h-100">
                     <div class="card-body">
                         <div class="row align-items-center">
@@ -79,7 +63,7 @@
                 </div>
             </div>
 
-            <div class="col-xl-3 col-md-6 mb-3">
+            <div class="col-xl-4 col-md-6 mb-3">
                 <div class="card border-0 shadow-sm h-100">
                     <div class="card-body">
                         <div class="row align-items-center">
@@ -97,7 +81,7 @@
                 </div>
             </div>
 
-            <div class="col-xl-3 col-md-6 mb-3">
+            <div class="col-xl-4 col-md-6 mb-3">
                 <div class="card border-0 shadow-sm h-100">
                     <div class="card-body">
                         <div class="row align-items-center">
@@ -136,6 +120,10 @@
                             </a>
                             <a href="{{ route('student.materials') }}" class="btn btn-outline-primary btn-sm">
                                 <i class="bi bi-folder-symlink me-2"></i>Materi Kelas
+                            </a>
+                            @php $routePrefix = auth()->user()->role === 'kejuruan' ? 'kejuruan' : 'student'; @endphp
+                            <a href="{{ route($routePrefix . '.attendance') }}" class="btn btn-sm btn-primary">
+                                <i class="bi bi-list-check me-2"></i>Rekap Absensi
                             </a>
                             @if(optional($student->classRoom)->grade_level === 'kejuruan')
                                 <a href="{{ route('student.training-classes.index') }}" class="btn btn-outline-primary btn-sm">

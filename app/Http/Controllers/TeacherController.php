@@ -12,11 +12,13 @@ use App\Models\StudentSkill;
 use App\Models\ClassRoom;
 use App\Models\Subject;
 use App\Models\TrainingClass;
+use App\Models\Attendance;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use App\Models\User;
+use Carbon\Carbon;
 
 class TeacherController extends Controller
 {
@@ -239,10 +241,11 @@ class TeacherController extends Controller
             abort(403, 'Anda tidak memiliki akses ke data kelas ini.');
         }
 
-        $students = $classRoom->students()->with('user')->get();
+        $students = $classRoom->students()->with(['user','latestAttendance'])->get();
         $schedules = Schedule::where('class_id', $id)->with(['subject', 'teacher'])->get();
+        $subjects = $schedules->pluck('subject')->filter()->unique('id')->values();
 
-        return view('teacher.classes.detail', compact('classRoom', 'students', 'schedules'));
+        return view('teacher.classes.detail', compact('classRoom', 'students', 'schedules', 'subjects'));
     }
 
     /**
@@ -269,12 +272,14 @@ class TeacherController extends Controller
             abort(403, 'Anda tidak memiliki akses ke data pelatihan ini.');
         }
 
-        $students = $trainingClass->students()->with('user')->get();
+        $students = $trainingClass->students()->with(['user','latestAttendance'])->get();
 
         // Get subjects for this training class from teaching materials
         $trainingSubjects = \App\Models\Subject::whereHas('teachingMaterials', function($query) use ($id) {
             $query->where('training_class_id', $id);
         })->where('is_active', true)->get();
+        // also expose as subjects for consistency in views
+        $subjects = $trainingSubjects;
 
         // If no specific training subjects, suggest a relevant subject based on training class title
         $suggestedSubject = null;
@@ -290,7 +295,182 @@ class TeacherController extends Controller
             }
         }
 
-        return view('teacher.training-classes.detail', compact('trainingClass', 'students', 'trainingSubjects', 'suggestedSubject'));
+        return view('teacher.training-classes.detail', compact('trainingClass', 'students', 'trainingSubjects', 'suggestedSubject', 'subjects'));
+    }
+
+    /**
+     * Attendance recap for a class (daily or monthly)
+     */
+    public function classAttendanceReport($id, Request $request)
+    {
+        $classRoom = ClassRoom::with('students.user')->findOrFail($id);
+
+        $user = Auth::user();
+        $teachesClass = Schedule::where('teacher_id', $user->id)->where('class_id', $id)->exists();
+        $isHomeroom = ($classRoom->homeroom_teacher_id ?? null) === $user->id;
+        if (!$teachesClass && !$isHomeroom) abort(403, 'Anda tidak memiliki akses ke data kelas ini.');
+
+        $mode = $request->query('mode', 'daily'); // 'daily' or 'monthly'
+        $date = $request->query('date', now()->format('Y-m-d'));
+        $month = $request->query('month', now()->format('Y-m'));
+
+        // get list of subjects for this class from schedules
+        $subjects = Schedule::where('class_id', $id)->with('subject')->get()->pluck('subject')->filter()->unique('id')->values();
+        $selectedSubject = $request->query('subject_id');
+
+        if ($mode === 'daily') {
+            $selectedDate = Carbon::parse($date)->toDateString();
+            $query = Attendance::where('class_id', $id)
+                ->where('date', $selectedDate);
+            if ($selectedSubject) $query->where('subject_id', $selectedSubject);
+            $attendances = $query->get()->keyBy('student_id');
+            return view('teacher.attendance.class', compact('classRoom', 'attendances', 'selectedDate', 'subjects', 'selectedSubject'));
+        }
+
+        // monthly
+        $start = Carbon::parse($month . '-01')->startOfMonth();
+        $end = $start->copy()->endOfMonth();
+        $query = Attendance::where('class_id', $id)
+            ->whereBetween('date', [$start->toDateString(), $end->toDateString()]);
+        if ($selectedSubject) $query->where('subject_id', $selectedSubject);
+        $attendances = $query->get();
+
+        // build map by student_id -> date -> status (support multiple subjects per date)
+        $map = [];
+        foreach ($attendances as $a) {
+            $map[$a->student_id][$a->date->toDateString()][] = $a->status;
+        }
+
+        $dates = [];
+        for ($d = $start->copy(); $d->lte($end); $d->addDay()) {
+            $dates[] = $d->toDateString();
+        }
+
+        return view('teacher.attendance.class-monthly', compact('classRoom', 'map', 'dates', 'start', 'end', 'subjects', 'selectedSubject'));
+    }
+
+    /**
+     * Attendance recap for training class (daily or monthly)
+     */
+    public function trainingAttendanceReport($id, Request $request)
+    {
+        $trainingClass = TrainingClass::with('students.user')->findOrFail($id);
+        $user = Auth::user();
+        $teacherModel = Teacher::where('user_id', $user->id)->first();
+        $isTrainer = false;
+        if ($trainingClass->trainer_id && $teacherModel && $trainingClass->trainer_id === $teacherModel->id) $isTrainer = true;
+        if (!$isTrainer && $trainingClass->trainer_id === $user->id) $isTrainer = true;
+        if (!$isTrainer) abort(403, 'Anda tidak memiliki akses ke data pelatihan ini.');
+
+        $mode = $request->query('mode', 'daily');
+        $date = $request->query('date', now()->format('Y-m-d'));
+        $month = $request->query('month', now()->format('Y-m'));
+
+        // subject filtering from trainingSubjects
+        $selectedSubject = $request->query('subject_id');
+
+        if ($mode === 'daily') {
+            $selectedDate = Carbon::parse($date)->toDateString();
+            $query = Attendance::where('training_class_id', $id)
+                ->where('date', $selectedDate);
+            if ($selectedSubject) $query->where('subject_id', $selectedSubject);
+            $attendances = $query->get()->keyBy('student_id');
+            return view('teacher.attendance.training', compact('trainingClass', 'attendances', 'selectedDate', 'trainingSubjects', 'selectedSubject'));
+        }
+
+        // monthly
+        $start = Carbon::parse($month . '-01')->startOfMonth();
+        $end = $start->copy()->endOfMonth();
+        $query = Attendance::where('training_class_id', $id)
+            ->whereBetween('date', [$start->toDateString(), $end->toDateString()]);
+        if ($selectedSubject) $query->where('subject_id', $selectedSubject);
+        $attendances = $query->get();
+        $map = [];
+        foreach ($attendances as $a) {
+            $map[$a->student_id][$a->date->toDateString()][] = $a->status;
+        }
+
+        $dates = [];
+        for ($d = $start->copy(); $d->lte($end); $d->addDay()) {
+            $dates[] = $d->toDateString();
+        }
+
+        return view('teacher.attendance.training-monthly', compact('trainingClass', 'map', 'dates', 'start', 'end', 'trainingSubjects', 'selectedSubject', 'subjects'));
+    }
+
+    /**
+     * Attendance recap for a single student (teacher view)
+     */
+    public function studentAttendanceReport($id, Request $request)
+    {
+        $student = Student::with(['user', 'classRoom', 'trainingClasses'])->findOrFail($id);
+
+        // Authorization: reuse same checks as studentDetail
+        $hasAccess = Schedule::where('teacher_id', Auth::id())
+            ->where('class_id', $student->class_id)
+            ->exists();
+        $isHomeroom = ClassRoom::where('id', $student->class_id)
+            ->where('homeroom_teacher_id', Auth::id())
+            ->exists();
+
+        $teacherModel = Teacher::where('user_id', Auth::id())->first();
+        $isTrainerOfStudent = false;
+        if ($teacherModel) {
+            $trainingIds = $student->trainingClasses()->pluck('training_classes.id');
+            if ($trainingIds && $trainingIds->count() > 0) {
+                $isTrainerOfStudent = TrainingClass::whereIn('id', $trainingIds)
+                    ->where(function ($q) use ($teacherModel) {
+                        $q->where('trainer_id', $teacherModel->id);
+                    })->exists();
+            }
+        }
+        if (!$isTrainerOfStudent) {
+            $trainingIds = $student->trainingClasses()->pluck('training_classes.id');
+            if ($trainingIds && $trainingIds->count() > 0) {
+                $isTrainerOfStudent = TrainingClass::whereIn('id', $trainingIds)
+                    ->where(function ($q) {
+                        $q->where('trainer_id', Auth::id());
+                    })->exists();
+            }
+        }
+
+        if (!$hasAccess && !$isHomeroom && !$isTrainerOfStudent) {
+            abort(403, 'Anda tidak memiliki akses ke data absensi siswa ini.');
+        }
+
+        $mode = $request->query('mode', 'daily');
+        $date = $request->query('date', now()->format('Y-m-d'));
+        $month = $request->query('month', now()->format('Y-m'));
+
+        if ($mode === 'daily') {
+            $selectedDate = Carbon::parse($date)->toDateString();
+            $attendances = Attendance::where('student_id', $id)
+                ->where('date', $selectedDate)
+                ->with(['classRoom', 'trainingClass', 'teacher'])
+                ->get();
+            return view('teacher.attendance.student', compact('student', 'attendances', 'selectedDate'));
+        }
+
+        // monthly
+        $start = Carbon::parse($month . '-01')->startOfMonth();
+        $end = $start->copy()->endOfMonth();
+        $attendances = Attendance::where('student_id', $id)
+            ->whereBetween('date', [$start->toDateString(), $end->toDateString()])
+            ->get();
+
+        $map = [];
+        $summary = ['present' => 0, 'absent' => 0, 'sick' => 0, 'excused' => 0];
+        foreach ($attendances as $a) {
+            $map[$a->date->toDateString()][] = $a;
+            if (isset($summary[$a->status])) $summary[$a->status]++;
+        }
+
+        $dates = [];
+        for ($d = $start->copy(); $d->lte($end); $d->addDay()) {
+            $dates[] = $d->toDateString();
+        }
+
+        return view('teacher.attendance.student-monthly', compact('student', 'map', 'dates', 'start', 'end', 'summary'));
     }
 
     public function addGrade(Request $request)
@@ -320,6 +500,147 @@ class TeacherController extends Controller
         ]);
 
         return back()->with('success', 'Nilai berhasil ditambahkan!');
+    }
+
+    /**
+     * Store or update attendance for a student (class or training class)
+     */
+    public function storeAttendance(Request $request)
+    {
+        $request->validate([
+            'student_id' => 'required|exists:students,id',
+            'date' => 'nullable|date',
+            'status' => 'required|in:present,absent,sick,excused',
+            'class_id' => 'nullable|exists:classes,id',
+            'training_class_id' => 'nullable|exists:training_classes,id',
+            'subject_id' => 'nullable|exists:subjects,id',
+            'notes' => 'nullable|string|max:1000',
+        ]);
+
+        $student = Student::findOrFail($request->student_id);
+        $user = Auth::user();
+        $teacherModel = Teacher::where('user_id', $user->id)->first();
+
+        $date = $request->date ? Carbon::parse($request->date)->toDateString() : now()->toDateString();
+
+        // Determine context: class or training
+        $classId = $request->class_id;
+        $trainingClassId = $request->training_class_id;
+
+        if ($trainingClassId) {
+            $training = TrainingClass::find($trainingClassId);
+            if (!$training) return back()->with('error', 'Pelatihan tidak ditemukan.');
+
+            $isTrainer = false;
+            if ($training->trainer_id && $teacherModel && $training->trainer_id === $teacherModel->id) $isTrainer = true;
+            if (!$isTrainer && $training->trainer_id === $user->id) $isTrainer = true;
+            if (!$isTrainer) return back()->with('error', 'Anda tidak memiliki akses untuk mengabsen peserta ini.');
+        } else {
+            // class context
+            if (!$classId) return back()->with('error', 'Sumber kelas tidak ditentukan.');
+            $teachesClass = Schedule::where('teacher_id', $user->id)->where('class_id', $classId)->exists();
+            $isHomeroom = ClassRoom::where('id', $classId)->where('homeroom_teacher_id', $user->id)->exists();
+            if (!$teachesClass && !$isHomeroom) return back()->with('error', 'Anda tidak memiliki akses untuk mengabsen kelas ini.');
+        }
+
+        // Upsert attendance for this student on that date
+        $criteria = [
+            'student_id' => $student->id,
+            'date' => $date,
+            'class_id' => $classId,
+            'training_class_id' => $trainingClassId,
+            'subject_id' => $request->subject_id,
+        ];
+
+        $values = [
+            'teacher_id' => $user->id,
+            'status' => $request->status,
+            'notes' => $request->notes,
+            'subject_id' => $request->subject_id,
+        ];
+
+        try {
+            Attendance::updateOrCreate($criteria, array_merge($criteria, $values));
+            return back()->with('success', 'Absensi berhasil disimpan.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Gagal menyimpan absensi: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Store bulk attendance for many students at once (per subject/date)
+     */
+    public function storeBulkAttendance(Request $request)
+    {
+        $request->validate([
+            'students' => 'required|array',
+            'date' => 'nullable|date',
+            'subject_id' => 'nullable|exists:subjects,id',
+            'class_id' => 'nullable|exists:classes,id',
+            'training_class_id' => 'nullable|exists:training_classes,id',
+            'students.*.status' => 'nullable|in:present,absent,sick,excused',
+            'students.*.notes' => 'nullable|string|max:1000',
+        ]);
+
+        $user = Auth::user();
+        $teacherModel = Teacher::where('user_id', $user->id)->first();
+        $date = $request->date ? Carbon::parse($request->date)->toDateString() : now()->toDateString();
+        $classId = $request->class_id;
+        $trainingClassId = $request->training_class_id;
+        $subjectId = $request->subject_id;
+
+        // Authorization
+        if ($trainingClassId) {
+            $training = TrainingClass::find($trainingClassId);
+            if (!$training) return back()->with('error', 'Pelatihan tidak ditemukan.');
+            $isTrainer = false;
+            if ($training->trainer_id && $teacherModel && $training->trainer_id === $teacherModel->id) $isTrainer = true;
+            if (!$isTrainer && $training->trainer_id === $user->id) $isTrainer = true;
+            if (!$isTrainer) return back()->with('error', 'Anda tidak memiliki akses untuk mengabsen peserta ini.');
+        } else {
+            if (!$classId) return back()->with('error', 'Sumber kelas tidak ditentukan.');
+            $teachesClass = Schedule::where('teacher_id', $user->id)->where('class_id', $classId)->exists();
+            $isHomeroom = ClassRoom::where('id', $classId)->where('homeroom_teacher_id', $user->id)->exists();
+            if (!$teachesClass && !$isHomeroom) return back()->with('error', 'Anda tidak memiliki akses untuk mengabsen kelas ini.');
+        }
+
+        DB::beginTransaction();
+        try {
+            foreach ($request->students as $studentId => $data) {
+                $student = Student::find($studentId);
+                if (!$student) continue;
+
+                // ensure student belongs to class/training when context provided
+                if ($classId && $student->class_id != $classId) continue;
+                if ($trainingClassId) {
+                    $enrolled = $student->trainingClasses()->where('training_classes.id', $trainingClassId)->exists();
+                    if (!$enrolled) continue;
+                }
+
+                $criteria = [
+                    'student_id' => $student->id,
+                    'date' => $date,
+                    'class_id' => $classId,
+                    'training_class_id' => $trainingClassId,
+                    'subject_id' => $subjectId,
+                ];
+
+                $values = [
+                    'teacher_id' => $user->id,
+                    'status' => $data['status'] ?? null,
+                    'notes' => $data['notes'] ?? null,
+                    'subject_id' => $subjectId,
+                ];
+
+                Attendance::updateOrCreate($criteria, array_merge($criteria, $values));
+            }
+
+            DB::commit();
+            return back()->with('success', 'Absensi massal berhasil disimpan.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Gagal menyimpan absensi massal: ' . $e->getMessage());
+        }
     }
 
     public function updateGrade(Request $request, $id)
@@ -462,6 +783,53 @@ class TeacherController extends Controller
         }
 
         return view('teacher.schedules', compact('schedules', 'materialsByClass'));
+    }
+
+    /**
+     * Attendance index for teacher: lists classes (including kejuruan) and training classes
+     */
+    public function attendanceIndex()
+    {
+        $user = Auth::user();
+        $teacher = Teacher::where('user_id', $user->id)->first();
+
+        $scheduleClassIds = Schedule::where('teacher_id', $user->id)
+            ->pluck('class_id')
+            ->unique()
+            ->filter()
+            ->values()
+            ->all();
+        $homeroomClassIds = ClassRoom::where('homeroom_teacher_id', $user->id)->pluck('id')->unique()->filter()->values()->all();
+        $classIds = array_values(array_unique(array_merge($scheduleClassIds, $homeroomClassIds)));
+
+        $classes = collect();
+        if (!empty($classIds)) {
+            $classes = ClassRoom::whereIn('id', $classIds)
+                ->withCount('students')
+                ->get();
+        }
+
+        // kejuruan classes specifically (where grade_level == 'kejuruan') that teacher is assigned to
+        $kejuruan = ClassRoom::where('grade_level', 'kejuruan')
+            ->where(function($q) use ($user) {
+                $q->where('homeroom_teacher_id', $user->id)
+                  ->orWhereIn('id', Schedule::where('teacher_id', $user->id)->pluck('class_id')->toArray());
+            })
+            ->withCount('students')
+            ->get();
+
+        // training classes
+        $trainingClasses = collect();
+        if ($teacher) {
+            $trainingClasses = TrainingClass::where('is_active', true)
+                ->where(function ($q) use ($teacher, $user) {
+                    $q->where('trainer_id', $teacher->id)->orWhere('trainer_id', $user->id);
+                })
+                ->withCount('students')
+                ->get();
+        }
+
+        return view('teacher.attendance.index', compact('classes', 'kejuruan', 'trainingClasses'));
     }
 
     /**

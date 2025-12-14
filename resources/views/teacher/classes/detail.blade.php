@@ -11,6 +11,10 @@
                 <div class="small text-muted">{{ $classRoom->grade_level ?? '-' }} — {{ $classRoom->description ?? '' }}
                 </div>
             </div>
+            <div>
+                <a href="{{ route('teacher.class.attendance', $classRoom->id) }}" class="btn btn-primary">Rekap
+                    Absensi</a>
+            </div>
         </div>
 
         <div class="row g-3">
@@ -22,6 +26,91 @@
                     </div>
                     <div class="card-body bg-light">
                         @if($classRoom->students && $classRoom->students->count() > 0)
+                            <div class="mb-3 d-flex justify-content-end">
+                                <button class="btn btn-warning" data-bs-toggle="modal"
+                                    data-bs-target="#bulkAttendanceModalClass{{ $classRoom->id }}">Absensi</button>
+                                <a href="{{ route('teacher.class.attendance', $classRoom->id) }}"
+                                    class="btn btn-primary ms-2">Rekap Absensi</a>
+                            </div>
+
+                            <!-- Bulk Attendance Modal -->
+                            <div class="modal fade" id="bulkAttendanceModalClass{{ $classRoom->id }}" tabindex="-1"
+                                aria-labelledby="bulkAttendanceModalClass{{ $classRoom->id }}Label" aria-hidden="true">
+                                <div class="modal-dialog modal-xl">
+                                    <div class="modal-content">
+                                        <form method="POST" action="{{ route('teacher.attendance.bulk') }}">
+                                            @csrf
+                                            <input type="hidden" name="class_id" value="{{ $classRoom->id }}">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="bulkAttendanceModalClass{{ $classRoom->id }}Label">
+                                                    Absensi - {{ $classRoom->name }}</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                    aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <div class="row g-2 align-items-end">
+                                                    <div class="col-auto">
+                                                        <label class="form-label">Tanggal</label>
+                                                        <input type="date" name="date" value="{{ now()->format('Y-m-d') }}"
+                                                            class="form-control">
+                                                    </div>
+                                                    <div class="col-auto">
+                                                        <label class="form-label">Mata Pelajaran</label>
+                                                        <select name="subject_id" class="form-select">
+                                                            <option value="">-- Pilih Mata Pelajaran --</option>
+                                                            @foreach($subjects as $sub)
+                                                                <option value="{{ $sub->id }}">{{ $sub->name }}</option>
+                                                            @endforeach
+                                                        </select>
+                                                    </div>
+                                                </div>
+
+                                                <div class="table-responsive mt-3">
+                                                    <table class="table table-sm">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>#</th>
+                                                                <th>Nama</th>
+                                                                <th>Status</th>
+                                                                <th>Catatan</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            @foreach($classRoom->students as $idx => $student)
+                                                                <tr>
+                                                                    <td>{{ $idx + 1 }}</td>
+                                                                    <td>{{ $student->user->name }}</td>
+                                                                    <td>
+                                                                        <select name="students[{{ $student->id }}][status]"
+                                                                            class="form-select">
+                                                                            <option value="">--</option>
+                                                                            <option value="present">Hadir</option>
+                                                                            <option value="absent">Alpha</option>
+                                                                            <option value="sick">Sakit</option>
+                                                                            <option value="excused">Izin</option>
+                                                                        </select>
+                                                                    </td>
+                                                                    <td>
+                                                                        <input type="text"
+                                                                            name="students[{{ $student->id }}][notes]"
+                                                                            class="form-control" placeholder="Catatan (opsional)">
+                                                                    </td>
+                                                                </tr>
+                                                            @endforeach
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary"
+                                                    data-bs-dismiss="modal">Batal</button>
+                                                <button type="submit" class="btn btn-success">Simpan Absensi</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="row">
                                 @foreach($classRoom->students as $student)
                                     <div class="col-md-6 mb-3">
@@ -47,22 +136,34 @@
                                                     </div>
                                                 </div>
                                                 <div class="d-flex justify-content-between align-items-center">
-                                                    <span
-                                                        class="badge {{ $student->status === 'active' ? 'bg-success' : 'bg-secondary' }}">{{ ucfirst($student->status) }}</span>
-                                                    <div class="btn-group btn-group-sm">
-                                                        <a href="{{ route('teacher.students.detail', $student->id) }}"
-                                                            class="btn btn-outline-light btn-icon"><i
-                                                                class="bi bi-eye text-white"></i></a>
-                                                        <button type="button" class="btn btn-outline-success btn-icon"
-                                                            data-bs-toggle="modal"
-                                                            data-bs-target="#addGradeModal{{ $student->id }}">
-                                                            <i class="bi bi-plus-lg text-white"></i>
-                                                        </button>
-                                                        <button type="button" class="btn btn-outline-info btn-icon"
-                                                            data-bs-toggle="modal"
-                                                            data-bs-target="#addSkillModal{{ $student->id }}">
-                                                            <i class="bi bi-star text-white"></i>
-                                                        </button>
+                                                    <div>
+                                                        <span
+                                                            class="badge {{ $student->status === 'active' ? 'bg-success' : 'bg-secondary' }}">{{ ucfirst($student->status) }}</span>
+                                                        @if($student->latestAttendance)
+                                                            <div class="small text-muted mt-1">Terakhir:
+                                                                {{ $student->latestAttendance->date->translatedFormat('d F Y') }} —
+                                                                <span
+                                                                    class="badge bg-info">{{ ucfirst($student->latestAttendance->status) }}</span>
+                                                            </div>
+                                                        @endif
+                                                    </div>
+                                                    <div class="d-flex align-items-center">
+
+                                                        <div class="btn-group btn-group-sm">
+                                                            <a href="{{ route('teacher.students.detail', $student->id) }}"
+                                                                class="btn btn-outline-light btn-icon"><i
+                                                                    class="bi bi-eye text-white"></i></a>
+                                                            <button type="button" class="btn btn-outline-success btn-icon"
+                                                                data-bs-toggle="modal"
+                                                                data-bs-target="#addGradeModal{{ $student->id }}">
+                                                                <i class="bi bi-plus-lg text-white"></i>
+                                                            </button>
+                                                            <button type="button" class="btn btn-outline-info btn-icon"
+                                                                data-bs-toggle="modal"
+                                                                data-bs-target="#addSkillModal{{ $student->id }}">
+                                                                <i class="bi bi-star text-white"></i>
+                                                            </button>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -70,6 +171,7 @@
                                     </div>
                                     @include('teacher.partials.modals.add-grade', ['student' => $student])
                                     @include('teacher.partials.modals.add-skill', ['student' => $student])
+                                    {{-- per-student attendance modal removed; use bulk modal instead --}}
                                 @endforeach
                             </div>
                         @else

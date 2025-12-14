@@ -165,6 +165,13 @@ class KejuruanController extends Controller
         return view('student.training.show', compact('training', 'student', 'hasActiveTraining'));
     }
     /**
+     * Attendance recap for kejuruan (reuse StudentController logic)
+     */
+    public function attendance(Request $request)
+    {
+        return app(\App\Http\Controllers\StudentController::class)->attendance($request);
+    }
+    /**
      * Enroll in training class
      */
     public function enrollTraining($id)

@@ -9,6 +9,7 @@ use App\Models\Schedule;
 use App\Models\Announcement;
 use App\Models\StudentSkill;
 use App\Models\Document;
+use App\Models\Attendance;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Hash;
@@ -366,6 +367,73 @@ class StudentController extends Controller
         return view('student.schedules', compact('schedules'));
     }
 
+        /**
+         * Attendance recap for the logged-in student (daily/monthly)
+         */
+        public function attendance(Request $request)
+        {
+            $user = Auth::user();
+            $student = Student::where('user_id', $user->id)->with(['classRoom', 'trainingClasses'])->first();
+            if (!$student) {
+                return redirect()->route('student.profile')->with('error', 'Profil siswa belum tersedia.');
+            }
+
+            $mode = $request->query('mode', 'daily');
+            $date = $request->query('date', now()->format('Y-m-d'));
+            $month = $request->query('month', now()->format('Y-m'));
+        $selectedSubject = $request->query('subject_id');
+
+        // Build subjects list from student's class schedules and training enrollments
+        $subjects = collect();
+        if ($student->classRoom) {
+            $subj = \App\Models\Schedule::where('class_id', $student->classRoom->id)->with('subject')->get()->pluck('subject')->filter()->unique('id')->values();
+            $subjects = $subjects->merge($subj);
+        }
+        if ($student->trainingClasses()->count()) {
+            $trainingSubj = \App\Models\Subject::whereHas('teachingMaterials', function($q) use ($student) {
+                $q->whereIn('training_class_id', $student->trainingClasses()->pluck('training_classes.id')->toArray());
+            })->get();
+            $subjects = $subjects->merge($trainingSubj);
+        }
+        $subjects = $subjects->unique('id')->values();
+
+        if ($mode === 'daily') {
+            $selectedDate = \Carbon\Carbon::parse($date)->toDateString();
+            $query = Attendance::where('student_id', $student->id)
+                ->where('date', $selectedDate);
+            if ($selectedSubject) $query->where('subject_id', $selectedSubject);
+            $attendances = $query->with(['classRoom', 'trainingClass', 'teacher', 'subject'])->get();
+            return view('student.attendance', compact('student', 'attendances', 'selectedDate', 'subjects', 'selectedSubject'));
+        }
+
+        $start = \Carbon\Carbon::parse($month . '-01')->startOfMonth();
+        $end = $start->copy()->endOfMonth();
+        $query = Attendance::where('student_id', $student->id)
+            ->whereBetween('date', [$start->toDateString(), $end->toDateString()]);
+        if ($selectedSubject) $query->where('subject_id', $selectedSubject);
+        $attendances = $query->with(['classRoom', 'trainingClass', 'subject', 'teacher'])->get();
+
+        // prepare map and summary defaults
+        $map = [];
+        $summary = [
+            'present' => 0,
+            'absent' => 0,
+            'sick' => 0,
+            'excused' => 0,
+        ];
+
+        foreach ($attendances as $a) {
+            $map[$a->date->toDateString()][] = $a;
+            $summary[$a->status] = ($summary[$a->status] ?? 0) + 1;
+        }
+
+            $dates = [];
+            for ($d = $start->copy(); $d->lte($end); $d->addDay()) {
+                $dates[] = $d->toDateString();
+            }
+
+            return view('student.attendance-monthly', compact('student', 'map', 'dates', 'start', 'end', 'summary', 'subjects', 'selectedSubject'));
+        }
     /**
      * List training classes available for kejuruan students
      */

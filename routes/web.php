@@ -149,6 +149,8 @@ Route::middleware('auth')->group(function () {
         // Announcements accessible by students
         Route::get('/announcements', [StudentController::class, 'announcements'])->name('announcements');
         Route::get('/materials', [StudentController::class, 'materials'])->name('materials');
+        // Attendance recap for logged-in student
+        Route::get('/attendance', [StudentController::class, 'attendance'])->name('attendance');
         // Student submissions for materials
         Route::post('/materials/{material}/submissions', [\App\Http\Controllers\StudentSubmissionController::class, 'store'])->name('materials.submissions.store');
         Route::patch('/materials/{material}/submissions/{submission}', [\App\Http\Controllers\StudentSubmissionController::class, 'update'])->name('materials.submissions.update');
@@ -169,9 +171,15 @@ Route::middleware('auth')->group(function () {
         Route::get('/students', [TeacherController::class, 'students'])->name('students');
         Route::get('/classes/{id}', [TeacherController::class, 'classDetail'])->name('class.detail');
         Route::get('/students/{id}', [TeacherController::class, 'studentDetail'])->name('students.detail');
+        // Per-student attendance recap (teacher view)
+        Route::get('/students/{id}/attendance', [TeacherController::class, 'studentAttendanceReport'])->name('students.attendance');
         Route::post('/grades', [TeacherController::class, 'addGrade'])->name('grades.store');
         Route::put('/grades/{id}', [TeacherController::class, 'updateGrade'])->name('grades.update');
         Route::delete('/grades/{id}', [TeacherController::class, 'destroyGrade'])->name('grades.destroy');
+        // Attendance
+        Route::post('/attendances', [TeacherController::class, 'storeAttendance'])->name('attendance.store');
+        // Bulk attendance (per-subject/day) for classes or training classes
+        Route::post('/attendances/bulk', [TeacherController::class, 'storeBulkAttendance'])->name('attendance.bulk');
         // Grade management UI (per-class/subject bulk inputs)
         Route::get('/grades/manage', [TeacherController::class, 'manageGrades'])->name('grades.manage');
         Route::post('/grades/manage', [TeacherController::class, 'storeBulkGrades'])->name('grades.manage.store');
@@ -187,7 +195,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/class/{classId}/materials', [App\Http\Controllers\TeacherMaterialsController::class, 'classMaterials'])->name('class.materials');
         Route::get('/training-class/{trainingClassId}/materials', [App\Http\Controllers\TeacherMaterialsController::class, 'trainingMaterials'])->name('training-class.materials');
         Route::get('/training-classes/{id}', [TeacherController::class, 'trainingClassDetail'])->name('training-class.detail');
+        Route::get('/classes/{id}/attendance', [TeacherController::class, 'classAttendanceReport'])->name('class.attendance');
+        Route::get('/training-classes/{id}/attendance', [TeacherController::class, 'trainingAttendanceReport'])->name('training-class.attendance');
         Route::get('/materials', [App\Http\Controllers\TeacherMaterialsController::class, 'index'])->name('materials.index');
+        Route::get('/attendance', [TeacherController::class, 'attendanceIndex'])->name('attendance.index');
         Route::get('/materials/create', [App\Http\Controllers\TeacherMaterialsController::class, 'create'])->name('materials.create');
         Route::post('/materials', [App\Http\Controllers\TeacherMaterialsController::class, 'store'])->name('materials.store');
         Route::get('/materials/{id}/edit', [App\Http\Controllers\TeacherMaterialsController::class, 'edit'])->name('materials.edit');
@@ -210,6 +221,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/grade-history', [KejuruanController::class, 'gradeHistory'])->name('grade-history');
         Route::get('/announcements', [KejuruanController::class, 'announcements'])->name('announcements');
         Route::get('/materials', [KejuruanController::class, 'materials'])->name('materials');
+        // Attendance recap for kejuruan student (self view)
+        Route::get('/attendance', [KejuruanController::class, 'attendance'])->name('attendance');
         Route::post('/materials/{material}/submissions', [\App\Http\Controllers\StudentSubmissionController::class, 'store'])->name('materials.submissions.store');
         Route::patch('/materials/{material}/submissions/{submission}', [\App\Http\Controllers\StudentSubmissionController::class, 'update'])->name('materials.submissions.update');
         // Training classes only for kejuruan

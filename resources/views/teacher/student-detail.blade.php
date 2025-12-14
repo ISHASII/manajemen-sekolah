@@ -37,6 +37,8 @@
 
             <div>
                 <a href="{{ route('teacher.students') }}" class="btn btn-outline-secondary text-light">Kembali</a>
+                <a href="{{ route('teacher.students.attendance', $student->id) }}" class="btn btn-sm btn-primary text-light"
+                    style="margin-right:6px;">Rekap Absensi</a>
                 <button type="button" class="btn btn-outline-success text-light" data-bs-toggle="modal"
                     data-bs-target="#addGradeModal{{ $student->id }}">Tambahkan Nilai</button>
             </div>
@@ -156,7 +158,8 @@
                                         </div>
                                         <div class="d-flex align-items-center">
                                             <div class="small me-3">
-                                                {{ optional($sk->assessed_date)->translatedFormat('d M Y') ?? '' }}</div>
+                                                {{ optional($sk->assessed_date)->translatedFormat('d M Y') ?? '' }}
+                                            </div>
                                             <div class="btn-group">
                                                 <button type="button" aria-label="Edit penilaian keterampilan"
                                                     class="btn btn-sm btn-primary btn-icon" data-bs-toggle="modal"

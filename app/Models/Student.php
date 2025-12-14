@@ -94,4 +94,14 @@ class Student extends Model
     {
         return $this->hasMany(StudentGradeHistory::class)->orderBy('academic_year', 'desc')->orderBy('semester', 'desc');
     }
+
+    public function attendances()
+    {
+        return $this->hasMany(Attendance::class)->orderBy('date', 'desc');
+    }
+
+    public function latestAttendance()
+    {
+        return $this->hasOne(Attendance::class)->latestOfMany('date');
+    }
 }

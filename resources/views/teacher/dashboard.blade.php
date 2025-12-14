@@ -146,7 +146,7 @@
                                                                 <p class="text-dark small mb-1">
                                                                     <i class="bi bi-calendar-week me-1"></i>
                                                                     Hari:
-                                                                    {{ \Carbon\Carbon::parse($schedule->day_of_week)->translatedFormat('l') }}
+                                                                    {{ \Carbon\Carbon::create()->next($schedule->day_of_week)->translatedFormat('l') }}
                                                                 </p>
                                                                 <p class="text-dark small mb-1">
                                                                     <i class="bi bi-people me-1"></i>
@@ -186,6 +186,9 @@
                                                     </a>
                                                     <a href="{{ route('teacher.students') }}" class="btn btn-sm btn-success">
                                                         <i class="bi bi-plus-circle me-1"></i>Input Nilai
+                                                    </a> <a href="{{ route('teacher.attendance.index') }}"
+                                                        class="btn btn-sm btn-primary ms-2">
+                                                        <i class="bi bi-list-check me-1"></i>Rekap Absensi
                                                     </a>
                                                 </div>
                                             </div>
@@ -245,13 +248,13 @@
                                     @foreach($classes as $class)
                                         <div class="list-group-item border-0 d-flex justify-content-between align-items-center"
                                             style="
-                                                                                                                                                                                                                                                                                                                                                                                                                                padding: 14px;
-                                                                                                                                                                                                                                                                                                                                                                                                                                margin-bottom: 8px;
-                                                                                                                                                                                                                                                                                                                                                                                                                                border-radius: 10px;
-                                                                                                                                                                                                                                                                                                                                                                                                                                background: white;
-                                                                                                                                                                                                                                                                                                                                                                                                                                box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-                                                                                                                                                                                                                                                                                                                                                                                                                                transition: 0.2s;
-                                                                                                                                                                                                                                                                                                                                                                                                                            "
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                padding: 14px;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                margin-bottom: 8px;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                border-radius: 10px;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                background: white;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                transition: 0.2s;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                            "
                                             onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.15)'"
                                             onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 6px rgba(0,0,0,0.08)'">
                                             <div>
@@ -263,13 +266,16 @@
                                             </div>
 
                                             <div class="d-flex gap-2">
+                                                <a href="{{ route('teacher.class.attendance', $class->id) }}"
+                                                    class="btn btn-sm btn-primary"
+                                                    style="border-radius: 20px; padding: 4px 14px; font-size: 0.85rem;">Rekap</a>
                                                 <a href="{{ route('teacher.class.detail', $class->id) }}"
-                                                    class="btn btn-sm bg-warning"
+                                                    class="btn btn-sm btn-warning"
                                                     style="border-radius: 20px; padding: 4px 14px; font-size: 0.85rem;">
                                                     <i></i> Lihat
                                                 </a>
                                                 <a href="{{ route('teacher.class.materials', $class->id) }}"
-                                                    class="btn btn-sm bg-warning"
+                                                    class="btn btn-sm btn-warning"
                                                     style="border-radius: 20px; padding: 4px 14px; font-size: 0.85rem;">
                                                     <i class=""></i> Kelola Materi
                                                 </a>
@@ -289,12 +295,15 @@
                                                     <small class="text-muted" style="font-size: 0.85rem;">{{ $tc->students_count ?? 0 }}
                                                         peserta</small>
                                                 </div>
-                                                <div class="d-flex gap-2">
-                                                    <a href="{{ route('teacher.training-class.detail', $tc->id) }}"
-                                                        class="btn btn-sm bg-warning"
+                                                <div class="d-flex gap-2"> <a
+                                                        href="{{ route('teacher.training-class.attendance', $tc->id) }}"
+                                                        class="btn btn-sm btn-primary"
+                                                        style="border-radius: 20px; padding: 4px 14px; font-size: 0.85rem;">Rekap</a> <a
+                                                        href="{{ route('teacher.training-class.detail', $tc->id) }}"
+                                                        class="btn btn-sm btn-warning"
                                                         style="border-radius: 20px; padding: 4px 14px; font-size: 0.85rem;">Lihat</a>
                                                     <a href="{{ route('teacher.training-class.materials', $tc->id) }}"
-                                                        class="btn btn-sm bg-warning"
+                                                        class="btn btn-sm btn-warning"
                                                         style="border-radius: 20px; padding: 4px 14px; font-size: 0.85rem;">Kelola
                                                         Materi</a>
                                                 </div>
@@ -466,8 +475,8 @@
         }
 
         /* Make the header of each card orange inside teacher pages without changing card body colors
-                                                                                                                                                                                                                                                   -- also override any Bootstrap `bg-white` utility class using `!important` to ensure this
-                                                                                                                                                                                                                                                   styling applies when markup uses `bg-white` on the header. */
+                                                                                                                                                                                                                                                                   -- also override any Bootstrap `bg-white` utility class using `!important` to ensure this
+                                                                                                                                                                                                                                                                   styling applies when markup uses `bg-white` on the header. */
         .teacher-page-wrapper .card-header,
         .teacher-page-wrapper .card-header.bg-white {
             background-color: #fd7e14 !important;
@@ -547,10 +556,10 @@
                     labels: ['A (90-100)', 'B (80-89)', 'C (70-79)', 'D (60-69)', 'E (<60)'],
                     datasets: [{
                         data: [
-                                                                                                                                                                                                                                                                                    {{ $gradeDistribution['A'] ?? 0 }},
-                                                                                                                                                                                                                                                                                    {{ $gradeDistribution['B'] ?? 0 }},
-                                                                                                                                                                                                                                                                                    {{ $gradeDistribution['C'] ?? 0 }},
-                                                                                                                                                                                                                                                                                    {{ $gradeDistribution['D'] ?? 0 }},
+                                                                                                                                                                                                                                                                                                    {{ $gradeDistribution['A'] ?? 0 }},
+                                                                                                                                                                                                                                                                                                    {{ $gradeDistribution['B'] ?? 0 }},
+                                                                                                                                                                                                                                                                                                    {{ $gradeDistribution['C'] ?? 0 }},
+                                                                                                                                                                                                                                                                                                    {{ $gradeDistribution['D'] ?? 0 }},
                             {{ $gradeDistribution['E'] ?? 0 }}
                         ],
                         backgroundColor: [

@@ -140,6 +140,10 @@
                                     <button class="btn btn-sm btn-secondary" data-bs-toggle="modal" data-bs-target="#idCardModal">
                                         <i class="fas fa-id-card"></i> Generate ID Card
                                     </button>
+                                    @php $routePrefix = auth()->user()->role === 'kejuruan' ? 'kejuruan' : 'student'; @endphp
+                                    <a href="{{ route($routePrefix . '.attendance') }}" class="btn btn-sm btn-primary">
+                                        <i class="bi bi-list-check me-1"></i> Rekap Absensi
+                                    </a>
                                 </div>
                             </div>
                         </div>
