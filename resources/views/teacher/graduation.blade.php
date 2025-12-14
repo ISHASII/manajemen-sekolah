@@ -60,6 +60,8 @@
                                                     <span class="badge bg-success">Aktif</span>
                                                 @elseif($student->status == 'graduated')
                                                     <span class="badge bg-primary">Lulus</span>
+                                                @elseif($student->status == 'failed')
+                                                    <span class="badge bg-danger">Tidak Lulus</span>
                                                 @else
                                                     <span class="badge bg-secondary">{{ ucfirst($student->status) }}</span>
                                                 @endif
@@ -72,7 +74,7 @@
                                                         <i class="bi bi-check-circle"></i> Proses Kelulusan
                                                     </button>
                                                 @else
-                                                    <span class="text-muted">Sudah diproses</span>
+                                                    <span class="text-dark">Sudah diproses</span>
                                                 @endif
                                             </td>
                                         </tr>
@@ -94,7 +96,7 @@
                                                             <div class="mb-3">
                                                                 <label class="form-label">Status Kelulusan *</label>
                                                                 <select name="status" class="form-select" required>
-                                                                    <option value="">Pilih Status</option>
+                                                                    <option value="" disabled selected>Pilih Status</option>
                                                                     <option value="passed">Lulus</option>
                                                                     <option value="failed">Tidak Lulus</option>
                                                                 </select>
@@ -108,12 +110,9 @@
                                                             </div>
 
                                                             <div class="mb-3">
-                                                                <label class="form-label">Semester *</label>
-                                                                <select name="semester" class="form-select" required>
-                                                                    <option value="">Pilih Semester</option>
-                                                                    <option value="1">Semester 1</option>
-                                                                    <option value="2">Semester 2</option>
-                                                                </select>
+                                                                <label class="form-label">Kelas</label>
+                                                                <input type="text" name="next_class" class="form-control" value="{{ $student->suggested_next_class ?? '' }}" placeholder="Contoh: 2 SD, 1 SMP, 2 SMA (kosong = otomatis)">
+                                                                <div class="small text-muted mt-1">Kosongkan untuk naik otomatis sesuai aturan.</div>
                                                             </div>
 
                                                             <div class="mb-3">
@@ -198,6 +197,8 @@
                                                         <span class="badge bg-success">Aktif</span>
                                                     @elseif($student->status == 'graduated')
                                                         <span class="badge bg-primary">Lulus</span>
+                                                    @elseif($student->status == 'failed')
+                                                        <span class="badge bg-danger">Tidak Lulus</span>
                                                     @else
                                                         <span class="badge bg-secondary">{{ ucfirst($student->status) }}</span>
                                                     @endif
@@ -208,7 +209,7 @@
                                                             <i class="bi bi-check-circle"></i> Proses Kelulusan
                                                         </button>
                                                     @else
-                                                        <span class="text-muted">Sudah diproses</span>
+                                                        <span class="text-dark">Sudah diproses</span>
                                                     @endif
                                                 </td>
                                             </tr>
@@ -228,7 +229,7 @@
                                                                 <div class="mb-3">
                                                                     <label class="form-label">Status Kelulusan *</label>
                                                                     <select name="status" class="form-select" required>
-                                                                        <option value="">Pilih Status</option>
+                                                                        <option value="" disabled selected>Pilih Status</option>
                                                                         <option value="passed">Lulus</option>
                                                                         <option value="failed">Tidak Lulus</option>
                                                                     </select>
@@ -238,12 +239,9 @@
                                                                     <input type="number" name="academic_year" class="form-control" value="{{ date('Y') }}" min="2020" max="2100" required>
                                                                 </div>
                                                                 <div class="mb-3">
-                                                                    <label class="form-label">Semester *</label>
-                                                                    <select name="semester" class="form-select" required>
-                                                                        <option value="">Pilih Semester</option>
-                                                                        <option value="1">Semester 1</option>
-                                                                        <option value="2">Semester 2</option>
-                                                                    </select>
+                                                                    <label class="form-label">Kelas</label>
+                                                                    <input type="text" class="form-control" value="{{ $training->title }}" readonly>
+                                                                    <div class="small text-muted mt-1">Nama pelatihan (tidak dapat diubah di sini).</div>
                                                                 </div>
                                                                 <div class="mb-3">
                                                                     <label class="form-label">Catatan</label>

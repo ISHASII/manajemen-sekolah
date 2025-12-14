@@ -16,6 +16,7 @@ use App\Models\Attendance;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use App\Models\User;
 use Carbon\Carbon;
@@ -1224,6 +1225,27 @@ class TeacherController extends Controller
                 ->get();
         }
 
+        // Suggest next class for each student so the modal can be pre-filled
+        foreach ($classes as $class) {
+            foreach ($class->students as $stu) {
+                if ($stu->status === 'active') {
+                    $stu->suggested_next_class = $this->determineNextClass($class->name);
+                } else {
+                    $stu->suggested_next_class = null;
+                }
+            }
+        }
+
+        foreach ($trainingClasses as $t) {
+            foreach ($t->students as $stu) {
+                if ($stu->status === 'active') {
+                    $stu->suggested_next_class = 'graduated';
+                } else {
+                    $stu->suggested_next_class = null;
+                }
+            }
+        }
+
         return view('teacher.graduation', compact('classes', 'trainingClasses'));
     }
 
@@ -1232,7 +1254,8 @@ class TeacherController extends Controller
         $request->validate([
             'status' => 'required|in:passed,failed',
             'academic_year' => 'required|numeric',
-            'semester' => 'required|in:1,2',
+            'semester' => 'nullable|in:1,2',
+            'next_class' => 'nullable|string',
             'notes' => 'nullable|string'
         ]);
 
@@ -1262,25 +1285,71 @@ class TeacherController extends Controller
             return back()->with('error', 'Siswa tidak memiliki kelas.');
         }
 
-        // Calculate average grade
-        $averageGrade = $student->grades()
-            ->where('academic_year', $request->academic_year)
-            ->where('semester', $request->semester)
-            ->avg('score');
+        // Determine semester (default to current if not provided)
+        $semester = $request->input('semester') ?? ((int) (date('n') <= 6 ? 1 : 2));
 
-        // Get all grades for this period
-        $subjectsGrades = $student->grades()
-            ->where('academic_year', $request->academic_year)
-            ->where('semester', $request->semester)
-            ->with('subject')
-            ->get()
-            ->map(function ($grade) {
+        // Calculate average grade and subject breakdown.
+        // Some installs may not have academic_year/semester columns on grades (older schema).
+        if (Schema::hasColumn('grades', 'academic_year') && Schema::hasColumn('grades', 'semester')) {
+            $averageGrade = $student->grades()
+                ->where('academic_year', $request->academic_year)
+                ->where('semester', $semester)
+                ->avg('score');
+
+            $subjectsGrades = $student->grades()
+                ->where('academic_year', $request->academic_year)
+                ->where('semester', $semester)
+                ->with('subject')
+                ->get()
+                ->map(function ($grade) {
+                    return [
+                        'subject' => optional($grade->subject)->name ?? '-',
+                        'score' => $grade->score,
+                        'notes' => $grade->notes
+                    ];
+                });
+        } elseif (Schema::hasColumn('grades', 'assessment_date')) {
+            // Fallback: use assessment_date to approximate academic year/semester
+            $year = (int) $request->academic_year;
+            if ($request->filled('semester')) {
+                if ($semester == 1) {
+                    $start = Carbon::create($year, 1, 1)->startOfDay();
+                    $end = Carbon::create($year, 6, 30)->endOfDay();
+                } else {
+                    $start = Carbon::create($year, 7, 1)->startOfDay();
+                    $end = Carbon::create($year, 12, 31)->endOfDay();
+                }
+            } else {
+                $start = Carbon::create($year, 1, 1)->startOfDay();
+                $end = Carbon::create($year, 12, 31)->endOfDay();
+            }
+
+            $averageGrade = $student->grades()
+                ->whereBetween('assessment_date', [$start->toDateString(), $end->toDateString()])
+                ->avg('score');
+
+            $subjectsGrades = $student->grades()
+                ->whereBetween('assessment_date', [$start->toDateString(), $end->toDateString()])
+                ->with('subject')
+                ->get()
+                ->map(function ($grade) {
+                    return [
+                        'subject' => optional($grade->subject)->name ?? '-',
+                        'score' => $grade->score,
+                        'notes' => $grade->notes
+                    ];
+                });
+        } else {
+            // Ultimate fallback: average all grades
+            $averageGrade = $student->grades()->avg('score');
+            $subjectsGrades = $student->grades()->with('subject')->get()->map(function ($grade) {
                 return [
-                    'subject' => $grade->subject->name,
+                    'subject' => optional($grade->subject)->name ?? '-',
                     'score' => $grade->score,
                     'notes' => $grade->notes
                 ];
             });
+        }
 
         DB::beginTransaction();
         try {
@@ -1290,7 +1359,7 @@ class TeacherController extends Controller
                 'class_id' => $historyClassId,
                 'class_name' => $currentClassName,
                 'academic_year' => $request->academic_year,
-                'semester' => $request->semester,
+                'semester' => $semester,
                 'average_grade' => $averageGrade,
                 'subjects_grades' => $subjectsGrades->toArray(),
                 'status' => $request->status,
@@ -1299,17 +1368,22 @@ class TeacherController extends Controller
             ]);
 
             if ($request->status == 'passed') {
-                // For training class students, treat graduation as final (become Kejuruan/Alumni)
-                if (isset($trainingClassId) && $trainingClassId) {
-                    $nextClass = 'graduated';
+                // Determine next class: prefer explicit next_class from form, otherwise auto-determine
+                if ($request->filled('next_class')) {
+                    $nextClass = $request->input('next_class');
                 } else {
-                    $nextClass = $this->determineNextClass(optional($currentClass)->name);
+                    if (isset($trainingClassId) && $trainingClassId) {
+                        $nextClass = 'graduated';
+                    } else {
+                        $nextClass = $this->determineNextClass(optional($currentClass)->name);
+                    }
                 }
 
                 if ($nextClass === 'graduated') {
                     // Student becomes Kejuruan (alumni)
                     $student->user->update(['role' => 'kejuruan']);
-                    $student->update(['status' => 'graduated']);
+                    // Use direct DB update to avoid Eloquent oddities in transactions
+                    DB::table('students')->where('id', $student->id)->update(['status' => 'graduated']);
 
                     // Create alumni record
                     \App\Models\Alumni::create([
@@ -1318,22 +1392,31 @@ class TeacherController extends Controller
                         'final_grade' => $averageGrade,
                         'notes' => 'Lulus dari ' . $currentClass->name
                     ]);
-                } else {
-                    // Find or create next class
-                    $newClass = ClassRoom::firstOrCreate(
-                        ['name' => $nextClass],
-                        ['capacity' => 30]
-                    );
 
-                    $student->update(['class_id' => $newClass->id]);
+                    // If this was in a training class, update pivot status
+                    if ($trainingClassId) {
+                        $student->trainingClasses()->updateExistingPivot($trainingClassId, ['status' => 'graduated']);
+                    }
+                } else {
+                    // Requirement: when student is declared 'passed', they should remain
+                    // listed in their current class but have status 'graduated'.
+                    DB::table('students')->where('id', $student->id)->update(['status' => 'graduated']);
+
+                    // For training participants, mark pivot as graduated too
+                    if ($trainingClassId) {
+                        $student->trainingClasses()->updateExistingPivot($trainingClassId, ['status' => 'graduated']);
+                    }
                 }
             } else {
-                // Failed - stays in same class
-                $student->update(['status' => 'active']);
+                // Failed - mark as failed and stays in same class
+                DB::table('students')->where('id', $student->id)->update(['status' => 'failed']);
             }
 
             DB::commit();
-            return back()->with('success', 'Status kelulusan berhasil diproses.');
+
+            // Refresh student model and report final status
+            $student->refresh();
+            return back()->with('success', 'Status kelulusan berhasil diproses. Status sekarang: ' . ($student->status ?? 'unknown'));
         } catch (\Exception $e) {
             DB::rollback();
             return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
